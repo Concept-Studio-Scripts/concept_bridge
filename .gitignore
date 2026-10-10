@@ -1,0 +1,8 @@
+node_modules/
+web/node_modules/
+release/
+*.zip
+*.log
+.DS_Store
+__pycache__/
+KNOWN_LIMITATIONS.md

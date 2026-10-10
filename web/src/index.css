@@ -1,0 +1,9 @@
+.hidden {
+    display: none;
+
+}
+
+* {
+    overflow-y: hidden; 
+    overflow-x: hidden; 
+}

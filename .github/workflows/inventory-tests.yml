@@ -1,0 +1,46 @@
+name: Concept Bridge checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.4
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes lua5.4
+      - name: Check inventory contracts
+        run: |
+          lua5.4 test/inventory_regressions.lua
+          lua5.4 test/provider_docs.lua
+          lua5.4 test/audit_regressions.lua
+          lua5.4 test/runtime_identity.lua
+      - name: Check standard-Lua fixture/helper syntax
+        run: |
+          find lib/inventory test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install, lint and build NUI
+        working-directory: web
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+      - name: Check rebuilt resource and package
+        shell: pwsh
+        run: ./tools/package-release.ps1 -OutFile ./release/concept_bridge.zip

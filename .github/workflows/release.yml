@@ -1,0 +1,82 @@
+name: Release
+
+# a `v*` tag builds the NUI from clean checkout and attaches the release zip.
+# Packaging itself lives in tools/package-release.ps1 (the single definition,
+# shared with inventory-tests.yml and local builds); this workflow only adds the
+# tag-specific version check and the GitHub release plumbing. Manual runs
+# upload the same zip as workflow artifacts (no release cut), which makes
+# them a dry-run for the tag path.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Build NUI + attach release zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Version sanity (tag matches manifest + package + lockfile)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MANIFEST_VERSION=$(grep -oE "^version '[^']+'" fxmanifest.lua | head -n1 | cut -d"'" -f2)
+          PKG_VERSION=$(node -p "require('./web/package.json').version")
+          LOCK_VERSION=$(node -p "require('./web/package-lock.json').version")
+          ROOT_VERSION=$(node -p "require('./web/package-lock.json').packages[''].version")
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ] || [ "$TAG_VERSION" != "$PKG_VERSION" ] || [ "$TAG_VERSION" != "$LOCK_VERSION" ] || [ "$TAG_VERSION" != "$ROOT_VERSION" ]; then
+            echo "tag v$TAG_VERSION does not match fxmanifest=$MANIFEST_VERSION package.json=$PKG_VERSION" >&2
+            exit 1
+          fi
+          echo "version sanity ok: $TAG_VERSION"
+
+      - name: Package release zip
+        shell: pwsh
+        run: ./tools/package-release.ps1 -Build -OutFile "./concept_bridge-$($env:GITHUB_REF_NAME).zip"
+
+      - name: Create GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          # Release notes = the version's section of CHANGELOG.dev.md, without
+          # its heading (the release page is dev-facing; the owner changelog
+          # ships inside the zip).
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { grab=1; next }
+            grab && /^## / { exit }
+            grab { if (content || $0 != "") { content=1; print } }
+          ' CHANGELOG.dev.md > release-notes.md
+          if [ -s release-notes.md ]; then
+            gh release create "$TAG" --title "concept_bridge $TAG" \
+              --notes-file release-notes.md \
+              "concept_bridge-${TAG}.zip#Full resource (prebuilt UI)"
+          else
+            # A missing changelog line must never fail a release.
+            gh release create "$TAG" --title "concept_bridge $TAG" \
+              --generate-notes \
+              "concept_bridge-${TAG}.zip#Full resource (prebuilt UI)"
+          fi
+
+      - name: Upload zip as workflow artifacts (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v7
+        with:
+          name: concept_bridge-zip
+          path: |
+            concept_bridge-*.zip
