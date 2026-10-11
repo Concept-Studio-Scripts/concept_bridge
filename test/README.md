@@ -1,6 +1,6 @@
 # Bridge regression checks
 
-Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All five Lua suites and frontend checks run in Concept Bridge CI.
+Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All six Lua suites and frontend checks run in Concept Bridge CI.
 
 Stock Lua syntax compilation applies to the standard-Lua inventory helpers and fixtures. Twenty inherited runtime files use extended syntax that stock Lua 5.4 cannot parse; full runtime syntax/behavior requires the appropriate FiveM environment and is not established by this CI gate.
 
@@ -39,3 +39,13 @@ ox_lib owns RPC transport and timeout semantics.
 
 The support file supplies narrow dependency doubles. It does not certify the
 installed ox_lib runtime or replace FiveM acceptance.
+
+
+## Fallback shop transactions
+
+Run `lua test/shop_transactions.lua`. The suite covers server access checks,
+bounded quantities and totals, registration ownership, finite/unlimited stock,
+real coroutine concurrency, payment/delivery failures, compensation and recovery
+journals, and source/character changes during provider calls. It runs in CI.
+KVP, framework and inventory doubles exercise the actual shop implementation;
+installed-provider persistence and live FiveM acceptance remain separate checks.
