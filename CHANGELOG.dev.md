@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Bind housing notifications to their sender; validate property IDs and active
+  adapters, normalize exits, and separate trusted server publishing. Recognize
+  the correctly named qb-apartments resource.
+
 - Authorize fallback shop opening and checkout from server character, position,
   routing bucket and group grades. Reject invalid quantities/accounts and reserve
   finite stock before payment; failed delivery restores stock and refunds payment.
