@@ -22,6 +22,8 @@ ensure concept_hud
 
 Requires OneSync, server artifact 6116 or newer, ox_lib and oxmysql. Consumers use `exports.concept_bridge:Bridge()` and the `concept_bridge:` event namespace. Run one bridge implementation.
 
+Use ox_lib directly for shared utilities and oxmysql for database access.
+
 ## Features
 
 ### Framework Compatibility
@@ -95,9 +97,7 @@ resources; they have no config key.
 
 ### Consumer modules
 
-QB/PS inventory adapters resolve Qbox item definitions through its QB compatibility bridge. Inventory mutations reject missing definitions before changing items. QB/Qbox metadata updates preserve item counts and use provider setters instead of removing/re-adding items; unsupported updates return a failure reason. See [inventory regression tests and API contracts](test/README.md) for supported paths and validation limits.
-
-Origen, Core and Tgiann reads and selected mutation/opening paths follow their official website exports. [Provider contracts](test/PROVIDER_CONTRACTS.md) lists API mappings, slot/ID semantics and compatibility changes, including operations whose contract remains unsupported. Validate the exact provider versions and in-game behavior before deploying to production.
+See the [API documentation](https://conceptstudio.store/docs/concept-bridge) for module usage and [provider contracts](test/PROVIDER_CONTRACTS.md) for inventory export mappings.
 
 | Module | API (`exports.concept_bridge:<Module>()` or `Bridge.<Module>`) |
 |---|---|
@@ -146,58 +146,6 @@ exports.concept_bridge:RegisterModule('Framework', {
 
 Registered functions merge over the `_default` fallbacks, so consumers only ever
 talk to concept_bridge.
-
-## Utility ownership (Unreleased)
-
-Database access uses oxmysql directly through `@oxmysql/lib/MySQL.lua` on the
-server and parameterized `MySQL.*` queries. The bridge does not expose a SQL utility.
-
-ox_lib supplies callbacks, module loading, locales, points, zones, raycasts,
-vehicle properties, table helpers, printing, random strings, asset streaming,
-clipboard access, input dialogs and scaleforms. Use its APIs directly in each
-consumer resource with `@ox_lib/init.lua` loaded.
-
-The bridge retains provider adapters and extensions for replicated entities and
-markers, shell management, object placement, animation completion tracking,
-particle effects, cutscenes, geometry/easing and logging providers. These extensions use ox_lib for their underlying generic utilities.
-
-Internal RPC uses `lib.callback.register` and `lib.callback.await`. Target players
-are explicit for server-to-client calls; client calls pass `false` as the ox_lib
-cooldown parameter. Handler permissions remain the responsibility of server code.
-
-## Fallback shops (Unreleased)
-
-Server `Shops.CreateShop(name, inventory, coords, groups?, options?)` registers the
-bridge's fallback shop. The default inventory adapter forwards
-`Inventory.RegisterShop` to this implementation. Native inventory shop providers
-keep their own registration and transaction contracts.
-
-Provide one coordinate or a list of coordinates with finite x/y/z values. Each
-item needs a unique name and finite non-negative price. `count = nil` means
-unlimited stock; a non-negative integer count is shared stock for the current
-bridge session. Registration copies the data; re-registering a name does not
-replenish stock. Stock resets when the bridge restarts and shops are registered.
-
-Groups are minimum-grade maps such as `{police = 3}` or name lists. Nil/empty
-groups allow any loaded character. Checks use the server's normalized job,
-QB/Qbox gang or OX group membership. `options.distance` defaults to 3 metres
-(maximum 20), and `options.bucket` defaults to 0. These requirements apply to
-opening and every checkout; a displayed menu does not authorize a purchase.
-
-Checkout accepts money/bank accounts and integer quantities from 1 to 100, uses
-the registered price, and caps the total at 2,147,483,647. It serializes each
-player's checkout, enforces a 500 ms server cooldown and reserves finite stock
-before yielding payment operations. Confirmed failed delivery restores stock
-and compensates payment; free items skip the debit.
-
-Recovery records use server resource KVP under `concept_bridge:shop_checkout:`.
-Server `Shops.GetPendingCheckout(src)` inspects the current character's record;
-`Shops.RetryCheckoutRefund(src)` retries a confirmed outstanding refund, also
-attempted before the character's next checkout. Confirmed completion cannot
-refund again, including after a reconnect with a different source ID. Interrupted
-or contradictory provider effects are retained as `review_required`; inspect the
-record and reconcile the provider state before clearing it. No client event
-accepts a refund recipient or amount. Do not delete unresolved journals as cleanup.
 
 ## Development and support
 
