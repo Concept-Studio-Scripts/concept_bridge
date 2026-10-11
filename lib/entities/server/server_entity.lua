@@ -1,4 +1,3 @@
-Ids = Ids or Require("lib/utility/shared/ids.lua")
 
 local Entities = {}
 ServerEntity = {} -- Renamed from EntityRelay
@@ -14,7 +13,7 @@ local Invoked = {}
 function ServerEntity.New(id, entityType, model, coords, rotation, args)
     assert(coords, "Coords are required for entity creation")
     local self = args or {}
-    self.id = id or Ids.CreateUniqueId(Entities)
+    self.id = id or lib.string.random('................')
     self.entityType = entityType
     self.model = model
     self.coords = coords
@@ -37,7 +36,7 @@ end
 function ServerEntity.CreateBulk(entities)
     local createdEntities = {}
     for _, entityData in pairs(entities) do
-        local id = entityData.id or Ids.CreateUniqueId(Entities)
+        local id = entityData.id or lib.string.random('................')
         local entity =  ServerEntity.New(id, entityData.entityType, entityData.model, entityData.coords, entityData.rotation, entityData)
         createdEntities[id] = entity
     end

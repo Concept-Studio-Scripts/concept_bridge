@@ -3,8 +3,6 @@ Shops = Shops or {}
 
 local registeredShops = {}
 
-local Language = Language or Require("modules/locales/shared.lua")
-local locale = Language.Locale
 
 ---This can open a shop for the client
 ---@param src number

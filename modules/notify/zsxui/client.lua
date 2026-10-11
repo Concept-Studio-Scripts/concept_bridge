@@ -8,8 +8,6 @@ Notify.GetResourceName = function()
     return resourceName
 end
 
-local Language = Language or Require("modules/locales/shared.lua")
-local locale = Language.Locale
 local placeHolderText = locale("Notifications.PlaceholderTitle")
 
 local function getIconByType(_type)

@@ -1,6 +1,6 @@
 DefaultActions = {}
-ClientEntityActions = ClientEntityActions or Require("lib/entities/client/client_entity_actions.lua")
-LA = LA or Require("lib/utility/shared/la.lua")
+ClientEntityActions = ClientEntityActions or lib.require('@concept_bridge.lib.entities.client.client_entity_actions')
+LA = LA or lib.require('@concept_bridge.lib.utility.shared.la')
 
 --- Internal implementation for walking. Registered via RegisterAction.
 function DefaultActions.WalkTo(entityData, coords, speed, timeout)
@@ -59,16 +59,7 @@ function DefaultActions.PlayAnim(entityData, animDict, animName, blendIn, blendO
     playbackRate = playbackRate or 0.0
 
     local thread = CreateThread(function()
-        if not HasAnimDictLoaded(animDict) then
-            RequestAnimDict(animDict)
-            local timeout = 100
-            while not HasAnimDictLoaded(animDict) and timeout > 0 do
-                Wait(10)
-                timeout = timeout - 1
-            end
-        end
-
-        if HasAnimDictLoaded(animDict) then
+        if pcall(lib.requestAnimDict, animDict, 1000) then
             TaskPlayAnim(entity, animDict, animName, blendIn, blendOut, duration, flag, playbackRate, false, false, false)
 
             -- Wait for completion or interruption
@@ -178,7 +169,7 @@ function DefaultActions.AttachProp(entityData, propModel, boneName, offsetPos, o
     end
 
     local modelHash = Utility.GetEntityHashFromModel(propModel)
-    if not Utility.LoadModel(modelHash) then
+    if not pcall(lib.requestModel, modelHash) then
         ClientEntityActions.IsActionRunning[entityId] = false
         ClientEntityActions.ProcessNextAction(entityId)
         return

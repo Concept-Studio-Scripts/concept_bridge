@@ -63,27 +63,11 @@ local componentsToSave <const> = {
 
 -- Utility Functions
 
-function table.shallow_copy(t)
-    local t2 = {}
-    for k, v in pairs(t) do
-        t2[k] = v
-    end
-    return t2
-end
 
-local function WaitForModelLoad(modelHash)
-    local timeout = GetGameTimer() + LOAD_TIMEOUT
-    while not HasModelLoaded(modelHash) and GetGameTimer() < timeout do
-        Wait(0)
-    end
-    return HasModelLoaded(modelHash)
-end
 
 local function CreatePedFromModel(modelName, coords)
     local model = GetHashKey(modelName)
-    RequestModel(model)
-
-    if not WaitForModelLoad(model) then
+    if not pcall(lib.requestModel, model, LOAD_TIMEOUT) then
         print("Failed to load model: " .. modelName)
         return nil
     end
@@ -234,7 +218,7 @@ function Cutscene.Create(cutscene, coords, srcs)
     end
 
     -- Process available tags and assign to players
-    local availableTags = table.shallow_copy(tagsFromCutscene or {})
+    local availableTags = lib.table.clone(tagsFromCutscene or {})
     local usedTags = {}
     local cleanupTags = {}
 

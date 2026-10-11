@@ -4,7 +4,7 @@ if GetResourceState('core_inventory') == 'missing' then return end
 Inventory = Inventory or {}
 Inventory.Stashes = Inventory.Stashes or {}
 local core = exports.core_inventory
-local items = Require('lib/inventory/shared/provider_items.lua')
+local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')
 
 local function content(src)
     local inventory = core:getInventory(src)

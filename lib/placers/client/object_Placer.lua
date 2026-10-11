@@ -1,9 +1,7 @@
 Placeable = Placeable or {}
-Utility = Utility or Require("lib/utility/client/utility.lua")
-if not lib then Require('init.lua', 'ox_lib') end
+Utility = Utility or lib.require('@concept_bridge.lib.utility.client.utility')
 
 local activePlacementProp = nil
-lib.locale()
 
 -- Object placer --
 local placementText = {
@@ -39,7 +37,7 @@ Placeable.PlaceObject = function(object, distance, snapToGround, allowedMats, of
     local checkDist = distance or 10.0
     local ped = PlayerPedId()
 
-    Utility.LoadModel(propObject)
+    lib.requestModel(propObject)
 
     activePlacementProp = CreateObject(propObject, 1.0, 1.0, 1.0, false, true, true)
     SetModelAsNoLongerNeeded(propObject)

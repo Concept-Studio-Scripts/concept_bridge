@@ -1,5 +1,5 @@
 Logs = Logs or {}
-local BridgeServerConfig = BridgeServerConfig or Require('settings/serverConfig.lua')
+local BridgeServerConfig = BridgeServerConfig or lib.require('@concept_bridge.settings.serverConfig')
 
 local pendingLogs = {}
 local sendTimer = nil

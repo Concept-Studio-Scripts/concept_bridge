@@ -8,7 +8,7 @@ Doorlock = Doorlock or {}
 Doorlock.GetClosestDoor = function()
     local ped = PlayerPedId()
     local closestDoor = exports["qb-doorlock"]:GetClosestDoor()
-    if Table.CheckPopulated(closestDoor) then return closestDoor end
+    if type(closestDoor) == 'table' and next(closestDoor) ~= nil then return closestDoor end
     local allDoors = exports["qb-doorlock"]:GetDoorList()
     local pedCoords = GetEntityCoords(ped)
     local door = 0

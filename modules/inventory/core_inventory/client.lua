@@ -1,7 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('core_inventory') == 'missing' then return end
 local core = exports.core_inventory
-local items = Require('lib/inventory/shared/provider_items.lua')
+local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')
 
 Inventory = Inventory or {}
 

@@ -1,7 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('ps-inventory') == 'missing' then return end
 local ps = exports['ps-inventory']
-local QbItems = Require('lib/inventory/shared/qb_items.lua')
+local QbItems = lib.require('@concept_bridge.lib.inventory.shared.qb_items')
 
 Inventory = Inventory or {}
 

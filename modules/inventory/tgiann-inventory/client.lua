@@ -2,7 +2,7 @@
 if GetResourceState('tgiann-inventory') == 'missing' then return end
 
 local tgiann = exports["tgiann-inventory"]
-local items = Require('lib/inventory/shared/provider_items.lua')
+local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')
 
 Inventory = Inventory or {}
 

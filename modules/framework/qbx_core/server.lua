@@ -141,7 +141,7 @@ end
 ---@return boolean success
 ---@return string? reason Failure detail; unsupported providers never remove/re-add.
 Framework.SetMetadata = function(src, item, slot, metadata)
-    return Require('lib/inventory/server/qb_metadata.lua').Set(src, item, slot, metadata)
+    return lib.require('@concept_bridge.lib.inventory.server.qb_metadata').Set(src, item, slot, metadata)
 end
 
 ---@description Returns a table of items matching the specified name and if passed metadata from the player's inventory.
@@ -249,7 +249,7 @@ Framework.AddStress = function(src, value)
     if not player then return end
     local playerData = player.PlayerData
     local newStress = playerData.metadata.stress + value
-    player.Functions.SetMetaData('stress', Math.Clamp(newStress, 0, 100))
+    player.Functions.SetMetaData('stress', lib.math.clamp(newStress, 0, 100))
     TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newStress
 end
@@ -263,7 +263,7 @@ Framework.RemoveStress = function(src, value)
     if not player then return end
     local playerData = player.PlayerData
     local newStress = (playerData.metadata.stress or 0) - value
-    player.Functions.SetMetaData('stress', Math.Clamp(newStress, 0, 100))
+    player.Functions.SetMetaData('stress', lib.math.clamp(newStress, 0, 100))
     TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newStress
 end
@@ -277,7 +277,7 @@ Framework.AddHunger = function(src, value)
     if not player then return end
     local playerData = player.PlayerData
     local newHunger = (playerData.metadata.hunger or 0) + value
-    player.Functions.SetMetaData('hunger', Math.Clamp(newHunger, 0, 100))
+    player.Functions.SetMetaData('hunger', lib.math.clamp(newHunger, 0, 100))
     --TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newHunger
 end
@@ -291,7 +291,7 @@ Framework.AddThirst = function(src, value)
     if not player then return end
     local playerData = player.PlayerData
     local newThirst = (playerData.metadata.thirst or 0) + value
-    player.Functions.SetMetaData('thirst', Math.Clamp(newThirst, 0, 100))
+    player.Functions.SetMetaData('thirst', lib.math.clamp(newThirst, 0, 100))
     --TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newThirst
 end

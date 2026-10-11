@@ -1,8 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('es_extended') ~= 'started' then return end
 
-Prints = Prints or Require("lib/utility/shared/prints.lua")
-Callback = Callback or Require("lib/callback/shared/callback.lua")
 
 ESX = exports.es_extended:getSharedObject()
 
@@ -261,7 +259,7 @@ end
 ---@return number | nil
 Framework.AddStress = function(src, value)
     local current = tonumber(Framework.GetPlayerMetadata(src, 'stress')) or 0
-    local newStress = Math.Clamp(current + (tonumber(value) or 0), 0, 100)
+    local newStress = lib.math.clamp(current + (tonumber(value) or 0), 0, 100)
     if not Framework.SetPlayerMetadata(src, 'stress', newStress) then return nil end
     TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newStress
@@ -273,7 +271,7 @@ end
 ---@return number | nil
 Framework.RemoveStress = function(src, value)
     local current = tonumber(Framework.GetPlayerMetadata(src, 'stress')) or 0
-    local newStress = Math.Clamp(current - (tonumber(value) or 0), 0, 100)
+    local newStress = lib.math.clamp(current - (tonumber(value) or 0), 0, 100)
     if not Framework.SetPlayerMetadata(src, 'stress', newStress) then return nil end
     TriggerClientEvent('hud:client:UpdateStress', src, newStress)
     return newStress
@@ -319,7 +317,7 @@ end
 --- @param value number
 --- @return number | nil
 Framework.AddThirst = function(src, value)
-    local clampIT = Math.Clamp(value, 0, 200000)
+    local clampIT = lib.math.clamp(value, 0, 200000)
     local levelForEsx = clampIT * 2000
     TriggerClientEvent('esx_status:add', src, 'thirst', levelForEsx)
     return levelForEsx
@@ -330,7 +328,7 @@ end
 --- @param value number
 --- @return number | nil
 Framework.AddHunger = function(src, value)
-    local clampIT = Math.Clamp(value, 0, 200000)
+    local clampIT = lib.math.clamp(value, 0, 200000)
     local levelForEsx = clampIT * 2000
     TriggerClientEvent('esx_status:add', src, 'hunger', levelForEsx)
     return levelForEsx
@@ -653,13 +651,13 @@ end)
 
 ---@description Callback to get framework jobs list
 ---@param source number
-Callback.Register('concept_bridge:Callback:GetFrameworkJobs', function(source)
+lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(source)
     return Framework.GetFrameworkJobs() or {}
 end)
 
 ---@description This is linked to an internal function, its an attempt to standardize the item list across frameworks.
 ---@param source number
-Callback.Register('concept_bridge:Callback:GetFrameworkItems', function(source)
+lib.callback.register('concept_bridge:Callback:GetFrameworkItems', function(source)
     return Framework.ItemList() or {}
 end)
 

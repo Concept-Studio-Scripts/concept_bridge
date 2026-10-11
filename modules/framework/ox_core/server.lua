@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('ox_core') ~= 'started' then return end
 
-Callback = Callback or Require("lib/callback/shared/callback.lua")
 Framework = Framework or {}
 
 local Ox = require '@ox_core.lib.init'
@@ -317,7 +316,7 @@ Framework.SetPlayerMetadata = function(src, metadata, value)
     if not player then return end
     if metadata == 'stress' and type(player.setStatus) == 'function' then
         local ok = pcall(function()
-            player.setStatus('stress', Math.Clamp(tonumber(value) or 0, 0, 100))
+            player.setStatus('stress', lib.math.clamp(tonumber(value) or 0, 0, 100))
         end)
         return ok
     end
@@ -360,7 +359,7 @@ Framework.AddStress = function(src, value)
     local player = Framework.GetPlayer(src)
     if not player then return end
     local currentStress = (type(player.getStatus) == 'function' and player.getStatus('stress')) or 0
-    local newStress = Math.Clamp((tonumber(currentStress) or 0) + (tonumber(value) or 0), 0, 100)
+    local newStress = lib.math.clamp((tonumber(currentStress) or 0) + (tonumber(value) or 0), 0, 100)
     if type(player.setStatus) == 'function' then
         player.setStatus('stress', newStress)
     end
@@ -376,7 +375,7 @@ Framework.RemoveStress = function(src, value)
     local player = Framework.GetPlayer(src)
     if not player then return end
     local currentStress = (type(player.getStatus) == 'function' and player.getStatus('stress')) or 0
-    local newStress = Math.Clamp((tonumber(currentStress) or 0) - (tonumber(value) or 0), 0, 100)
+    local newStress = lib.math.clamp((tonumber(currentStress) or 0) - (tonumber(value) or 0), 0, 100)
     if type(player.setStatus) == 'function' then
         player.setStatus('stress', newStress)
     end
@@ -950,14 +949,14 @@ end
 
 ---@description Callback to get framework jobs list
 ---@param source number
-Callback.Register('concept_bridge:Callback:GetFrameworkJobs', function(source)
+lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(source)
     return Framework.GetFrameworkJobs() or {}
 end)
 
 ---@description Callback to get account balance
 ---@param source number
 ---@param _type string
-Callback.Register('concept_bridge:Callback:GetAccountBalance', function(source, _type)
+lib.callback.register('concept_bridge:Callback:GetAccountBalance', function(source, _type)
     return Framework.GetAccountBalance(source, _type) or 0
 end)
 

@@ -4,7 +4,7 @@ if GetResourceState('ox_inventory') ~= 'missing' then return end
 if GetResourceState('codem-inventory') ~= 'missing' then return end
 if GetResourceState('origen_inventory') ~= 'missing' then return end
 local qbInventory = exports['qb-inventory']
-local QbItems = Require('lib/inventory/shared/qb_items.lua')
+local QbItems = lib.require('@concept_bridge.lib.inventory.shared.qb_items')
 
 Inventory = Inventory or {}
 Inventory.Stashes = Inventory.Stashes or {}
@@ -196,9 +196,9 @@ end
 Inventory.UpdatePlate = function(oldplate, newplate)
     if not Inventory.Version then return Inventory.Old.UpdatePlate(oldplate, newplate) end
     local gloveboxInv = qbInventory:GetInventory('glovebox-'..oldplate) or {slots = 5, maxweight = 10000, items = {}}
-    local storedGloveBox = Bridge.Tables.DeepClone(gloveboxInv, nil, nil)
+    local storedGloveBox = lib.table.deepclone(gloveboxInv)
     local trunkInv = qbInventory:GetInventory('trunk-'..oldplate) or {slots = 5, maxweight = 10000, items = {}}
-    local storedTrunk = Bridge.Tables.DeepClone(trunkInv, nil, nil)
+    local storedTrunk = lib.table.deepclone(trunkInv)
     qbInventory:ClearStash('glovebox-'..oldplate)
     qbInventory:ClearStash('trunk-'..oldplate)
     qbInventory:CreateInventory('glovebox-'..newplate, {label = 'glovebox-'..newplate, slots = storedGloveBox.slots, maxweight = storedGloveBox.maxweight})
@@ -293,7 +293,7 @@ end
 Inventory.Old.CanCarryItem = function(src, item, count)
     local itemData = Inventory.GetItemInfo(item)
     if not itemData.name or type(count) ~= 'number' or count < 1 or count % 1 ~= 0 then return false end
-    local oldQbInventoryConfig = Require('config.lua', 'qb-inventory')
+    local oldQbInventoryConfig = lib.require('@qb-inventory.config')
     local maxInvWeight = oldQbInventoryConfig.MaxWeight or 100000
     local maxInvSlots = oldQbInventoryConfig.MaxSlots or 30
     local packedWeight = 0

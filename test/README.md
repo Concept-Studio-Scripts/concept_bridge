@@ -1,6 +1,6 @@
-# Inventory adapter regressions
+# Bridge regression checks
 
-Run `lua test/runtime_identity.lua` for actual loader resolution from the bridge and imported consumer contexts, retained module exports and canonical callback namespaces. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All four Lua suites and frontend checks run in Concept Bridge CI.
+Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All five Lua suites and frontend checks run in Concept Bridge CI.
 
 Stock Lua syntax compilation applies to the standard-Lua inventory helpers and fixtures. Twenty inherited runtime files use extended syntax that stock Lua 5.4 cannot parse; full runtime syntax/behavior requires the appropriate FiveM environment and is not established by this CI gate.
 
@@ -29,3 +29,13 @@ Reference contracts inspected for this change:
 - [PS SetInventory implementation](https://github.com/Project-Sloth/ps-inventory/blob/main/server/main.lua).
 
 These are upstream contracts; exact deployed versions and in-game validation remain to be checked before release. General source-binding security and other audit findings are outside this suite.
+
+## ox_lib integration contracts
+
+Run `lua test/ox_lib_contracts.lua` for client/server callback argument forwarding,
+appearance replies, preserved entity IDs, point removal and coordinate reindexing,
+and replicated marker proximity/cleanup. These fixtures exercise bridge callers;
+ox_lib owns RPC transport and timeout semantics.
+
+The support file supplies narrow dependency doubles. It does not certify the
+installed ox_lib runtime or replace FiveM acceptance.

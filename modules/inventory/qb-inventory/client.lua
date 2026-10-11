@@ -3,7 +3,7 @@ if GetResourceState('qb-inventory') == 'missing' then return end
 if GetResourceState('codem-inventory') ~= 'missing' then return end
 if GetResourceState('origen_inventory') ~= 'missing' then return end
 local qb = exports['qb-inventory']
-local QbItems = Require('lib/inventory/shared/qb_items.lua')
+local QbItems = lib.require('@concept_bridge.lib.inventory.shared.qb_items')
 
 Inventory = Inventory or {}
 

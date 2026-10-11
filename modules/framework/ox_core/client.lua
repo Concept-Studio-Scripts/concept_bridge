@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('ox_core') ~= 'started' then return end
 
-Callback = Callback or Require("lib/callback/shared/callback.lua")
 Framework = Framework or {}
 
 local Ox = require '@ox_core.lib.init'
@@ -170,7 +169,7 @@ end
 ---@return number|nil
 Framework.GetAccountBalance = function(_type)
     if not getPlayerObject() then return nil end
-    local balance = Callback.Trigger('concept_bridge:Callback:GetAccountBalance', _type)
+    local balance = lib.callback.await('concept_bridge:Callback:GetAccountBalance', false, _type)
     if type(balance) == 'number' then return balance end
     return nil
 end
@@ -361,9 +360,7 @@ end
 ---@param vehicle number
 ---@return table
 Framework.GetVehicleProperties = function(vehicle)
-    local Vehicles = cLib and cLib.Vehicles
-    if type(Vehicles) ~= 'table' or type(Vehicles.GetVehicleProperties) ~= 'function' then return {} end
-    local ok, props = pcall(Vehicles.GetVehicleProperties, vehicle)
+    local ok, props = pcall(lib.getVehicleProperties, vehicle)
     if ok and type(props) == 'table' then return props end
     return {}
 end
@@ -373,10 +370,8 @@ end
 ---@param properties table
 ---@return boolean
 Framework.SetVehicleProperties = function(vehicle, properties)
-    local Vehicles = cLib and cLib.Vehicles
-    if type(Vehicles) ~= 'table' or type(Vehicles.SetVehicleProperties) ~= 'function' then return false end
     if type(properties) ~= 'table' then return false end
-    local ok, result = pcall(Vehicles.SetVehicleProperties, vehicle, properties)
+    local ok, result = pcall(lib.setVehicleProperties, vehicle, properties)
     return ok and result ~= false
 end
 

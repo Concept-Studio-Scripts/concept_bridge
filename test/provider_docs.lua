@@ -10,6 +10,7 @@ end
 local function fixture(provider, side)
     local env = setmetatable({}, {__index = _G})
     env._G = env
+    assert(loadfile(root .. 'test/support/ox_lib.lua'))()(env)
     local state = {notices = {}, calls = {}, result = true, loaded = true}
     state.definitions = {
         water = {name = 'water', label = 'Water', weight = 10, description = 'Drink', unique = false},
@@ -177,7 +178,9 @@ local function fixture(provider, side)
         end,
     }
     local cache = {}
-    env.Require = function(path)
+    env.lib = env.lib or {callback = {register = function() end}}
+    env.lib.require = function(module)
+        local path = module:gsub('^@[^.]+%.', ''):gsub('%.', '/') .. '.lua'
         if not cache[path] then cache[path] = assert(loadfile(root .. path, 't', env))() end
         return cache[path]
     end

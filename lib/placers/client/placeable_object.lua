@@ -1,7 +1,4 @@
-Scaleform = Scaleform or Require("lib/scaleform/client/scaleform.lua")
-Utility = Utility or Require("lib/utility/client/utility.lua")
-Raycast = Raycast or Require("lib/raycast/client/raycast.lua")
-Language = Language or Require("modules/locales/shared.lua")
+Utility = Utility or lib.require('@concept_bridge.lib.utility.client.utility')
 
 PlaceableObject = PlaceableObject or {}
 
@@ -547,9 +544,6 @@ local function placementLoop()
             -- drawEntityBoundingBox(state.currentEntity, checkMaterialAndBoundary())
 
             -- -- Update instructional buttons
-            -- if state.scaleform then
-            --     Scaleform.RenderInstructionalButtons(state.scaleform)
-            -- end
         end
     end)
 end
@@ -663,7 +657,7 @@ function PlaceableObject.Stop()
     end
 
     if state.scaleform then
-        Scaleform.Unload(state.scaleform)
+        state.scaleform:dispose()
     end
     ClientEntity.Unregister('placeable_object')
     -- Reset state

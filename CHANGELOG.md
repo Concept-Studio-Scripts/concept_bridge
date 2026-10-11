@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Remove the deprecated SQL wrapper and exports; use oxmysql directly for database access.
+
+- Delegate generic utilities to the required ox_lib dependency. Remove duplicate
+  callback, loader, point/zone, locale, table, print, ID, vehicle-property and
+  scaleform APIs; consumers use ox_lib directly.
+- Keep provider adapters and bridge-specific world/animation extensions, using
+  ox_lib for streaming, proximity scheduling, cloning and interpolation.
+
 ## 1.0.0 - 2026-10-10
 
 First Concept Bridge release.

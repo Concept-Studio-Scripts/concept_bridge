@@ -9,6 +9,7 @@ end
 local function environment(resource)
     local env = setmetatable({}, {__index = _G})
     env._G = env
+    assert(loadfile(root .. 'test/support/ox_lib.lua'))()(env)
     local state = {handlers = {}, events = {}}
     env.GetResourceState = function(name) return name == resource and 'started' or 'missing' end
     env.RegisterNetEvent = function(name, handler) if handler then state.handlers[name] = handler end end
@@ -17,7 +18,7 @@ local function environment(resource)
     env.TriggerClientEvent = function() end
     env.TriggerEvent = function(name, ...) state.events[#state.events + 1] = {name = name, args = table.pack(...)} end
     env.LoadResourceFile = function() return nil end
-    env.Require = function() return {Register = function() end} end
+    env.lib.callback = {register = function() end}
     env.exports = {}
     return env, state
 end
@@ -110,7 +111,9 @@ do
     env.Framework = {Shared = {Items = definitions}, GetPlayerInventory = function() return state.rows end}
     env.exports['qb-inventory'] = {}
     local cache = {}
-    env.Require = function(path)
+    env.lib = env.lib or {callback = {register = function() end}}
+    env.lib.require = function(module)
+        local path = module:gsub('^@[^.]+%.', ''):gsub('%.', '/') .. '.lua'
         if path == 'config.lua' then return state.config end
         if not cache[path] then cache[path] = load(path, env) end
         return cache[path]

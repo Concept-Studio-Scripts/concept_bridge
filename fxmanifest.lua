@@ -11,14 +11,12 @@ shared_scripts {
     '@ox_lib/init.lua',
     'settings/sharedConfig.lua',
     'lib/init.lua',
-    'modules/locales/*.lua',
     'modules/clothing/**/shared.lua',
 }
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'settings/serverConfig.lua',
-    'modules/locales/shared.lua',
     'modules/version/server/*.lua',
     'modules/framework/**/server.lua',
     'modules/inventory/**/server.lua',
@@ -39,7 +37,6 @@ server_scripts {
 
 client_scripts {
     'settings/clientConfig.lua',
-    'modules/locales/shared.lua',
     'modules/framework/**/client.lua',
     'modules/inventory/**/client.lua',
     'modules/weapons/client.lua',
@@ -63,7 +60,6 @@ client_scripts {
     'modules/housing/**/client.lua',
     'modules/skills/**/client.lua',
     'modules/bossmenu/**/client.lua',
-    'modules/zones/**/client.lua',
     'init.lua',
 }
 

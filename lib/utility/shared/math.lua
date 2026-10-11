@@ -1,18 +1,5 @@
-Math = Math or {}
-
-
-
----@class Math
----@field public name string @add name field to class Car, you'll see it in code completion
+-- Geometry extensions; generic numeric helpers are supplied by ox_lib.
 Math = {}
-
-
---- Rounds a number to the nearest whole number.
----@param value number: The value to round.
----@return number: The rounded value.
-function Math.Round(value)
-    return math.floor(value + 0.5)
-end
 
 function Math.Truncate(value, decimals)
 	local mul = decimals and (10 ^ decimals) or 1
@@ -40,15 +27,8 @@ end
 ---@param max number : The maximum value.
 ---@return number The interpolated value.
 function Math.Smooth(value, min, max)
-    value = Math.Clamp((value - min) / (max - min), 0, 1)
+    value = lib.math.clamp((value - min) / (max - min), 0, 1)
     return value * value * (3 - 2 * value)
-end
-
---- Gets the nearest whole number.
---- @param value number The value to round.
---- @return number The rounded value.
-function Math.Nearest(value)
-    return math.floor(value + 0.5)
 end
 
 --- Maps a value from one range to another.
@@ -61,9 +41,6 @@ function Math.Map(value, inMin, inMax, outMin, outMax)
     return (value - inMin) / (inMax - inMin) * (outMax - outMin) + outMin
 end
 
-function Math.Clamp(value, min, max)
-    return math.min(math.max(value, min), max)
-end
 
 function Math.Remap(value, min, max, newMin, newMax)
     return newMin + (value - min) / (max - min) * (newMax - newMin)

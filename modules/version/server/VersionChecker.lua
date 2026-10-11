@@ -116,35 +116,6 @@ local function fetchPatchNotes(branch, resource, repoPath, localVersion)
     end, 'GET')
 end
 
---- Pass a github username and repo name to check for the latest version of the resource.
---- Tebex is a optional boolean to determine if the message should be for a escrowed resource or not.
---- Example: Version.VersionChecker("Concept-Studio-Scripts/concept_bridge", false)
---- @param repoPath string
---- @param tebex boolean | nil
---- @return nil
-function Version.VersionChecker(repoPath, tebex)
-    local username, reponame = repoPath:match("([^/]+)/([^/]+)")
-    local resource = reponame and repoPath:match("([^/]+)$")
-    if not username or not reponame or not resource then return print('^1Invalid repository format. Expected format: "username/reponame"^0') end
-
-    local version = GetResourceMetadata(resource, "version", 0)
-    if not version then return end
-
-    version = version:match('%d+%.%d+%.%d+')
-    if not version then return end
-
-    PerformHttpRequest(('https://api.github.com/repos/%s/%s/releases/latest'):format(username, reponame),
-        function(status, response)
-            if status ~= 200 then return end
-            local latest = json.decode(response).tag_name:match('%d+%.%d+%.%d+')
-            if not latest or latest == version or version:gsub('%D', '') >= latest:gsub('%D', '') then return end
-
-            local url = tebex and "https://portal.cfx.re/assets/granted-assets" or json.decode(response).html_url
-            print(('^1An update is available for %s (current version: %s)\r\n - ^5Please download the latest version from %s^7'):format(resource, version, url))
-        end,
-    'GET')
-end
-
 --- Advanced version checker with patch notes support
 --- Reads Tebex information and repo path directly from the resources.json file
 --- @param repoPath string GitHub repository path for patch notes in format "username/reponame"
@@ -162,7 +133,7 @@ end
 
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
-    Version.VersionChecker("Concept-Studio-Scripts/concept_bridge", false)
+    lib.versionCheck("Concept-Studio-Scripts/concept_bridge")
 end)
 
 return Version

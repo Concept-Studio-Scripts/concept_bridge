@@ -11,6 +11,7 @@ end
 local function fixture(framework, provider)
     local env = setmetatable({}, { __index = _G })
     env._G = env
+    assert(loadfile(root .. 'test/support/ox_lib.lua'))()(env)
     local state = { bridge = true, mutations = 0, notices = {}, setters = 0 }
     state.definitions = {
         water = { name = 'water', label = 'Water', weight = 10, image = 'water.png', unique = false },
@@ -53,7 +54,9 @@ local function fixture(framework, provider)
     state.player.Functions.AddItem = function() state.mutations = state.mutations + 1 error('must not re-add') end
     state.player.Functions.RemoveItem = function() state.mutations = state.mutations + 1 error('must not remove') end
     local loaded = {}
-    env.Require = function(path)
+    env.lib = env.lib or {callback = {register = function() end}}
+    env.lib.require = function(module)
+        local path = module:gsub('^@[^.]+%.', ''):gsub('%.', '/') .. '.lua'
         if not path:find('lib/inventory/', 1, true) then return {} end
         if loaded[path] == nil then loaded[path] = assert(loadfile(root .. path, 't', env))() end
         return loaded[path]

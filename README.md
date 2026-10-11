@@ -63,7 +63,7 @@ Requires OneSync, server artifact 6116 or newer, ox_lib and oxmysql. Consumers u
 
 * Progress bars, notifications, weather synchronization, and skill system integration
 * Seatbelt providers (qbx\_seatbelt, qb-smallresources, esx\_cruisecontrol, concept\_seatbelt), voice proximity (pma-voice), and normalized current-weapon/ammo reads
-* Developer tools including 3D interaction points, cutscene management, particle effects, scaleform UI, DUI system, and advanced object placement
+* Developer tools including replicated entities and markers, cutscene management, particle effects, and advanced object placement
 
 ---
 
@@ -87,7 +87,7 @@ resources; they have no config key.
 
 | Key | Values | Notes |
 |---|---|---|
-| `Lang` | `auto` · locale name (`en`, `fr`, ...) | |
+| `Lang` | `auto` · locale name (`en`, `fr`, ...) | `auto` follows ox_lib locale selection |
 | `DebugLevel` | `0` · `1` · `2` | |
 | `Notify` | `auto` · `ox_lib` · `r_notify` · ... | |
 | `HelpText` | `auto` · `ox_lib` · ... | |
@@ -146,6 +146,24 @@ exports.concept_bridge:RegisterModule('Framework', {
 
 Registered functions merge over the `_default` fallbacks, so consumers only ever
 talk to concept_bridge.
+
+## Utility ownership (Unreleased)
+
+Database access uses oxmysql directly through `@oxmysql/lib/MySQL.lua` on the
+server and parameterized `MySQL.*` queries. The bridge does not expose a SQL utility.
+
+ox_lib supplies callbacks, module loading, locales, points, zones, raycasts,
+vehicle properties, table helpers, printing, random strings, asset streaming,
+clipboard access, input dialogs and scaleforms. Use its APIs directly in each
+consumer resource with `@ox_lib/init.lua` loaded.
+
+The bridge retains provider adapters and extensions for replicated entities and
+markers, shell management, object placement, animation completion tracking,
+particle effects, cutscenes, geometry/easing and logging providers. These extensions use ox_lib for their underlying generic utilities.
+
+Internal RPC uses `lib.callback.register` and `lib.callback.await`. Target players
+are explicit for server-to-client calls; client calls pass `false` as the ox_lib
+cooldown parameter. Handler permissions remain the responsibility of server code.
 
 ## Development and support
 

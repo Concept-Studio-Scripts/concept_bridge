@@ -16,12 +16,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes lua5.4
-      - name: Check inventory contracts
+      - name: Check Lua regression contracts
         run: |
           lua5.4 test/inventory_regressions.lua
           lua5.4 test/provider_docs.lua
           lua5.4 test/audit_regressions.lua
           lua5.4 test/runtime_identity.lua
+          lua5.4 test/ox_lib_contracts.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
           find lib/inventory test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p

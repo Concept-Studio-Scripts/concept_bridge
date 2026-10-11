@@ -1,5 +1,4 @@
 ---@diagnostic disable: duplicate-set-field
-local id = Ids or Require("lib/utility/shared/ids.lua")
 Marker = {}
 local Created = {}
 
@@ -9,7 +8,7 @@ function Marker.New(data)
         return
     end
 
-    local _id = data.id or id.CreateUniqueId(Created)
+    local _id = data.id or lib.string.random('................')
     local data = {
         id = _id,
         position = data.position,
@@ -25,6 +24,8 @@ function Marker.New(data)
         textureDict = data.textureDict,
         textureName = data.textureName,
         drawOnEnts = data.drawOnEnts,
+        faceCamera = data.faceCamera,
+        drawDistance = data.drawDistance,
     }
     Created[_id] = data
     return _id

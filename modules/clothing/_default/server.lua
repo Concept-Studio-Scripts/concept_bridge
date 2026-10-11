@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 Clothing = Clothing or {}
 Clothing.LastAppearance = Clothing.LastAppearance or {}
-Callback = Callback or Require("lib/callback/shared/callback.lua")
 
 ---This will get the name of the in use resource.
 ---@return string
@@ -22,7 +21,7 @@ end
 ---@param src number
 ---@return table
 function Clothing.GetAppearance(src)
-    return Callback.Trigger('concept_bridge:cb:GetAppearance', src)
+    return lib.callback.await('concept_bridge:cb:GetAppearance', src)
 end
 
 ---Apply skin data to a player

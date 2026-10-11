@@ -6,7 +6,7 @@ Inventory = Inventory or {}
 Inventory.Stashes = Inventory.Stashes or {}
 
 local origin = exports.origen_inventory
-local items = Require('lib/inventory/shared/provider_items.lua')
+local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')
 
 local function inventoryId(id, kind)
     if kind == 'trunk' or kind == 'glovebox' then return kind .. '_' .. id end

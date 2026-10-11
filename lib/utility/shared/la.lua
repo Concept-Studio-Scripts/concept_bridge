@@ -1,13 +1,7 @@
 LA = LA or {}
 
 --https://easings.net
-LA.Lerp = function(a, b, t)
-  return a + (b - a) * t
-end
 
-LA.LerpVector = function(a, b, t)
-  return vector3(LA.Lerp(a.x, b.x, t), LA.Lerp(a.y, b.y, t), LA.Lerp(a.z, b.z, t))
-end
 
 LA.EaseInSine = function(t)
   return 1 - math.cos((t * math.pi) / 2)
@@ -424,10 +418,10 @@ LA.SplineLerp = function(nodes, start, endPos, t)
   local segmentT = (t - prevNode.time) / (nextNode.time - prevNode.time)
 
   -- Interpolate the value (y-axis)
-  local smoothedT = LA.Lerp(prevNode.value, nextNode.value, segmentT)
+  local smoothedT = lib.math.interp(prevNode.value, nextNode.value, segmentT)
 
   -- Perform final Lerp using the interpolated smoothing factor
-  return LA.Lerp(start, endPos, smoothedT)
+  return lib.math.interp(start, endPos, smoothedT)
 end
 
 LA.SplineSmooth = function(nodes, points, t)

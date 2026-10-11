@@ -1,10 +1,16 @@
-Ids = Ids or Require("lib/utility/shared/ids.lua")
 Shells = Shells or {}
 Shells.All = Shells.All or {}
 Shells.ActivePlayers = Shells.ActivePlayers or {} -- Track players in shells
 
 Shells.Interactable = Shells.Interactable or {}
 Shells.BucketsInUse = Shells.BucketsInUse or {} -- Track buckets in use
+
+local function allocateBucket()
+    for bucket = 1000, 9999 do
+        if not Shells.BucketsInUse[tostring(bucket)] then return bucket end
+    end
+    error('No shell routing buckets available')
+end
 
 function Shells.Interactable.New(_type, id, model, coords, rotation, entityType, distance, meta)
     assert(_type, "Shells.Interactable.Create: 'type' is required")
@@ -23,7 +29,7 @@ function Shells.Interactable.New(_type, id, model, coords, rotation, entityType,
 end
 
 function Shells.New(data)
-    local id = data.id or Ids.CreateUniqueId(Shells.All)
+    local id = data.id or lib.string.random('................')
     local _type = data.type or "none"
     local model = data.model
     local size = data.size or vector3(10.0, 10.0, 10.0) -- Default size if not provided
@@ -31,7 +37,7 @@ function Shells.New(data)
     local rotation = data.rotation or vector3(0.0, 0.0, 0.0) -- Default rotation if not provided
     local interior = data.interior or {}
     local exterior = data.exterior or {}
-    local bucket = data.bucket or Ids.RandomNumber(Shells.BucketsInUse, 4)
+    local bucket = data.bucket or allocateBucket()
     assert(id, "Shells.Create: 'id' is required")
     assert(model, "Shells.Create: 'shellModel' is required")
     assert(coords, "Shells.Create: 'coords' is required")
@@ -41,7 +47,7 @@ function Shells.New(data)
         local interiorCoords = coords + (v.offset or vector3(0.0, 0.0, 0.0))
         local interaction = Shells.Interactable.New(
             v.type or "none",
-            v.id or Ids.CreateUniqueId(interiorInteractions),
+            v.id or lib.string.random('................'),
             v.model,
             interiorCoords,
             v.rotation or vector3(0.0, 0.0, 0.0),
@@ -56,7 +62,7 @@ function Shells.New(data)
     for k, v in pairs(exterior or {}) do
         local interaction = Shells.Interactable.New(
             v.type or "none",
-            v.id or Ids.CreateUniqueId(exteriorInteractions),
+            v.id or lib.string.random('................'),
             v.model,
             v.coords,
             v.rotation or vector3(0.0, 0.0, 0.0),
@@ -113,7 +119,7 @@ function Shells.Enter(src, shellId, entranceId)
         if not canEnter then return false end
     end
     if not shell.bucket then
-        local randNum = Ids.RandomNumber(Shells.BucketsInUse, 4)
+        local randNum = allocateBucket()
         shell.bucket = tonumber(randNum)
         Shells.BucketsInUse[tostring(randNum)] = true
     end
@@ -302,7 +308,7 @@ RegisterCommand('shells:create', function(source, args, rawCommand)
         Shells.Exit(source, testShell.id, 'exit1') -- Exit previous shell if it exists
     end
     testShell = Shells.Create({
-        id = Ids.CreateUniqueId(Shells.All),
+        id = lib.string.random('................'),
         type = "shell",
         model = "shell_garagem",
         coords = coords + vector3(0.0, 0.0, 100.0), -- Adjusted to place shell slightly below player
@@ -353,7 +359,7 @@ RegisterCommand('shells:addobject', function(source, args, rawCommand)
     local objectData = {
         type = "none",
         entityType = "ped",
-        id = Ids.CreateUniqueId(Shells.All[shellId].interior),
+        id = lib.string.random('................'),
         model = model,
         coords = coords - vector3(0.0, 0.0, 0.5), -- Adjusted to place object slightly above player
         rotation = vector3(0.0, 0.0, 0.0),

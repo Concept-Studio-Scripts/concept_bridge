@@ -1,80 +1,28 @@
-loadedModules = {}
-
-function Require(modulePath, resourceName)
-    if resourceName and type(resourceName) ~= "string" then
-        resourceName = GetInvokingResource()
-    end
-
-    if not resourceName then
-        resourceName = "concept_bridge"
-    end
-
-    local id = resourceName .. ":" .. modulePath
-    if loadedModules[id] then
-        return loadedModules[id]
-    end
-
-    local file = LoadResourceFile(resourceName, modulePath)
-    if not file then
-        error("Error loading file [" .. id .. "]")
-    end
-
-    local chunk, loadErr = load(file, id)
-    if not chunk then
-        error("Error wrapping module [" .. id .. "] Message: " .. loadErr)
-    end
-
-    local success, result = pcall(chunk)
-    if not success then
-        error("Error executing module [" .. id .. "] Message: " .. result)
-    end
-    loadedModules[id] = result
-    return result
-end
-
-
+-- ox_lib owns generic utilities; this registry contains bridge extensions only.
+lib.locale(BridgeSharedConfig.Lang ~= 'auto' and BridgeSharedConfig.Lang or nil)
 
 cLib = {
-    Require = Require,
-    Callback = Callback or Require("lib/callback/shared/callback.lua"),
-    Ids = Ids or Require("lib/utility/shared/ids.lua"),
-    Tables = Table or Require("lib/utility/shared/tables.lua"),
-    Prints = Prints or Require("lib/utility/shared/prints.lua"),
-    Math = Math or Require("lib/utility/shared/math.lua"),
-    LA = LA or Require("lib/utility/shared/la.lua")
+    Math = lib.require('@concept_bridge.lib.utility.shared.math'),
+    LA = lib.require('@concept_bridge.lib.utility.shared.la'),
 }
 
+if IsDuplicityVersion() then
+    cLib.Logs = lib.require('@concept_bridge.lib.logs.server.logs')
+    cLib.Marker = lib.require('@concept_bridge.lib.markers.server.server')
+    cLib.Shell = lib.require('@concept_bridge.lib.shells.server.shells')
+    cLib.Entity = lib.require('@concept_bridge.lib.entities.server.server_entity')
+    cLib.ServerEntity = cLib.Entity
+else
+    cLib.Placeable = lib.require('@concept_bridge.lib.placers.client.object_Placer')
+    cLib.Utility = lib.require('@concept_bridge.lib.utility.client.utility')
+    cLib.PlaceableObject = lib.require('@concept_bridge.lib.placers.client.placeable_object')
+    cLib.Particle = lib.require('@concept_bridge.lib.particles.client.particles')
+    cLib.Marker = lib.require('@concept_bridge.lib.markers.client.markers')
+    cLib.Anim = lib.require('@concept_bridge.lib.anim.client.client')
+    cLib.Cutscene = lib.require('@concept_bridge.lib.cutscenes.client.cutscene')
+    cLib.Entity = lib.require('@concept_bridge.lib.entities.client.client_entity')
+    cLib.ClientEntity = cLib.Entity
+end
+
 exports('cLib', cLib)
-
-if not IsDuplicityVersion() then goto client end
-
-cLib.SQL = SQL or Require("lib/sql/server/sqlHandler.lua")
-cLib.Logs = Logs or Require("lib/logs/server/logs.lua")
-cLib.Marker = Marker or Require("lib/markers/server/server.lua")
-cLib.Shell = Shells or Require("lib/shells/server/shells.lua")
-cLib.Entity = ServerEntity or Require("lib/entities/server/server_entity.lua")
-
--- Depricated 
-cLib.ServerEntity = cLib.Entity
-
-if IsDuplicityVersion() then return cLib end
-::client::
-
-cLib.Scaleform = Scaleform or Require("lib/scaleform/client/scaleform.lua")
-cLib.Placeable = Placeable or Require("lib/placers/client/object_placer.lua")
-cLib.Utility = Utility or Require("lib/utility/client/utility.lua")
-cLib.PlaceableObject = ObjectPlacer or Require("lib/placers/client/placeable_object.lua")
-cLib.Raycast = Raycast or Require("lib/raycast/client/raycast.lua")
-cLib.Point = Point or Require("lib/points/client/points.lua")
-cLib.Particle = Particle or Require("lib/particles/client/particles.lua")
-cLib.Marker = Marker or Require("lib/markers/client/markers.lua")
-cLib.Anim = Anim or Require("lib/anim/client/client.lua")
-cLib.Cutscene = Cutscene or Require("lib/cutscenes/client/cutscene.lua")
-cLib.Particle = Particle or Require("lib/particles/client/particles.lua")
-cLib.Entity = ClientEntity or Require("lib/entities/client/client_entity.lua")
-cLib.Vehicles = Vehicles or Require("lib/vehicles/client.lua")
-
--- Deprecated
-cLib.ClientEntity = cLib.Entity
-
 return cLib

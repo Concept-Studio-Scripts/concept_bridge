@@ -1,28 +1,10 @@
 Anim = Anim or {}
-Ids = Ids or Require("lib/utility/shared/ids.lua")
 Anim.Active = Anim.Active or {}
 Anim.isUpdateLoopRunning = Anim.isUpdateLoopRunning or false
 
 --- This will request the animation dictionary.
 --- @param animDict string
 --- @return boolean
-function Anim.RequestDict(animDict)
-    if not animDict or type(animDict) ~= "string" then
-        return false
-    end
-
-    if HasAnimDictLoaded(animDict) then
-        return true
-    end
-
-    RequestAnimDict(animDict)
-    local timeout = GetGameTimer() + 2000
-    while not HasAnimDictLoaded(animDict) and GetGameTimer() < timeout do
-        Wait(50)
-    end
-
-    return HasAnimDictLoaded(animDict)
-end
 
 --- This will start the animation update loop.
 function Anim.Start()
@@ -86,7 +68,7 @@ end
 --- @param onComplete function | nil
 --- @return string | nil
 function Anim.Play(id, entity, animDict, animName, blendIn, blendOut, duration, flag, playbackRate, onComplete)
-    local newId = id or Ids.CreateUniqueId(Anim.Active)
+    local newId = id or lib.string.random('................')
     if Anim.Active[newId] then
         if onComplete then
             onComplete(false, "id_in_use")
@@ -101,7 +83,7 @@ function Anim.Play(id, entity, animDict, animName, blendIn, blendOut, duration, 
         return nil
     end
 
-    if not Anim.RequestDict(animDict) then
+    if not pcall(lib.requestAnimDict, animDict, 2000) then
         if onComplete then
             onComplete(false, "dict_load_failed")
         end

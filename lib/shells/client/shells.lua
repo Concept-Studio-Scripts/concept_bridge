@@ -1,8 +1,8 @@
-local Target = Require('modules/target/_default/init.lua')
-local ClientEntity = Require("lib/entities/client/client_entity.lua")
+local Target = Target
+local ClientEntity = lib.require('@concept_bridge.lib.entities.client.client_entity')
 
 
-Shells = Shells or Require("lib/shells/client/config.lua")
+Shells = Shells or lib.require('@concept_bridge.lib.shells.client.config')
 Shells.All = Shells.All or {}
 local insideShell = false
 Shells.Events = {

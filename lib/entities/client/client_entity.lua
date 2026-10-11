@@ -1,6 +1,5 @@
-Utility = Utility or Require("lib/utility/client/utility.lua")
-Ids = Ids or Require("lib/utility/shared/ids.lua")
-Point = Point or Require("lib/points/client/points.lua")
+local entityPoints = {}
+Utility = Utility or lib.require('@concept_bridge.lib.utility.client.utility')
 ClientEntity = {
     All = {},
     Invoked = {},
@@ -75,7 +74,7 @@ end
 local function SpawnEntity(entityData)
     if entityData.spawned and DoesEntityExist(entityData.spawned) then return end -- Already spawned
     if entityData.model then
-        local loaded, model = Utility.LoadModel(entityData.model)
+        local loaded, model = pcall(lib.requestModel, entityData.model)
         if not loaded then
             print(string.format("[ClientEntity] Failed to load model %s for entity %s", entityData.model, entityData.id))
             return
@@ -108,7 +107,6 @@ end
 --- Removes an entity
 --- @param entityData EntityData
 local function RemoveEntity(entityData)
-    entityData = entityData and entityData.args or entityData
     if not entityData then return end
     if entityData.OnRemove then
         pcall(function (...)
@@ -129,7 +127,7 @@ end
 --- @param entityData EntityData
 --- @return table Registered point/entity entry (the value stored in ClientEntity.All[entityData.id]).
 function ClientEntity.Create(entityData)
-    entityData.id = entityData.id or Ids.CreateUniqueId(ClientEntity.All)
+    entityData.id = entityData.id or lib.string.random('................')
     if ClientEntity.All[entityData.id] then return ClientEntity.All[entityData.id] end
     entityData.rotation = entityData.rotation or vector3(0.0, 0.0, entityData.heading or 0.0)
     entityData.invoked =  entityData.invoked or GetInvokingResource() or "concept_bridge"
@@ -145,15 +143,17 @@ function ClientEntity.Create(entityData)
         end
     end
 
-    local entityPoint = Point.Register(entityData.id, entityData.coords, entityData.spawnDistance or 50.0, entityData, SpawnEntity, RemoveEntity, UpdateEntity)
-    ClientEntity.All[entityData.id] = entityPoint
+    local entityPoint = lib.points.new({
+        coords = entityData.coords, distance = entityData.spawnDistance or 50,
+        onEnter = function() SpawnEntity(entityData) end,
+        onExit = function() RemoveEntity(entityData) end,
+    })
+    entityPoints[entityData.id] = entityPoint
+    ClientEntity.All[entityData.id] = entityData
     ClientEntity.Invoked[entityData.invoked] = ClientEntity.Invoked[entityData.invoked] or {}
     ClientEntity.Invoked[entityData.invoked][entityData.id] = entityData
 
-    for k, v in pairs(entityPoint) do
-        ClientEntity.SetKey(entityData.id, k, v)
-    end
-    return entityPoint
+    return entityData
 end
 
 --- Gets the entity that was spawned or nil if player is not in range
@@ -186,9 +186,15 @@ ClientEntity.RegisterBulk = ClientEntity.CreateBulk
 function ClientEntity.Destroy(id)
     local entityData = ClientEntity.All[id]
     if not entityData then return end
-    Point.Remove(id)
+    if entityPoints[id] then
+        entityPoints[id]:remove()
+        entityPoints[id] = nil
+    end
     RemoveEntity(entityData)
     ClientEntity.All[id] = nil
+    if ClientEntity.Invoked[entityData.invoked] then
+        ClientEntity.Invoked[entityData.invoked][id] = nil
+    end
 end
 ClientEntity.Unregister = ClientEntity.Destroy
 
@@ -206,6 +212,7 @@ function ClientEntity.SetKey(id, key, value)
     local handlerKey = "On" .. key:sub(1, 1):upper() .. key:sub(2)
     local handler = rawget(entityData, handlerKey)
     entityData[key] = value
+    if key == 'coords' then ClientEntity.UpdateCoords(id, value) end
     if handler then
         pcall(function()
             handler(entityData, key, value, oldData)
@@ -290,7 +297,12 @@ function ClientEntity.UpdateCoords(id, coords)
         return
     end
     entityData.coords = coords
-    Point.UpdateCoords(id, coords)
+    local point = entityPoints[id]
+    if point then
+        lib.grid.removeEntry(point)
+        point.coords = coords
+        lib.grid.addEntry(point)
+    end
     if entityData.spawned and DoesEntityExist(entityData.spawned) then
         SetEntityCoords(entityData.spawned, coords.x, coords.y, coords.z, false, false, false, true)
     end
@@ -392,16 +404,23 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName == GetCurrentResourceName() then
         for id, entityData in pairs(ClientEntity.All) do
-            Point.Remove(id)
+            if entityPoints[id] then
+                entityPoints[id]:remove()
+                entityPoints[id] = nil
+            end
             RemoveEntity(entityData)
         end
         ClientEntity.All = {}
     else
         for id, entityData in pairs(ClientEntity.Invoked[resourceName] or {}) do
-            Point.Remove(id)
+            if entityPoints[id] then
+                entityPoints[id]:remove()
+                entityPoints[id] = nil
+            end
             RemoveEntity(entityData)
             ClientEntity.All[id] = nil
         end
+        ClientEntity.Invoked[resourceName] = nil
     end
 end)
 

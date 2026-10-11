@@ -8,8 +8,6 @@ Notify.GetResourceName = function()
     return resourceName
 end
 
-local Language = Language or Require("modules/locales/shared.lua")
-local locale = Language.Locale
 local placeHolderText = locale("Notifications.PlaceholderTitle")
 
 Notify.SendNotify = function(message, _type, time)

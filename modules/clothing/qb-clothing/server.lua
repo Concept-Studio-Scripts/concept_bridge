@@ -5,8 +5,6 @@ if GetResourceState('17mov_CharacterSystem') ~= 'missing' then return end
 Clothing = Clothing or {}
 Clothing.Players = {}
 
-Callback = Callback or Require("lib/utility/shared/callbacks.lua")
-Table = Table or Require('lib/utility/shared/tables.lua')
 QBCore = QBCore or exports['qb-core']:GetCoreObject() -- probably easiest for now to call the Framework module
 
 --- Internal function to get the full appearance data including skin, model, and converted format
@@ -168,7 +166,7 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 --- Callback handler for retrieving a player's appearance data
-Callback.Register('concept_bridge:cb:GetAppearance', function(source)
+lib.callback.register('concept_bridge:cb:GetAppearance', function(source)
     local src = source
     return Clothing.GetAppearance(src)
 end)
