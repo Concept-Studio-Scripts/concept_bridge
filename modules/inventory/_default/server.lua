@@ -104,6 +104,16 @@ Inventory.SetMetadata = function(src, item, slot, metadata)
     return Framework.SetMetadata(src, item, slot, metadata)
 end
 
+---@description Write this player's inventory to the database now, where the provider can (qb-inventory,
+--- ps-inventory, jpr-inventory). Elsewhere: false, 'unsupported' (ox_inventory saves on its own schedule and has
+--- no export for one player).
+---@param src number
+---@return boolean saved
+---@return string? reason
+Inventory.SavePlayerInventory = function(src)
+    return lib.require('@concept_bridge.lib.inventory.server.save_player').Player(Inventory.GetResourceName(), src)
+end
+
 ---@description This will open the specified stash for the src passed.
 ---@param src number
 ---@param _type string "stash", "trunk", "glovebox"

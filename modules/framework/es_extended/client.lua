@@ -318,6 +318,12 @@ Framework.GetIsPlayerDead = function()
     return playerData.dead
 end
 
+---@description Is the local player down: dead OR in last stand (this framework has no last stand: down is dead).
+---@return boolean
+Framework.GetIsPlayerDown = function()
+    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromFlag(Framework.GetIsPlayerDead())
+end
+
 ---@description Event handler for when player is loaded in ESX framework
 ---@param xPlayer table
 RegisterNetEvent('esx:playerLoaded', function(xPlayer)
