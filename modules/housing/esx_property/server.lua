@@ -4,12 +4,13 @@ Housing = Housing or {}
 
 RegisterNetEvent('esx_property:enter', function(insideId)
     local src = source
-    TriggerEvent('concept_bridge:Server:_OnPlayerInside', src, insideId)
+    if insideId == nil or insideId == false then return end
+    Housing.ObservePlayerInside(src, insideId, 'esx_property')
 end)
 
-RegisterNetEvent('esx_property:leave', function(insideId)
+RegisterNetEvent('esx_property:leave', function()
     local src = source
-    TriggerEvent('concept_bridge:Server:_OnPlayerInside', src, insideId)
+    Housing.ObservePlayerInside(src, false, 'esx_property')
 end)
 
 ---This will get the name of the in use resource.

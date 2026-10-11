@@ -4,12 +4,13 @@ Housing = Housing or {}
 
 RegisterNetEvent('ps-housing:server:enterProperty', function(insideId)
     local src = source
-    TriggerEvent('concept_bridge:Server:_OnPlayerInside', src, insideId)
+    if insideId == nil or insideId == false then return end
+    Housing.ObservePlayerInside(src, insideId, 'ps-housing')
 end)
 
-RegisterNetEvent('ps-housing:server:leaveProperty', function(insideId)
+RegisterNetEvent('ps-housing:server:leaveProperty', function()
     local src = source
-    TriggerEvent('concept_bridge:Server:_OnPlayerInside', src, insideId)
+    Housing.ObservePlayerInside(src, false, 'ps-housing')
 end)
 
 ---This will get the name of the in use resource.
