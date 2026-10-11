@@ -50,8 +50,8 @@ end
 ---@param price number
 Shops.AmountSelect = function(shopName, item, itemLabel, price)
     if not shopName and not item and not itemLabel and not price then return end
-    if not tonumber(price) then return end
-    if price <= 0 then return end
+    price = tonumber(price)
+    if not price or price ~= price or price < 0 or price == math.huge then return end
     local numberOptions = {}
     for i = 1, 100 do
         table.insert(numberOptions, {label = tostring(i), value = i})
