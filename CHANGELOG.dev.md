@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Authorize fallback shop opening and checkout from server character, position,
+  routing bucket and group grades. Reject invalid quantities/accounts and reserve
+  finite stock before payment; failed delivery restores stock and refunds payment.
+- Serialize checkout and retain unresolved payment/refund records per character
+  across bridge restarts, preventing blind duplicate compensation.
+- Allow configured free items through the fallback shop quantity menu.
+
 ### Changed
 
 - Remove the deprecated SQL wrapper and exports; use oxmysql directly for database access.

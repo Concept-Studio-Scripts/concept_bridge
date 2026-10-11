@@ -165,6 +165,40 @@ Internal RPC uses `lib.callback.register` and `lib.callback.await`. Target playe
 are explicit for server-to-client calls; client calls pass `false` as the ox_lib
 cooldown parameter. Handler permissions remain the responsibility of server code.
 
+## Fallback shops (Unreleased)
+
+Server `Shops.CreateShop(name, inventory, coords, groups?, options?)` registers the
+bridge's fallback shop. The default inventory adapter forwards
+`Inventory.RegisterShop` to this implementation. Native inventory shop providers
+keep their own registration and transaction contracts.
+
+Provide one coordinate or a list of coordinates with finite x/y/z values. Each
+item needs a unique name and finite non-negative price. `count = nil` means
+unlimited stock; a non-negative integer count is shared stock for the current
+bridge session. Registration copies the data; re-registering a name does not
+replenish stock. Stock resets when the bridge restarts and shops are registered.
+
+Groups are minimum-grade maps such as `{police = 3}` or name lists. Nil/empty
+groups allow any loaded character. Checks use the server's normalized job,
+QB/Qbox gang or OX group membership. `options.distance` defaults to 3 metres
+(maximum 20), and `options.bucket` defaults to 0. These requirements apply to
+opening and every checkout; a displayed menu does not authorize a purchase.
+
+Checkout accepts money/bank accounts and integer quantities from 1 to 100, uses
+the registered price, and caps the total at 2,147,483,647. It serializes each
+player's checkout, enforces a 500 ms server cooldown and reserves finite stock
+before yielding payment operations. Confirmed failed delivery restores stock
+and compensates payment; free items skip the debit.
+
+Recovery records use server resource KVP under `concept_bridge:shop_checkout:`.
+Server `Shops.GetPendingCheckout(src)` inspects the current character's record;
+`Shops.RetryCheckoutRefund(src)` retries a confirmed outstanding refund, also
+attempted before the character's next checkout. Confirmed completion cannot
+refund again, including after a reconnect with a different source ID. Interrupted
+or contradictory provider effects are retained as `review_required`; inspect the
+record and reconcile the provider state before clearing it. No client event
+accepts a refund recipient or amount. Do not delete unresolved journals as cleanup.
+
 ## Development and support
 
 Use this repository's [issues](https://github.com/Concept-Studio-Scripts/concept_bridge/issues) and pull requests for Concept Bridge support. [Upstream documentation](https://theorderfivem.github.io/docs) remains a reference for inherited APIs, not a guarantee of identical contracts or support from upstream.
