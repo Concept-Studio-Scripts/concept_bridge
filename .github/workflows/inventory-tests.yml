@@ -24,9 +24,10 @@ jobs:
           lua5.4 test/runtime_identity.lua
           lua5.4 test/ox_lib_contracts.lua
           lua5.4 test/shop_transactions.lua
+          lua5.4 test/housing_transitions.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
-          find lib/inventory modules/shops test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
+          find lib/inventory modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
 
   web:
     runs-on: ubuntu-24.04
