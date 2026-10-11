@@ -167,8 +167,9 @@ end
 ---@param shopInventory table
 ---@param shopCoords table
 ---@param shopGroups table
-Inventory.RegisterShop = function(shopTitle, shopInventory, shopCoords, shopGroups)
-    return Bridge.Shops.CreateShop(shopTitle, shopInventory, shopCoords, shopGroups)
+---@param options table? fallback-only distance/bucket settings
+Inventory.RegisterShop = function(shopTitle, shopInventory, shopCoords, shopGroups, options)
+    return Bridge.Shops.CreateShop(shopTitle, shopInventory, shopCoords, shopGroups, options)
 end
 
 ---@description This will get the image path for an item, it is an alternate option to GetItemInfo. If a image isnt found will revert to concept_bridge logo (useful for menus)
