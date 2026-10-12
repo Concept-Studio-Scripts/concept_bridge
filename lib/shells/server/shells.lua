@@ -383,3 +383,5 @@ AddEventHandler('concept_bridge:Server:OnPlayerUnload', function(src)
     Shells.Exit(src, Shells.ActivePlayers[tostring(src)])
     Shells.ActivePlayers[tostring(src)] = nil
 end)
+
+return Shells

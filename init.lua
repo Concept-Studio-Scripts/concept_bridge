@@ -14,6 +14,12 @@ function Bridge.RegisterModule(moduleName, moduleTable)
         exports(moduleName, moduleTable)
         return
     end
+    -- (a module file that returns nothing comes back from lib.require as `true`: that is not a module, and
+    -- must not stop the bridge from starting)
+    if type(moduleTable) ~= 'table' then
+        print(('^1[concept_bridge] module %s is a %s, not a table: it was not registered^0'):format(tostring(moduleName), type(moduleTable)))
+        return
+    end
     for functionName, func in pairs(moduleTable) do
         wrappedModule[functionName] = func
     end

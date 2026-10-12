@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- The bridge did not start on a server (`init.lua:17: bad argument #1 to 'for iterator'`): `lib/shells/server/shells.lua`
+  returned nothing, so ox_lib's require handed back `true` and it was registered as a module. The file returns its
+  table, and a module that is not a table is named in the console and skipped instead of stopping the start.
 - Bind housing notifications to their sender; validate property IDs and active
   adapters, normalize exits, and separate trusted server publishing. Recognize
   the correctly named qb-apartments resource.
