@@ -317,6 +317,15 @@ Framework.GetIsPlayerDead = function(src)
     return playerData.metadata.isdead or false
 end
 
+---@description Is the player down: dead OR in last stand. (GetIsPlayerDead keeps its own meaning.)
+---@param src number
+---@return boolean
+Framework.GetIsPlayerDown = function(src)
+    local player = Framework.GetPlayer(src)
+    if not player or not player.PlayerData then return false end
+    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromQbMetadata(player.PlayerData.metadata)
+end
+
 ---@description This will revive a player, if the player is dead or in last stand.
 ---@param src number
 ---@return boolean

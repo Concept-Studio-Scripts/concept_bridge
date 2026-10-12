@@ -177,6 +177,13 @@ Framework.GetIsPlayerDead = function()
     return playerData.metadata["isdead"] or playerData.metadata["inlaststand"]
 end
 
+---@description Is the local player down: dead OR in last stand.
+---@return boolean
+Framework.GetIsPlayerDown = function()
+    local playerData = Framework.GetPlayerData()
+    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromQbMetadata(playerData and playerData.metadata)
+end
+
 ---@description Event handler for when player is loaded in QBX Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     Wait(1500)

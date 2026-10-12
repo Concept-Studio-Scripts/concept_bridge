@@ -302,6 +302,13 @@ Framework.GetIsPlayerDead = function(src)
     return xPlayer.get("is_dead") or false
 end
 
+---@description Is the player down: dead OR in last stand. ESX has no last stand: down is dead.
+---@param src number
+---@return boolean
+Framework.GetIsPlayerDown = function(src)
+    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromFlag(Framework.GetIsPlayerDead(src))
+end
+
 ---@description This will revive a player, if the player is dead or in last stand.
 --- @param src number
 --- @return boolean

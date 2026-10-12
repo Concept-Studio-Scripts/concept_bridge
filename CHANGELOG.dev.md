@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Framework.GetIsPlayerDown(src)` (server) and `Framework.GetIsPlayerDown()` (client) on es_extended, ox_core,
+  qb-core and qbx_core: dead OR in last stand, by one shared rule (`lib/framework/shared/player_down.lua`).
+  `GetIsPlayerDead` is unchanged. (The Qbox server module's `GetIsPlayerDead` reads `metadata.isdead` only, while
+  its client and the QBCore module include last stand: a consumer that means "cannot act" asks `GetIsPlayerDown`.)
+- `Inventory.SavePlayerInventory(src)`: writes one player's inventory to the database now on qb-inventory,
+  ps-inventory and jpr-inventory; `false, 'unsupported'` on every other provider (ox_inventory has no export for
+  one player), `false, 'provider_error'` when the provider throws.
+- `test/consumer_contracts.lua` covers both.
+
 ### Fixed
 
 - The bridge did not start on a server (`init.lua:17: bad argument #1 to 'for iterator'`): `lib/shells/server/shells.lua`

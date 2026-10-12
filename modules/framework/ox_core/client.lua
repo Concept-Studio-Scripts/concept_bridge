@@ -299,6 +299,12 @@ Framework.GetIsPlayerDead = function()
     return playerData.get('isDead') or false
 end
 
+---@description Is the local player down: dead OR in last stand (this framework has no last stand: down is dead).
+---@return boolean
+Framework.GetIsPlayerDown = function()
+    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromFlag(Framework.GetIsPlayerDead())
+end
+
 ---@description This will return their count of the item in the players inventory.
 ---@param item string
 ---@return number

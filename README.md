@@ -101,8 +101,8 @@ See the [API documentation](https://conceptstudio.store/docs/concept-bridge) for
 
 | Module | API (`exports.concept_bridge:<Module>()` or `Bridge.<Module>`) |
 |---|---|
-| `Framework` | players, job/grade, money, hunger/thirst/stress |
-| `Inventory` | items, worth, current weapon, open state, image paths |
+| `Framework` | players, job/grade, money, hunger/thirst/stress, `GetIsPlayerDead`, `GetIsPlayerDown` (dead or last stand; server takes `src`) |
+| `Inventory` | items, worth, current weapon, open state, image paths, `SavePlayerInventory(src)` (qb / ps / jpr; `false, 'unsupported'` elsewhere) |
 | `Seatbelt` | `GetResourceName`, `HasSeatbelt(vehicle)`, `GetState()` |
 | `Voice` | `GetResourceName`, `GetProximity()` |
 | `Weapons` | `GetCurrentWeapon(ped?)`, `Invalidate(notify?)` |
