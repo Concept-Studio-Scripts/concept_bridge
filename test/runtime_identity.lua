@@ -29,4 +29,39 @@ for _, server in ipairs({true, false}) do
         expect(exported[name] == nil and env.cLib[name] == nil, 'dependency utility is not exported: ' .. name)
     end
 end
+-- Every library file lib/init.lua loads must RETURN its table: ox_lib's require hands back `true` for a file that
+-- returns nothing, and the bridge then tried to register `true` as a module and did not start.
+do
+    local f = assert(io.open('lib/init.lua', 'rb'))
+    local init = f:read('a')
+    f:close()
+    local seen = 0
+    for path in init:gmatch("lib%.require%('@concept_bridge%.([%w_%.]+)'%)") do
+        seen = seen + 1
+        local file = path:gsub('%.', '/') .. '.lua'
+        local h = assert(io.open(file, 'rb'), file .. ' exists')
+        local last
+        -- (the last line that is neither empty nor a comment is a return of something)
+        for line in (h:read('a') .. string.char(10)):gmatch('(.-)\r?' .. string.char(10)) do
+            local code = line:gsub('%-%-.*$', ''):gsub('%s+$', '')
+            if code ~= '' then last = code end
+        end
+        h:close()
+        expect(last ~= nil and last:match('^return%s+[%w_]+$') ~= nil, file .. ' returns its module table (last statement: ' .. tostring(last) .. ')')
+    end
+    expect(seen >= 12, 'lib/init.lua names its libraries (' .. seen .. ')')
+    -- and a module that is not a table is refused, not iterated
+    local env = setmetatable({}, { __index = _G })
+    local printed = 0
+    env.BridgeSharedConfig = { DebugLevel = 0 }
+    env.exports = function() end
+    env.TriggerEvent = function() end
+    env.print = function() printed = printed + 1 end
+    env.IsDuplicityVersion = function() return true end
+    env.cLib = { Broken = true, Fine = { a = function() end } }
+    env.Framework, env.Inventory = {}, {}
+    local ok, err = pcall(assert(loadfile('init.lua', 't', env)))
+    expect(ok, 'the bridge starts with a library that returned nothing: ' .. tostring(err))
+    expect(env.Bridge.Broken == nil and env.Bridge.Fine ~= nil and printed >= 1, 'the broken one is named and skipped, the others are registered')
+end
 print(('runtime_identity: %d assertions passed'):format(assertions))

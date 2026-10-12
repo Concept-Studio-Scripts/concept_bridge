@@ -4,8 +4,9 @@ Housing = Housing or {}
 
 RegisterNetEvent('qb-houses:server:SetInsideMeta', function(insideId, bool)
     local src = source
-    insideId = bool and insideId or nil
-    TriggerEvent('concept_bridge:Server:_OnPlayerInside', src, insideId)
+    if type(bool) ~= 'boolean' or (bool and (insideId == nil or insideId == false)) then return end
+    insideId = bool and insideId or false
+    Housing.ObservePlayerInside(src, insideId, 'qb-houses')
 end)
 
 ---This will get the name of the in use resource.

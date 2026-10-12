@@ -1,8 +1,8 @@
 # Bridge regression checks
 
-Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All six Lua suites and frontend checks run in Concept Bridge CI.
+Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All seven Lua suites and frontend checks run in Concept Bridge CI.
 
-Stock Lua syntax compilation applies to the standard-Lua inventory helpers and fixtures. Twenty inherited runtime files use extended syntax that stock Lua 5.4 cannot parse; full runtime syntax/behavior requires the appropriate FiveM environment and is not established by this CI gate.
+Stock Lua syntax compilation applies to the standard-Lua inventory helpers and fixtures. Sixteen retained runtime files use extended syntax that stock Lua 5.4 cannot parse; full runtime syntax/behavior requires the appropriate FiveM environment and is not established by this CI gate.
 
 From the bridge root, run `lua test/inventory_regressions.lua` with Lua 5.4. These isolated fixtures load actual framework/inventory adapters and shared helpers. They never connect to FiveM or mutate game state.
 
@@ -49,3 +49,12 @@ real coroutine concurrency, payment/delivery failures, compensation and recovery
 journals, and source/character changes during provider calls. It runs in CI.
 KVP, framework and inventory doubles exercise the actual shop implementation;
 installed-provider persistence and live FiveM acceptance remain separate checks.
+
+
+## Housing notifications
+
+Run `lua test/housing_transitions.lua`. Actual housing adapters are exercised for
+sender binding, malformed payloads, entry/exit normalization, active-provider and
+loaded-character checks, and server-local publishing. The BCS client forward is
+covered too. Fixtures do not certify property ownership or installed-provider
+event ordering. Housing notifications are informational and grant no access.
