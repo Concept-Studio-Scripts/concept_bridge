@@ -43,8 +43,12 @@ if ($Package.version -ne $Version -or $Lock['version'] -ne $Version -or $Lock['p
 if ($ManifestText -notmatch "(?m)^name 'concept_bridge'$") { throw 'Canonical resource name missing.' }
 
 $SourceVersion = (Get-Content -LiteralPath (Join-Path $ResourceRoot 'version.txt') -Raw).Trim()
-$ReleaseVersion = (Get-Content -LiteralPath (Join-Path $ResourceRoot '.release-please-manifest.json') -Raw | ConvertFrom-Json -AsHashtable)['.']
-if ($SourceVersion -ne $Version -or $ReleaseVersion -ne $Version) { throw 'Release manifest and version.txt must match the resource version.' }
+$ReleaseVersions = Get-Content -LiteralPath (Join-Path $ResourceRoot '.release-please-manifest.json') -Raw | ConvertFrom-Json -AsHashtable
+$ReleaseConfig = Get-Content -LiteralPath (Join-Path $ResourceRoot 'release-please-config.json') -Raw | ConvertFrom-Json -AsHashtable
+if ($ReleaseVersions.Count -eq 0) {
+    if ($ReleaseConfig['packages']['.']['initial-version'] -ne $Version) { throw 'Empty release manifest requires the configured initial version.' }
+} elseif ($ReleaseVersions['.'] -ne $Version) { throw 'Release manifest must match the resource version.' }
+if ($SourceVersion -ne $Version) { throw 'version.txt must match the resource version.' }
 
 $OriginalLicenseHash = '605e9047a563c5c8396ffb18232aa4304ec56586aee537c45064c6fb425e44ad'
 $LicenseHash = (Get-FileHash -LiteralPath (Join-Path $ResourceRoot 'LICENSE') -Algorithm SHA256).Hash.ToLowerInvariant()

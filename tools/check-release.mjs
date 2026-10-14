@@ -21,11 +21,17 @@ export function checkRelease(root, tag = '', requireNotes = false) {
   assert(/^\d+\.\d+\.\d+$/.test(version), 'version.txt must contain a stable semantic version.')
   const manifest = text('fxmanifest.lua').match(/^version '([^']+)'/m)?.[1]
   const lock = json('web/package-lock.json')
-  for (const [name, value] of Object.entries({ manifest, package: json('web/package.json').version, lock: lock.version, lockRoot: lock.packages[''].version, releaseManifest: json('.release-please-manifest.json')['.'] })) {
+  const config = json('release-please-config.json')
+  const released = json('.release-please-manifest.json')
+  for (const [name, value] of Object.entries({ manifest, package: json('web/package.json').version, lock: lock.version, lockRoot: lock.packages[''].version })) {
     assert.equal(value, version, `${name} version differs from version.txt.`)
   }
   if (tag) assert.equal(tag, `v${version}`, 'Release tag differs from the checked-out version.')
-  const config = json('release-please-config.json')
+  if (Object.keys(released).length === 0) {
+    assert.equal(config.packages['.']['initial-version'], version, 'An empty release manifest requires the configured initial version.')
+  } else {
+    assert.equal(released['.'], version, 'releaseManifest version differs from version.txt.')
+  }
   assert.equal(config.packages['.']['skip-changelog'], true, 'The changelog must remain manually maintained.')
   if (requireNotes || tag) return { version, notes: releaseNotes(text('CHANGELOG.md'), version) }
   return { version }

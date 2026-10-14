@@ -2,14 +2,21 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-14
+
+First Concept Bridge release.
+
 ### Added
 
+- Framework, inventory and provider adapters for FiveM, including OX, QBCore,
+  Qbox and ESX integrations.
+- Seatbelt, voice and weapon data used by Concept HUD, plus the dialogue UI.
 - `Framework.GetIsPlayerDown(src)` on the server and `Framework.GetIsPlayerDown()`
-  on the client for ESX, OX, QBCore and Qbox. It includes both death and last stand;
-  `GetIsPlayerDead` keeps its existing behavior.
-- `Inventory.SavePlayerInventory(src)` saves one player's inventory immediately
-  for qb-inventory, ps-inventory and jpr-inventory. Other providers return
-  `false, 'unsupported'`; provider failures return `false, 'provider_error'`.
+  on the client. It includes death and last stand; `GetIsPlayerDead` retains its
+  existing behavior.
+- `Inventory.SavePlayerInventory(src)` for qb-inventory, ps-inventory and
+  jpr-inventory. Other providers return `false, 'unsupported'`; provider failures
+  return `false, 'provider_error'`.
 
 ### Fixed
 
@@ -21,27 +28,19 @@
   routing bucket and group grades. Reject invalid quantities and accounts and
   reserve finite stock before payment.
 - Restore stock and refund payment when shop delivery fails. Retain unresolved
-  payment and refund records across bridge restarts to avoid duplicate refunds.
+  payment and refund records across restarts to avoid duplicate refunds.
 - Allow configured free items through the fallback shop quantity menu.
 
-### Breaking changes
+### Dependencies
 
-- Remove duplicate utility exports, including `Require`, `Callback`,
-  `RegisterCallback`, `TriggerCallback`, `RegisterRebound`, `Language`, `Point`,
-  `Zones`, `Raycast`, `Vehicles`, `Tables`, `Table`, `Prints`, `Ids` and `Scaleform`.
-  Consumers must use ox_lib directly for those utilities.
-- Remove the deprecated SQL wrapper and exports; use oxmysql directly.
+- Use ox_lib directly for callbacks, loading, locales, points, zones, raycasts,
+  vehicle properties, tables, printing, IDs and scaleforms.
+- Use oxmysql directly for database access. Provider adapters and bridge-specific
+  world and animation extensions remain available.
 
-### Changed
+### Distribution
 
-- Keep provider adapters, bridge-specific world and animation extensions, and the
-  dialogue UI. Retained extensions use ox_lib for streaming and proximity work.
-
-## [1.0.0] - 2026-10-10
-
-First Concept Bridge release.
-
-- Provides the `concept_bridge` compatibility layer for FiveM frameworks,
-  inventories and other providers, including HUD seatbelt, voice and weapon data.
-- Includes a prebuilt UI and complete editable Lua and UI source in the resource ZIP.
+- Includes the prebuilt UI, complete editable Lua and UI source, build tooling
+  and locked dependencies in the downloadable resource ZIP.
 - Preserves GPLv3 licensing and upstream attribution in `ORIGIN.Md`.
+- Release notes are manually maintained in this changelog.
