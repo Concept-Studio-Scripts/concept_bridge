@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "bootstrap-sha": "bd819242d3fdc3a23290ca5127d23c99725baa8c",
+  "bootstrap-sha": "242ba370bba39afcb21192a9b8008eb988c75800",
   "always-update": true,
   "packages": {
     ".": {
@@ -36,7 +36,8 @@
           "type": "generic",
           "path": "README.md"
         }
-      ]
+      ],
+      "initial-version": "1.0.0"
     }
   }
 }
