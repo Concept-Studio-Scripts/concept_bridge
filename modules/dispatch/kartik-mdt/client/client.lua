@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('kartik-mdt') == 'missing' then return end
+if GetResourceState('kartik-mdt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(data)

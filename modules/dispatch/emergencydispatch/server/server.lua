@@ -1,4 +1,4 @@
-if GetResourceState('emergencydispatch') == 'missing' then return end
+if GetResourceState('emergencydispatch') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 RegisterNetEvent("concept_bridge:server:dispatch:sendAlert", function(data)

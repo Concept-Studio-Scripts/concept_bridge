@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('emergencydispatch') == 'missing' then return end
+if GetResourceState('emergencydispatch') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 ---This will send an alert to currently supported dispatch systems.

@@ -1,6 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('fd_dispatch') == 'missing' then return end
-if GetResourceState('lb-tablet') == 'started' then return end
+if GetResourceState('fd_dispatch') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(data)

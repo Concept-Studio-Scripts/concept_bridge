@@ -1,4 +1,4 @@
-if GetResourceState('bub-mdt') == 'missing' then return end
+if GetResourceState('bub-mdt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 ---This will get the name of the in use resource.

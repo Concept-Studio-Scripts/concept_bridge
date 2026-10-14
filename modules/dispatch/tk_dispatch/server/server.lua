@@ -1,4 +1,4 @@
-if GetResourceState('tk_dispatch') == 'missing' then return end
+if GetResourceState('tk_dispatch') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 ---This will get the name of the in use resource.

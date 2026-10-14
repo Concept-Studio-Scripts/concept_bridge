@@ -15,7 +15,7 @@
 ---@field data any
 
 local resourceName = "okokPhone"
-if GetResourceState(resourceName) == 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 Phone = Phone or {}
 
 ---This will get the name of the Phone system being being used.

@@ -1,4 +1,4 @@
-if GetResourceState('kartik-mdt') == 'missing' then return end
+if GetResourceState('kartik-mdt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 ---This will get the name of the in use resource.

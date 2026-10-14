@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('lb-tablet') == 'missing' then return end
+if GetResourceState('lb-tablet') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 local function getPriorityLevel(priority)
