@@ -1,39 +1,47 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+### Added
+
+- `Framework.GetIsPlayerDown(src)` on the server and `Framework.GetIsPlayerDown()`
+  on the client for ESX, OX, QBCore and Qbox. It includes both death and last stand;
+  `GetIsPlayerDead` keeps its existing behavior.
+- `Inventory.SavePlayerInventory(src)` saves one player's inventory immediately
+  for qb-inventory, ps-inventory and jpr-inventory. Other providers return
+  `false, 'unsupported'`; provider failures return `false, 'provider_error'`.
 
 ### Fixed
 
-- Bind housing notifications to their sender; validate property IDs and active
-  adapters, normalize exits, and separate trusted server publishing. Recognize
-  the correctly named qb-apartments resource.
-
-- Authorize fallback shop opening and checkout from server character, position,
-  routing bucket and group grades. Reject invalid quantities/accounts and reserve
-  finite stock before payment; failed delivery restores stock and refunds payment.
-- Serialize checkout and retain unresolved payment/refund records per character
-  across bridge restarts, preventing blind duplicate compensation.
+- Return the shells library table so the bridge starts correctly with ox_lib's
+  module loader. Invalid module results are logged and skipped during startup.
+- Bind housing notifications to their sender, validate property identifiers and
+  active adapters, normalize exits, and recognize qb-apartments correctly.
+- Authorize fallback shop opening and checkout using server character, position,
+  routing bucket and group grades. Reject invalid quantities and accounts and
+  reserve finite stock before payment.
+- Restore stock and refund payment when shop delivery fails. Retain unresolved
+  payment and refund records across bridge restarts to avoid duplicate refunds.
 - Allow configured free items through the fallback shop quantity menu.
+
+### Breaking changes
+
+- Remove duplicate utility exports, including `Require`, `Callback`,
+  `RegisterCallback`, `TriggerCallback`, `RegisterRebound`, `Language`, `Point`,
+  `Zones`, `Raycast`, `Vehicles`, `Tables`, `Table`, `Prints`, `Ids` and `Scaleform`.
+  Consumers must use ox_lib directly for those utilities.
+- Remove the deprecated SQL wrapper and exports; use oxmysql directly.
 
 ### Changed
 
-- Remove the deprecated SQL wrapper and exports; use oxmysql directly for database access.
+- Keep provider adapters, bridge-specific world and animation extensions, and the
+  dialogue UI. Retained extensions use ox_lib for streaming and proximity work.
 
-- Delegate generic utilities to the required ox_lib dependency. Remove duplicate
-  callback, loader, point/zone, locale, table, print, ID, vehicle-property and
-  scaleform APIs; consumers use ox_lib directly.
-- Keep provider adapters and bridge-specific world/animation extensions, using
-  ox_lib for streaming, proximity scheduling, cloning and interpolation.
-
-## 1.0.0 - 2026-10-10
+## [1.0.0] - 2026-10-10
 
 First Concept Bridge release.
 
 - Provides the `concept_bridge` compatibility layer for FiveM frameworks,
-  inventories and other providers, including Concept HUD's seatbelt, voice and
-  weapon integrations.
-- Includes the prebuilt UI and complete source in the downloadable resource ZIP.
-- Preserves the GPLv3 license and consolidates upstream credits in `ORIGIN.Md`.
-
-Automated checks cover fixtures and builds; in-game/provider acceptance remains
-deferred.
+  inventories and other providers, including HUD seatbelt, voice and weapon data.
+- Includes a prebuilt UI and complete editable Lua and UI source in the resource ZIP.
+- Preserves GPLv3 licensing and upstream attribution in `ORIGIN.Md`.

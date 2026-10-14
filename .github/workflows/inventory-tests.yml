@@ -2,16 +2,47 @@ name: Concept Bridge checks
 
 on:
   push:
+    branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 jobs:
+  release-metadata:
+    name: Release metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Check versions and manual release notes
+        run: node tools/check-release.mjs
+      - name: Check release failure gates
+        run: node --test test/release-workflow.test.mjs
+      - name: Check conventional PR title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node --input-type=module -e "if (!/^(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\([^\r\n)]+\))?!?: \S/.test(process.env.PR_TITLE)) throw new Error('Use a Conventional Commit PR title, for example fix(shells): restore the player bucket')"
+
   inventory:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - name: Install Lua 5.4
         run: |
           sudo apt-get update
@@ -33,10 +64,12 @@ jobs:
   web:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: '22'
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
       - name: Install, lint and build NUI

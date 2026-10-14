@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "bd819242d3fdc3a23290ca5127d23c99725baa8c",
+  "always-update": true,
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "version-file": "version.txt",
+      "package-name": "concept_bridge",
+      "include-component-in-tag": false,
+      "include-v-in-tag": true,
+      "skip-changelog": true,
+      "draft": true,
+      "force-tag-creation": true,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "fxmanifest.lua"
+        },
+        {
+          "type": "json",
+          "path": "web/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "web/package-lock.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "web/package-lock.json",
+          "jsonpath": "$.packages[''].version"
+        },
+        {
+          "type": "generic",
+          "path": "README.md"
+        }
+      ]
+    }
+  }
+}
