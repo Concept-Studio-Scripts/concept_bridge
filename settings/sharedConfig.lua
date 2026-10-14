@@ -1,5 +1,8 @@
 BridgeSharedConfig = {}
 BridgeSharedConfig.Lang          = "auto"        -- auto follows ox:locale; an explicit value selects a bridge locale
+-- Optional per-domain overrides; auto selects only started resources.
+-- Example: { Inventory = 'ox_inventory', Fuel = 'ox_fuel' }. 'none' selects the default.
+BridgeSharedConfig.Providers = {}
 BridgeSharedConfig.DebugLevel    = 0             -- Change this to your Debug level, 0 for none, 1 for some, 2 for all data
 BridgeSharedConfig.Notify        = "auto"        -- [ auto | ox_lib | r_notify | wasabi_notify | lation_ui | ZSX_UIV2 | okokNotify | mythic_notify | pNotify | t-notify | brutal_notify | FL-Notify | msk_core]
 BridgeSharedConfig.HelpText      = "auto"        -- [ auto | ox_lib | jg-textui | lation_ui | ZSX_UIV2 | cd_drawtextui | lab-HintUI | okokTextUI]

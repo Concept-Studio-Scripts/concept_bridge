@@ -17,9 +17,8 @@ shared_scripts {
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'settings/serverConfig.lua',
+    'modules/providers/server.lua',
     'modules/version/server/*.lua',
-    'modules/framework/**/server.lua',
-    'modules/inventory/**/server.lua',
     'modules/doorlock/**/server.lua',
     'modules/phone/**/server.lua',
     'modules/banking/**/server.lua',
@@ -37,16 +36,12 @@ server_scripts {
 
 client_scripts {
     'settings/clientConfig.lua',
-    'modules/framework/**/client.lua',
-    'modules/inventory/**/client.lua',
+    'modules/providers/client.lua',
     'modules/weapons/client.lua',
-    'modules/seatbelt/**/client.lua',
-    'modules/voice/**/client.lua',
     'modules/doorlock/**/client.lua',
     'modules/phone/**/client.lua',
     'modules/weather/**/client.lua',
     'modules/vehiclekey/**/client.lua',
-    'modules/fuel/**/client.lua',
     'modules/target/**/client.lua',
     'modules/dispatch/**/client.lua',
     'modules/progressbar/**/client.lua',
