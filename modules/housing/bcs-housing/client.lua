@@ -1,4 +1,4 @@
-if GetResourceState('bcs-housing') == 'missing' then return end
+if GetResourceState('bcs-housing') ~= 'started' then return end
 
 Housing = Housing or {}
 

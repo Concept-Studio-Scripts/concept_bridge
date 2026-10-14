@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('ox_doorlock') == 'missing' then return end
+if GetResourceState('ox_doorlock') ~= 'started' then return end
 
 Doorlock = Doorlock or {}
 

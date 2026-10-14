@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('tgiann-bank') == 'missing' then return end
+if GetResourceState('tgiann-bank') ~= 'started' then return end
 Banking = Banking or {}
 
 local tgiann = exports["tgiann-bank"]

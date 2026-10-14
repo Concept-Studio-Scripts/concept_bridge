@@ -1,4 +1,4 @@
-if GetResourceState('ps-housing') == 'missing' then return end
+if GetResourceState('ps-housing') ~= 'started' then return end
 
 Housing = Housing or {}
 
