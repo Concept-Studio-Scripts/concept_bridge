@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "msk_core"
-local configValue = BridgeClientConfig.ProgressBarSystem
-if (configValue == "auto" and GetResourceState(resourceName) ~= "started") or (configValue ~= "auto" and configValue ~= resourceName) then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 ProgressBar = ProgressBar or {}
 

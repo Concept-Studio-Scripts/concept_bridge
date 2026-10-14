@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "qb-target"
-if GetResourceState(resourceName) == 'missing' then return end
-if GetResourceState("ox_target") ~= 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 Target = Target or {}
 local targetDebug = BridgeSharedConfig and BridgeSharedConfig.DebugLevel == 2 or false

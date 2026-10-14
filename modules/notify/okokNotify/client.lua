@@ -1,8 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 Notify = Notify or {}
 local resourceName = "okokNotify"
-local configValue = BridgeSharedConfig.Notify
-if (configValue == "auto" and GetResourceState(resourceName) ~= "started") or (configValue ~= "auto" and configValue ~= resourceName) then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 Notify.GetResourceName = function()
     return resourceName

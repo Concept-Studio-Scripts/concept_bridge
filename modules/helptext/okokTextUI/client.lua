@@ -1,8 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 HelpText = HelpText or {}
 local resourceName = "okokTextUI"
-local configValue = BridgeSharedConfig.HelpText
-if (configValue == "auto" and GetResourceState(resourceName) ~= "started") or (configValue ~= "auto" and configValue ~= resourceName) then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 ---This will show a help text message at the screen position passed
 ---@param message string

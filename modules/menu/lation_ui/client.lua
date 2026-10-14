@@ -1,6 +1,5 @@
 local resourceName = "lation_ui"
-local configValue = BridgeClientConfig.MenuSystem
-if (configValue == "auto" and GetResourceState(resourceName) ~= "started") or (configValue ~= "auto" and configValue ~= resourceName) then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 Menus = Menus or {}
 
 local function runCheckForImageIcon(icon)
