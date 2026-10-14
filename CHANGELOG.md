@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve server shell permission hooks and configured buckets; validate client
+  entry and exit points and restore the original player bucket on exit or cleanup.
+
+- Restore the previous shell entrance when switching directly between shells.
+
+- Keep clients synchronized when bulk shell creation fails after earlier entries succeed,
+  and return an explicit success result for completed batches.
+
+- Reject bucket 0 as a shell destination while preserving return to a player's
+  original world bucket on exit.
+
+- Reject repeated shell entry when the recorded visit or current routing bucket
+  no longer matches, preserving explicit server recovery after another resource moves a player.
+
 ## [1.0.0] - 2026-10-14
 
 First Concept Bridge release.
