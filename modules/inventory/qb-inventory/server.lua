@@ -1,8 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('qb-inventory') == 'missing' then return end
-if GetResourceState('ox_inventory') ~= 'missing' then return end
-if GetResourceState('codem-inventory') ~= 'missing' then return end
-if GetResourceState('origen_inventory') ~= 'missing' then return end
+if GetResourceState('qb-inventory') ~= 'started' then return end
 local qbInventory = exports['qb-inventory']
 local QbItems = lib.require('@concept_bridge.lib.inventory.shared.qb_items')
 
@@ -13,17 +10,16 @@ Inventory.Version = nil
 Inventory.ShopData = {}
 
 local function getInventoryNewVersion()
-    if tonumber(string.sub(GetResourceMetadata("qb-inventory", "version", 0), 1, 1)) >= 2 then
+    local version = GetResourceMetadata("qb-inventory", "version", 0)
+    local major = tonumber(tostring(version):match('^(%d+)')) or 0
+    if major >= 2 then
         Inventory.Version = true
         return
     end
     Inventory.Version = false
 end
 
-AddEventHandler('onResourceStart', function(resourceName)
-    if resourceName ~= "concept_bridge" then return end
-    getInventoryNewVersion()
-end)
+getInventoryNewVersion()
 
 ---@description This will get the name of the in use resource.
 ---@return string

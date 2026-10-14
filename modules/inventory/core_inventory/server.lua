@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('core_inventory') == 'missing' then return end
+if GetResourceState('core_inventory') ~= 'started' then return end
 
 Inventory = Inventory or {}
 Inventory.Stashes = Inventory.Stashes or {}

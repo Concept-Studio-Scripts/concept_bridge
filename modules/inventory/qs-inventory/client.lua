@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('qs-inventory') == 'missing' then return end
+if GetResourceState('qs-inventory') ~= 'started' then return end
 local quasar = exports["qs-inventory"]
 
 Inventory = Inventory or {}

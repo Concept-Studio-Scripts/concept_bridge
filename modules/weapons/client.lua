@@ -370,4 +370,11 @@ RegisterNetEvent('qb-weapons:client:SetCurrentWeapon', function(data, bool)
     Weapons.Invalidate(true)
 end)
 
+AddEventHandler('Bridge:Refresh', function(domain, _, _, owner)
+    if owner ~= 'concept_bridge' or (domain ~= 'Framework' and domain ~= 'Inventory') then return end
+    ReadCache = {at = 0, ped = 0, pack = nil}
+    ImageUrlCache, HashIdentityCache, QbHashWeapons, CachedQbWeapon = {}, {}, nil, nil
+    TriggerEvent('concept_bridge:Client:OnWeaponUpdate')
+end)
+
 return Weapons

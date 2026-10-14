@@ -6,6 +6,7 @@ Menu = {}
 ---@param useQb boolean Whether to use QB menu syntax.
 ---@return id string The menu ID.
 function Menu.Open(data, useQb)
+    if type(OpenMenu) ~= 'function' then return nil, 'provider_unavailable' end
     local id = data.id or lib.string.random('................')
     Menus[id] = OpenMenu(id, data, useQb)
     data.id = id

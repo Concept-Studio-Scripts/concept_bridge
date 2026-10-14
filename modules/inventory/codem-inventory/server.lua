@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('codem-inventory') == 'missing' then return end
+if GetResourceState('codem-inventory') ~= 'started' then return end
 
 Inventory = Inventory or {}
 Inventory.Stashes = Inventory.Stashes or {}

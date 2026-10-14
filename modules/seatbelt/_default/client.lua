@@ -50,14 +50,18 @@ end
 ---active provider at fire time, so only the selected one notifies.
 ---@param resourceName string
 ---@param getState fun(): boolean|nil
+local bound, activeResource, activeReader
 Seatbelt.BindUpdates = function(resourceName, getState)
+    activeResource, activeReader = resourceName, getState
+    if bound then return end
+    bound = true
     local function refresh()
-        if Seatbelt.GetResourceName() ~= resourceName then return end
-        Seatbelt.Notify(getState())
+        if Seatbelt.GetResourceName() ~= activeResource then return end
+        Seatbelt.Notify(activeReader())
     end
 
     AddEventHandler('seatbelt:client:ToggleSeatbelt', function(state)
-        if Seatbelt.GetResourceName() ~= resourceName then return end
+        if Seatbelt.GetResourceName() ~= activeResource then return end
         if type(state) == 'boolean' then
             Seatbelt.Notify(state)
         else

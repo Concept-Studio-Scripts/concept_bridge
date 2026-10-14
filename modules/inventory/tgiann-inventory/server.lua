@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('tgiann-inventory') == 'missing' then return end
+if GetResourceState('tgiann-inventory') ~= 'started' then return end
 
 local tgiann = exports["tgiann-inventory"]
 local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')

@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('ps-inventory') == 'missing' then return end
+if GetResourceState('ps-inventory') ~= 'started' then return end
 local sloth = exports['ps-inventory']
 local QbItems = lib.require('@concept_bridge.lib.inventory.shared.qb_items')
 

@@ -1,6 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "esx-sna-fuel"
-if GetResourceState(resourceName) == 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 Fuel = Fuel or {}
 
 ---@description Returns the name of the active fuel resource.

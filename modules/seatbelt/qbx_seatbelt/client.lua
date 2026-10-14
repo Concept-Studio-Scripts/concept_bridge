@@ -1,8 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = 'qbx_seatbelt'
-local configured = type(BridgeClientConfig) == 'table' and BridgeClientConfig.Seatbelt or 'auto'
-if GetResourceState(resourceName) == 'missing' then return end
-if configured ~= 'auto' and configured ~= resourceName then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 Seatbelt = Seatbelt or {}
 

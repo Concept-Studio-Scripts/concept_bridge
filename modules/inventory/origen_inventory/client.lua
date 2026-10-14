@@ -1,6 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('origen_inventory') == 'missing' then return end
-if GetResourceState('ox_inventory') ~= 'missing' then return end
+if GetResourceState('origen_inventory') ~= 'started' then return end
 Inventory = Inventory or {}
 local origin = exports.origen_inventory
 local items = lib.require('@concept_bridge.lib.inventory.shared.provider_items')

@@ -21,10 +21,14 @@ end
 ---provider notifies (checked at fire time).
 ---@param resourceName string
 ---@param getProximity fun(): table
+local bound, activeResource, activeReader
 Voice.BindUpdates = function(resourceName, getProximity)
+    activeResource, activeReader = resourceName, getProximity
+    if bound then return end
+    bound = true
     AddEventHandler('pma-voice:setTalkingMode', function()
-        if Voice.GetResourceName() ~= resourceName then return end
-        TriggerEvent('concept_bridge:Client:OnVoiceUpdate', getProximity())
+        if Voice.GetResourceName() ~= activeResource then return end
+        TriggerEvent('concept_bridge:Client:OnVoiceUpdate', activeReader())
     end)
 
     CreateThread(function()
@@ -34,8 +38,8 @@ Voice.BindUpdates = function(resourceName, getProximity)
             serverId = GetPlayerServerId(PlayerId())
         end
         AddStateBagChangeHandler('proximity', ('player:%s'):format(serverId), function()
-            if Voice.GetResourceName() ~= resourceName then return end
-            TriggerEvent('concept_bridge:Client:OnVoiceUpdate', getProximity())
+            if Voice.GetResourceName() ~= activeResource then return end
+            TriggerEvent('concept_bridge:Client:OnVoiceUpdate', activeReader())
         end)
     end)
 end
