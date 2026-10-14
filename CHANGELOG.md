@@ -7,6 +7,8 @@
 - Preserve server shell permission hooks and configured buckets; validate client
   entry and exit points and restore the original player bucket on exit or cleanup.
 
+- Restore the previous shell entrance when switching directly between shells.
+
 ## [1.0.0] - 2026-10-14
 
 First Concept Bridge release.

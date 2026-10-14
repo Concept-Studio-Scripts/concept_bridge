@@ -186,9 +186,21 @@ end
 do
     local env=setmetatable({}, {__index=_G})
     env._G, env.vector3=env, vec
-    local handlers, coords={},vec(10,0,0)
-    local entity={Register=function(value) return {id=value.id,spawned=1} end,Unregister=function() end}
-    env.Target={AddBoxZone=function() end,RemoveZone=function() end}
+    local handlers, coords, zones, registered={},vec(10,0,0),{},{}
+    local entity={
+        Register=function(value)
+            local point={id=value.id,spawned=1}
+            registered[value.id]=value
+            if value.OnSpawn then value.OnSpawn(point) end
+            return point
+        end,
+        Unregister=function(id)
+            local value=registered[id]
+            if value and value.OnRemove then value.OnRemove({id=id,spawned=1}) end
+            registered[id]=nil
+        end,
+    }
+    env.Target={AddBoxZone=function(id) zones[id]=true end,RemoveZone=function(id) zones[id]=nil end}
     env.lib={require=function(name)
         if name:find('client_entity',1,true) then return entity end
         return assert(loadfile(root .. 'lib/shells/client/config.lua','t',env))()
@@ -203,15 +215,20 @@ do
     env.print=function() end
     assert(loadfile(root .. 'lib/shells/client/shells.lua','t',env))()
     local function shell(id,height)
-        return {id=id,model='test',coords=vec(0,0,height),exterior={front={id='front',type='none',coords=vec(10,0,0),distance=2}},
-            interior={door={id='door',type='none',coords=vec(0,0,height),distance=2}}}
+        return {id=id,model='test',coords=vec(0,0,height),exterior={front={id=id..'-front',type='entrance',coords=vec(10,0,0),rotation=vec(0,0,0),distance=2}},
+            interior={door={id=id..'-door',type='exit',coords=vec(0,0,height),rotation=vec(0,0,0),distance=2}}}
     end
     env.Shells.New(shell('a',100)); env.Shells.New(shell('b',200))
-    env.Shells.Enter('a','door'); env.Shells.Enter('b','door')
+    expect(zones['a-front'] and zones['b-front'], 'shell creation exposes both exterior entrances')
+    env.Shells.Enter('a','door')
+    expect(not zones['a-front'] and zones['a-door'], 'entry swaps the current shell entrance for its interior exit')
+    env.Shells.Enter('b','door')
+    expect(zones['a-front'] and not zones['a-door'] and not zones['b-front'] and zones['b-door'], 'direct switch restores the old exterior and clears only its interior points')
     expect(env.Shells.Inside()=='b' and coords.z==200, 'client direct switch renders destination')
     handlers.onResourceStop('concept_bridge')
     expect(coords.x==10 and coords.z==0, 'client resource stop returns to first world position')
     handlers['concept_bridge:client:ExitShell']('b','front',vec(12,0,0))
     expect(coords.x==12 and env.Shells.Inside()==false, 'server-supplied root return coordinates override nested exterior')
+    expect(zones['a-front'] and zones['b-front'] and not zones['b-door'], 'final exit leaves both shell entrances available')
 end
 print(('shell_access: %d assertions passed'):format(assertions))

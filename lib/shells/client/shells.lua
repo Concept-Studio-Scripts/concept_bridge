@@ -151,8 +151,8 @@ function Shells.Enter(id, entranceId)
     FreezeEntityPosition(ped, true)
     local oldShell = insideShell and Shells.All[insideShell]
     if not oldShell or oldShell.id ~= id then
-        Shells.ClearExterior(oldShell)
         Shells.ClearInterior(oldShell)
+        if oldShell then Shells.SetupExterior(oldShell) end
     end
     Shells.ClearExterior(shell)
     Shells.SetupInterior(shell)
