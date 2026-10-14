@@ -119,7 +119,7 @@ function Shells.New(data)
         end
     end
     local bucket = data.bucket or (hooks[id] and hooks[id].bucket) or allocateBucket()
-    if type(bucket) ~= 'number' or bucket < 0 or bucket > 2147483647 or bucket % 1 ~= 0 then return nil, 'invalid_bucket' end
+    if type(bucket) ~= 'number' or bucket <= 0 or bucket > 2147483647 or bucket % 1 ~= 0 then return nil, 'invalid_bucket' end
     if bucketOwners[tostring(bucket)] and bucketOwners[tostring(bucket)] ~= id then return nil, 'bucket_in_use' end
     if not identifier(id) then return nil, 'invalid_shell' end
     if data.onEnter ~= nil and not callable(data.onEnter) then return nil, 'invalid_hook' end

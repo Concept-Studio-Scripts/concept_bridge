@@ -65,6 +65,20 @@ do
     expect(exits==0 and api.Inside(7)==false, 'denial creates no membership or exit notification')
 end
 do
+    local _, state, api = fixture()
+    local shell, reason=api.Create(data('world',0))
+    expect(shell==nil and reason=='invalid_bucket', 'the shared world bucket is rejected as a shell destination')
+    expect(not api.Get('world') and not api.BucketsInUse['0'] and #state.events==0,
+        'rejected world-bucket shells create no registration, reservation or client snapshot')
+    state.players[7].bucket=0
+    api.Create(data('isolated',8000))
+    expect(api.Enter(7,'isolated','front')==true and state.players[7].bucket==8000,
+        'a player from the shared world can enter a valid shell bucket')
+    expect(api.Exit(7,'isolated')==true and state.players[7].bucket==0,
+        'exiting a shell still restores the original shared world bucket')
+end
+
+do
     local env, state, api, request = fixture()
     local entries, exits=0,0
     local shell=api.Create(data('a',8000,function(src,id) entries=entries+1; return src==7 and id=='a' end,function() exits=exits+1 end))
