@@ -58,9 +58,10 @@ jobs:
           lua5.4 test/housing_transitions.lua
           lua5.4 test/consumer_contracts.lua
           lua5.4 test/shell_access.lua
+          lua5.4 test/provider_selection.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
-          find lib/inventory lib/shells modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
+          find lib/inventory lib/shells lib/providers modules/providers modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
 
   web:
     runs-on: ubuntu-24.04

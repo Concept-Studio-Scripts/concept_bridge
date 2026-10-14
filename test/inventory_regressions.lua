@@ -25,6 +25,7 @@ local function fixture(framework, provider)
     local core = { Shared = { Items = state.definitions }, Functions = {
         GetPlayer = function() return state.player end,
     }, Commands = {} }
+    env.GetResourceMetadata = function() return '1.0.0' end
     env.GetResourceState = function(name)
         return (name == framework or name == provider) and 'started' or 'missing'
     end
