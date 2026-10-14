@@ -170,7 +170,7 @@ do
     local env, state, api, request = fixture()
     local input=data('a',8000,function() return false end)
     input.exterior[1].meta.nested={secret=function() end, label='kept'}
-    api.CreateBulk({input,data('b',8001)})
+    expect(api.CreateBulk({input,data('b',8001)})==true, 'bulk creation reports success')
     expect(noFunctions(state.events[#state.events]) and state.events[#state.events].args[1].a.exterior.front.meta.nested.label=='kept', 'bulk snapshot strips functions but retains client metadata')
     env.source=7
     state.handlers.onPlayerJoining(7)
@@ -179,6 +179,50 @@ do
     expect(noFunctions(state.events[#state.events]), 'object update cannot serialize callback functions')
     api.Get('a').exterior.front.meta.link='missing'
     expect(request('Enter',7,'a','front')==false, 'missing linked interior cannot authorize entry')
+end
+
+local function orderedBatch(...)
+    local entries=table.pack(...)
+    return setmetatable({}, {__pairs=function()
+        local index=0
+        return function()
+            index=index+1
+            if index<=entries.n then return index, entries[index] end
+        end
+    end})
+end
+
+do
+    local env, state, api = fixture()
+    local accepted, reason=api.CreateBulk(orderedBatch(data('created',8000,function() return true end),data('blocked',8000)))
+    expect(accepted==false and reason=='bucket_in_use', 'bulk failure preserves the constructor reason')
+    expect(api.Get('created') and not api.Get('blocked'), 'bulk failure keeps only successfully registered shells')
+    local broadcast=state.events[#state.events]
+    expect(broadcast and broadcast.name=='concept_bridge:client:CreateShells' and broadcast.src==-1 and
+        broadcast.args[1].created and not broadcast.args[1].blocked and noFunctions(broadcast),
+        'already connected clients receive successful shells before a later bulk failure')
+    env.source=7
+    state.handlers.onPlayerJoining(7)
+    local joined=state.events[#state.events].args[1]
+    expect(joined.created and not joined.blocked, 'late joiners receive the same shell definitions after a partial failure')
+end
+
+do
+    local _, state, api = fixture()
+    local accepted, reason=api.CreateBulk({data('invalid',-1)})
+    expect(accepted==false and reason=='invalid_bucket' and #state.events==0 and next(api.All)==nil,
+        'failure before any shell is created has no client broadcast or registration')
+end
+
+do
+    local _, state, api = fixture()
+    local invalid=data('invalid',8001)
+    invalid.model=nil
+    local ok, reason=pcall(api.CreateBulk,orderedBatch(data('created',8000),invalid))
+    expect(not ok and tostring(reason):find('shellModel',1,true), 'bulk constructor errors retain their existing failure behavior')
+    local broadcast=state.events[#state.events]
+    expect(broadcast and broadcast.args[1].created and not broadcast.args[1].invalid and api.Get('created'),
+        'constructor errors also publish earlier successful registrations before propagating')
 end
 
 -- Client coordinate cleanup for direct switches and resource stop uses root world

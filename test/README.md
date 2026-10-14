@@ -62,5 +62,6 @@ event ordering. Housing notifications are informational and grant no access.
 ## Shell access
 
 Run `lua test/shell_access.lua` for private permission hooks, linked client
-entry/exit proximity, membership, bucket restoration and cleanup. Fixtures load
+entry/exit proximity, membership, bucket restoration, bulk creation failures,
+client target restoration and cleanup. Fixtures load
 the actual shell module; native OneSync and in-game acceptance remain separate.

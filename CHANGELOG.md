@@ -9,6 +9,9 @@
 
 - Restore the previous shell entrance when switching directly between shells.
 
+- Keep clients synchronized when bulk shell creation fails after earlier entries succeed,
+  and return an explicit success result for completed batches.
+
 ## [1.0.0] - 2026-10-14
 
 First Concept Bridge release.

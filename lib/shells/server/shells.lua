@@ -193,12 +193,25 @@ function Shells.CreateBulk(shells)
     assert(shells, "Shells.CreateBulk: 'shells' is required")
     assert(type(shells) == "table", "Shells.CreateBulk: 'shells' must be a table")
     local toClient = {}
+    local function publishCreated()
+        if next(toClient) then
+            TriggerClientEvent('concept_bridge:client:CreateShells', -1, toClient)
+        end
+    end
     for _, shellData in pairs(shells) do
-        local shell, reason = Shells.New(shellData)
-        if not shell then return false, reason end
+        local ok, shell, reason = pcall(Shells.New, shellData)
+        if not ok then
+            publishCreated()
+            error(shell, 0)
+        end
+        if not shell then
+            publishCreated()
+            return false, reason
+        end
         toClient[shell.id] = clientData(shell)
     end
     TriggerClientEvent('concept_bridge:client:CreateShells', -1, toClient)
+    return true
 end
 
 local function enter(src, shellId, entranceId, network)
