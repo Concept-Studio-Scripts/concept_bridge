@@ -143,14 +143,14 @@ function Shells.Enter(id, entranceId)
         return
     end
     local ped = PlayerPedId()
-    returnPoint = GetEntityCoords(ped)
+    if not insideShell then returnPoint = GetEntityCoords(ped) end
     DoScreenFadeOut(1000)
     Wait(1000)
     local entranceCoords = entrance.coords
     SetEntityCoords(ped, entranceCoords.x, entranceCoords.y, entranceCoords.z, false, false, false, true)
     FreezeEntityPosition(ped, true)
     local oldShell = insideShell and Shells.All[insideShell]
-    if oldShell?.id ~= id then
+    if not oldShell or oldShell.id ~= id then
         Shells.ClearExterior(oldShell)
         Shells.ClearInterior(oldShell)
     end
@@ -163,29 +163,25 @@ function Shells.Enter(id, entranceId)
     insideShell = shell.id
 end
 
-function Shells.Exit(id, exitId)
+function Shells.Exit(id, exitId, returnCoords)
     local shell = Shells.All[id]
-    if not shell then
-        print(string.format("Shells.Exit: Shell with ID '%s' not found", id))
-        return
-    end
-    local oldCoords = GetEntityCoords(PlayerPedId())
-    local oldPoint = shell.exterior[exitId]
-    if not oldPoint then
-        print(string.format("Shells.Exit: Old point with ID '%s' not found in shell '%s'", exitId, id))
-        return
-    end
+    local oldPoint = shell and shell.exterior[exitId]
+    local coords = returnCoords or (oldPoint and oldPoint.coords)
+    if not coords then return end
+    local ped = PlayerPedId()
     DoScreenFadeOut(1000)
     Wait(1000)
-    SetEntityCoords(PlayerPedId(), oldPoint.coords.x, oldPoint.coords.y, oldPoint.coords.z, false, false, false, true)
-    FreezeEntityPosition(PlayerPedId(), true)
-    Shells.ClearInterior(shell)
-    ClientEntity.Unregister(shell.id)
-    Shells.SetupExterior(shell)
-    shell.interiorSpawned = {}
-    FreezeEntityPosition(PlayerPedId(), false)
+    SetEntityCoords(ped, coords.x, coords.y, coords.z, false, false, false, true)
+    FreezeEntityPosition(ped, true)
+    if shell then
+        Shells.ClearInterior(shell)
+        ClientEntity.Unregister(shell.id)
+        Shells.SetupExterior(shell)
+        shell.interiorSpawned = {}
+    end
+    FreezeEntityPosition(ped, false)
     DoScreenFadeIn(1000)
-    insideShell = false
+    insideShell, returnPoint = false, nil
 end
 
 function Shells.Inside()
@@ -206,21 +202,12 @@ RegisterNetEvent('concept_bridge:client:EnterShell', function(shellId, entranceI
     Shells.Enter(shellId, entranceId, oldId)
 end)
 
-RegisterNetEvent('concept_bridge:client:ExitShell', function(shellId, oldId)
-    local shell = Shells.All[shellId]
-    print(string.format("Shells.ExitShell: Exiting shell '%s'", shellId))
-    if not shell then
-        print(string.format("Shells.ExitShell: Shell with ID '%s' not found", shellId))
-        return
-    end
-    Shells.Exit(shellId, oldId)
-
+RegisterNetEvent('concept_bridge:client:ExitShell', function(shellId, oldId, returnCoords)
+    Shells.Exit(shellId, oldId, returnCoords)
 end)
 
 RegisterNetEvent('concept_bridge:client:AddObjectsToShell', function (shellId, interiorObjects, exteriorObjects)
     local shell = Shells.All[shellId]
-    print(string.format("Shells.AddObjectsToShell: Adding objects to shell '%s'", shellId),
-    json.encode({interiorObjects = interiorObjects, exteriorObjects = exteriorObjects}, { indent = true }))
     if not shell then
         print(string.format("Shells.AddObjectsToShell: Shell with ID '%s' not found", shellId))
         return
@@ -251,7 +238,6 @@ RegisterNetEvent('concept_bridge:client:AddObjectsToShell', function (shellId, i
 end)
 
 RegisterNetEvent('concept_bridge:client:CreateShells', function(shells)
-    print("Shells.CreateShells: Creating shells")
     for _, shell in pairs(shells) do
         Shells.New(shell)
     end
@@ -260,10 +246,11 @@ end)
 -- TriggerClientEvent('concept_bridge:client:ExitShell', src, oldId)
 
 
-AddEventHandler('onResourceStart', function(resource)
+AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         DoScreenFadeIn(1000) -- Fade in when resource stops
         if not returnPoint then return end
+        FreezeEntityPosition(PlayerPedId(), false)
         SetEntityCoords(PlayerPedId(), returnPoint.x, returnPoint.y, returnPoint.z, false, false, false, true)
     end
 end)

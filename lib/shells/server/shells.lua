@@ -5,6 +5,82 @@ Shells.ActivePlayers = Shells.ActivePlayers or {} -- Track players in shells
 Shells.Interactable = Shells.Interactable or {}
 Shells.BucketsInUse = Shells.BucketsInUse or {} -- Track buckets in use
 
+local hooks, visits, transitioning, generations, bucketOwners = {}, {}, {}, {}, {}
+
+local function callable(value)
+    if type(value) == 'function' then return true end
+    if type(value) ~= 'table' then return false end
+    if rawget(value, '__cfx_functionReference') ~= nil then return true end
+    local meta = getmetatable(value)
+    return type(meta) == 'table' and type(meta.__call) == 'function'
+end
+
+local function identifier(value)
+    if type(value) == 'string' then return #value > 0 and #value <= 128 and not value:find('%c') end
+    return type(value) == 'number' and value >= 0 and value <= 2147483647 and value % 1 == 0
+end
+
+local function playerSource(value)
+    if type(value) ~= 'number' and type(value) ~= 'string' then return end
+    value = tonumber(value)
+    if value and value > 0 and value <= 65535 and value % 1 == 0 then return value end
+end
+
+local function clientData(value, seen)
+    local kind = type(value)
+    if callable(value) or (kind == 'table' and rawget(value, '__cfx_functionReference')) then return end
+    if kind == 'string' or kind == 'boolean' or kind == 'vector2' or kind == 'vector3' or kind == 'vector4' or kind == 'quaternion' then return value end
+    if kind == 'number' then
+        if value == value and math.abs(value) < math.huge then return value end
+        return
+    end
+    if kind ~= 'table' then return end
+    seen = seen or {}
+    if seen[value] then return end
+    seen[value] = true
+    local result = {}
+    for key, item in pairs(value) do
+        if type(key) == 'string' or type(key) == 'number' then result[key] = clientData(item, seen) end
+    end
+    seen[value] = nil
+    return result
+end
+
+local function near(src, point)
+    if type(point) ~= 'table' or not point.coords then return false end
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return false end
+    local coords = GetEntityCoords(ped)
+    local distance = point.distance or 2.0
+    if type(distance) ~= 'number' or distance <= 0 or distance == math.huge then return false end
+    if not coords then return false end
+    local squared = 0
+    for _, axis in ipairs({'x', 'y', 'z'}) do
+        local a, b = coords[axis], point.coords[axis]
+        if type(a) ~= 'number' or type(b) ~= 'number' or a ~= a or b ~= b or math.abs(a) == math.huge or math.abs(b) == math.huge then return false end
+        squared = squared + (a - b) ^ 2
+    end
+    return squared <= distance ^ 2
+end
+
+local function notifyExit(src, shellId, hook)
+    if not hook then return end
+    local ok = pcall(hook, src, shellId)
+    if not ok then print(('[concept_bridge] Shell %s onExit failed after cleanup.'):format(tostring(shellId))) end
+end
+
+local function locked(src, fn)
+    if transitioning[src] then return false, 'transition_busy' end
+    transitioning[src] = true
+    local ok, success, reason = pcall(fn)
+    transitioning[src] = nil
+    if not ok then
+        print('[concept_bridge] Shell transition failed.')
+        return false, 'transition_failed'
+    end
+    return success, reason
+end
+
 local function allocateBucket()
     for bucket = 1000, 9999 do
         if not Shells.BucketsInUse[tostring(bucket)] then return bucket end
@@ -24,7 +100,7 @@ function Shells.Interactable.New(_type, id, model, coords, rotation, entityType,
         rotation = rotation or vector3(0.0, 0.0, 0.0),
         distance = distance or 2.0,
         entityType = entityType or "object", -- Default entity type
-        meta = meta or {},
+        meta = clientData(meta or {}),
     }
 end
 
@@ -37,7 +113,17 @@ function Shells.New(data)
     local rotation = data.rotation or vector3(0.0, 0.0, 0.0) -- Default rotation if not provided
     local interior = data.interior or {}
     local exterior = data.exterior or {}
-    local bucket = data.bucket or allocateBucket()
+    if Shells.All[id] then
+        for _, activeId in pairs(Shells.ActivePlayers) do
+            if activeId == id then return nil, 'shell_in_use' end
+        end
+    end
+    local bucket = data.bucket or (hooks[id] and hooks[id].bucket) or allocateBucket()
+    if type(bucket) ~= 'number' or bucket < 0 or bucket > 2147483647 or bucket % 1 ~= 0 then return nil, 'invalid_bucket' end
+    if bucketOwners[tostring(bucket)] and bucketOwners[tostring(bucket)] ~= id then return nil, 'bucket_in_use' end
+    if not identifier(id) then return nil, 'invalid_shell' end
+    if data.onEnter ~= nil and not callable(data.onEnter) then return nil, 'invalid_hook' end
+    if data.onExit ~= nil and not callable(data.onExit) then return nil, 'invalid_hook' end
     assert(id, "Shells.Create: 'id' is required")
     assert(model, "Shells.Create: 'shellModel' is required")
     assert(coords, "Shells.Create: 'coords' is required")
@@ -83,16 +169,23 @@ function Shells.New(data)
         rotation = rotation or vector3(0.0, 0.0, 0.0),
         interior = interiorInteractions,
         exterior = exteriorInteractions,
+        bucket = bucket,
     }
 
+    local previous = hooks[id]
+    if previous and previous.bucket ~= bucket then
+        bucketOwners[tostring(previous.bucket)], Shells.BucketsInUse[tostring(previous.bucket)] = nil, nil
+    end
+    hooks[id] = {onEnter = data.onEnter, onExit = data.onExit, bucket = bucket}
+    bucketOwners[tostring(bucket)], Shells.BucketsInUse[tostring(bucket)] = id, true
     Shells.All[id] = shellData
     return shellData
 end
 
 function Shells.Create(data)
-    local shell = Shells.New(data)
-    assert(shell, "Shells.Create: 'shell' is required")
-    TriggerClientEvent('concept_bridge:client:CreateShell', -1, shell)
+    local shell, reason = Shells.New(data)
+    if not shell then return nil, reason end
+    TriggerClientEvent('concept_bridge:client:CreateShell', -1, clientData(shell))
     return shell
 end
 
@@ -101,59 +194,112 @@ function Shells.CreateBulk(shells)
     assert(type(shells) == "table", "Shells.CreateBulk: 'shells' must be a table")
     local toClient = {}
     for _, shellData in pairs(shells) do
-        local shell = Shells.New(shellData)
-        toClient[shell.id] = shell
+        local shell, reason = Shells.New(shellData)
+        if not shell then return false, reason end
+        toClient[shell.id] = clientData(shell)
     end
     TriggerClientEvent('concept_bridge:client:CreateShells', -1, toClient)
 end
 
-function Shells.Enter(src, shellId, entranceId)
-    src = tonumber(src)
-    assert(src, "Shells.EnterShell: 'src' is required")
-    assert(shellId, "Shells.EnterShell: 'shellId' is required")
-    print(shellId)
-    local shell = Shells.All[shellId]
-    assert(shell, "Shell not found: " .. tostring(shellId))
-    if shell.onEnter then
-        local canEnter = shell.onEnter(src, shellId)
-        if not canEnter then return false end
-    end
-    if not shell.bucket then
-        local randNum = allocateBucket()
-        shell.bucket = tonumber(randNum)
-        Shells.BucketsInUse[tostring(randNum)] = true
-    end
-    print(shell.bucket)
-    SetPlayerRoutingBucket(src, shell.bucket)
-    local exit = shell.exterior[entranceId]?.meta?.link
-    TriggerClientEvent('concept_bridge:client:EnterShell', src, shellId, exit, Shells.ActivePlayers[tostring(src)])
-    Shells.ActivePlayers[tostring(src)] = shellId
-    return true
+local function enter(src, shellId, entranceId, network)
+    src = playerSource(src)
+    if not src or not identifier(shellId) or not identifier(entranceId) then return false, 'invalid_request' end
+    return locked(src, function()
+        local key = tostring(src)
+        local shell, policy = Shells.All[shellId], hooks[shellId]
+        if not shell or not policy then return false, 'unknown_shell' end
+        local playerName, generation = GetPlayerName(src), generations[src] or 0
+        if not playerName then return false, 'player_unavailable' end
+        if Shells.ActivePlayers[key] == shellId then return true end
+        local entrance = shell.exterior[entranceId]
+        local exitId = entrance and type(entrance.meta) == 'table' and entrance.meta.link
+        local interior = identifier(exitId) and shell.interior[exitId]
+        if not interior then return false, 'invalid_entrance' end
+        local previous = visits[key]
+        local currentBucket = GetPlayerRoutingBucket(src)
+        if previous and currentBucket ~= previous.bucket then return false, 'bucket_changed' end
+        if network and not near(src, entrance) then return false, 'out_of_range' end
+        if policy.onEnter then
+            local ok, allowed = pcall(policy.onEnter, src, shellId)
+            if not ok or not allowed then return false, 'access_denied' end
+        end
+        if GetPlayerName(src) ~= playerName or (generations[src] or 0) ~= generation then return false, 'player_unavailable' end
+        if Shells.All[shellId] ~= shell or hooks[shellId] ~= policy then return false, 'shell_changed' end
+        if GetPlayerRoutingBucket(src) ~= currentBucket then return false, 'bucket_changed' end
+        if network and not near(src, entrance) then return false, 'out_of_range' end
+        local ped = GetPlayerPed(src)
+        if not ped or ped == 0 then return false, 'player_unavailable' end
+        local rootCoords = previous and previous.returnCoords or GetEntityCoords(ped)
+        local priorShell = Shells.ActivePlayers[key]
+        SetPlayerRoutingBucket(src, policy.bucket)
+        visits[key] = {shellId = shellId, bucket = policy.bucket,
+            previousBucket = previous and previous.previousBucket or currentBucket,
+            returnCoords = rootCoords, entranceId = entranceId,
+            switched = previous ~= nil, onExit = policy.onExit}
+        Shells.ActivePlayers[key] = shellId
+        TriggerClientEvent('concept_bridge:client:EnterShell', src, shellId, exitId, priorShell)
+        if previous then notifyExit(src, previous.shellId, previous.onExit) end
+        return true
+    end)
 end
 
+local function leave(src, shellId, oldId, network)
+    src = playerSource(src)
+    if not src or not identifier(shellId) then return false, 'invalid_request' end
+    return locked(src, function()
+        local key = tostring(src)
+        local visit = visits[key]
+        if not visit or visit.shellId ~= shellId or Shells.ActivePlayers[key] ~= shellId then return false, 'not_inside' end
+        local playerName, generation = GetPlayerName(src), generations[src] or 0
+        local shell = Shells.All[shellId]
+        local exitId, returnCoords
+        if oldId ~= nil then
+            if not identifier(oldId) then return false, 'invalid_exit' end
+            local interior = shell and shell.interior[oldId]
+            exitId = interior and type(interior.meta) == 'table' and interior.meta.link
+            if not identifier(exitId) or not shell.exterior[exitId] then return false, 'invalid_exit' end
+            if network and (not near(src, interior) or GetPlayerRoutingBucket(src) ~= visit.bucket) then return false, 'out_of_range' end
+        else
+            if network then return false, 'invalid_exit' end
+            exitId = visit.entranceId
+            if not shell or not shell.exterior[exitId] then returnCoords = visit.returnCoords end
+        end
+        if visit.switched then returnCoords = visit.returnCoords end
+        local connected = GetPlayerName(src) ~= nil
+        if connected then SetPlayerRoutingBucket(src, visit.previousBucket) end
+        visits[key], Shells.ActivePlayers[key] = nil, nil
+        notifyExit(src, shellId, visit.onExit)
+        if connected and GetPlayerName(src) == playerName and (generations[src] or 0) == generation then
+            TriggerClientEvent('concept_bridge:client:ExitShell', src, shellId, exitId, returnCoords)
+        end
+        return true
+    end)
+end
+
+function Shells.Enter(src, shellId, entranceId)
+    return enter(src, shellId, entranceId, false)
+end
 
 function Shells.Exit(src, shellId, oldId)
-
-    print(oldId)
-    src = tonumber(src)
-    assert(src, "Shells.ExitShell: 'src' is required")
-    assert(shellId, "Player is not in a shell")
-
-    local shell = Shells.All[shellId]
-    assert(shell, "Shell not found: " .. tostring(shellId))
-
-    -- Restore original routing bucket
-    SetPlayerRoutingBucket(src, 0)
-    local exit = shell.interior[oldId]?.meta?.link
-    -- Clear player's shell data
-    Shells.ActivePlayers[tostring(src)] = nil
-    if shell.onExit then
-        shell.onExit(src, shellId)
-    end
-    TriggerClientEvent('concept_bridge:client:ExitShell', src, shellId, exit)
-    return true
+    return leave(src, shellId, oldId, false)
 end
 
+local function cleanup(src, dropped, stopping)
+    src = playerSource(src)
+    if not src then return end
+    generations[src] = (generations[src] or 0) + 1
+    local key = tostring(src)
+    local visit = visits[key]
+    if not visit then Shells.ActivePlayers[key] = nil return end
+    if not dropped and GetPlayerName(src) then
+        SetPlayerRoutingBucket(src, visit.previousBucket)
+        if not stopping then
+            TriggerClientEvent('concept_bridge:client:ExitShell', src, visit.shellId, visit.entranceId, visit.returnCoords)
+        end
+    end
+    visits[key], Shells.ActivePlayers[key] = nil, nil
+    if not stopping then notifyExit(src, visit.shellId, visit.onExit) end
+end
 
 function Shells.Get(shellId)
     assert(shellId, "Shells.GetShellById: 'shellId' is required")
@@ -214,7 +360,7 @@ function Shells.AddObjects(shellId, objects)
         shell.exterior[obj.id] = obj -- Update the shell's exterior with the new object
     end
 
-    TriggerClientEvent('concept_bridge:client:AddObjectsToShell', -1, shellId, shell.interior, shell.exterior)
+    TriggerClientEvent('concept_bridge:client:AddObjectsToShell', -1, shellId, clientData(shell.interior), clientData(shell.exterior))
     return shell
 end
 
@@ -239,17 +385,17 @@ end
 
 RegisterNetEvent('concept_bridge:server:EnterShell', function(shellId, entranceId)
     local src = source
-    Shells.Enter(src, shellId, entranceId)
+    return enter(src, shellId, entranceId, true)
 end)
 
 RegisterNetEvent('concept_bridge:server:ExitShell', function(shellId, oldId)
     local src = source
-    Shells.Exit(src, shellId, oldId)
+    return leave(src, shellId, oldId, true)
 end)
 
 AddEventHandler('onPlayerJoining', function(playerId)
     local src = source
-    TriggerClientEvent('concept_bridge:client:CreateShells', src, Shells.All)
+    TriggerClientEvent('concept_bridge:client:CreateShells', src, clientData(Shells.All))
 end)
 
 function Shells.GetInteractable(shellId, id)
@@ -370,18 +516,19 @@ RegisterCommand('shells:addobject', function(source, args, rawCommand)
 end, true)
 
 AddEventHandler('onResourceStop', function(resource)
-    if resource == GetCurrentResourceName() then
-        for src, shellId in pairs(Shells.ActivePlayers) do
-            SetPlayerRoutingBucket(tonumber(src), 0) -- Reset routing bucket for all players
-        end
-    end
+    if resource ~= GetCurrentResourceName() then return end
+    for src in pairs(visits) do cleanup(src, false, true) end
+    for bucket in pairs(Shells.BucketsInUse) do Shells.BucketsInUse[bucket] = nil end
+    for bucket in pairs(bucketOwners) do bucketOwners[bucket] = nil end
+    for id in pairs(hooks) do hooks[id] = nil end
 end)
 
 AddEventHandler('concept_bridge:Server:OnPlayerUnload', function(src)
-    if not Shells.ActivePlayers[tostring(src)] then return end
-    print(string.format("Player %d is exiting shell %s", src, Shells.ActivePlayers[tostring(src)]))
-    Shells.Exit(src, Shells.ActivePlayers[tostring(src)])
-    Shells.ActivePlayers[tostring(src)] = nil
+    cleanup(src, false, false)
+end)
+
+AddEventHandler('playerDropped', function()
+    cleanup(source, true, false)
 end)
 
 return Shells
