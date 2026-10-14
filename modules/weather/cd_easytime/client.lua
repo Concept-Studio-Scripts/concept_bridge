@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('cd_easytime') == 'missing' then return end
+if GetResourceState('cd_easytime') ~= 'started' then return end
 Weather = Weather or {}
 
 ---This will toggle the players weather/time sync

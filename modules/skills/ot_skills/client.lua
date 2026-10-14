@@ -2,8 +2,7 @@
 
 Skills = Skills or {}
 local resourceName = "OT_skills"
-local configValue = BridgeSharedConfig.Skills
-if (configValue == "auto" and GetResourceState(resourceName) ~= "started") or (configValue ~= "auto" and configValue ~= resourceName) then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 ---This will return the name of the Skills system being used.
 ---@return string

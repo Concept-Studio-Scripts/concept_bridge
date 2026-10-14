@@ -1,6 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "cd_garage"
-if GetResourceState(resourceName) == 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 VehicleKey = VehicleKey or {}
 

@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('Renewed-Weathersync') == 'missing' then return end
+if GetResourceState('Renewed-Weathersync') ~= 'started' then return end
 Weather = Weather or {}
 
 ---This will toggle the players weather/time sync

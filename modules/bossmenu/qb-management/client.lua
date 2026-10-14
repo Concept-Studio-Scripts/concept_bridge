@@ -1,6 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('qb-management') ~= 'started' then return end
-if GetResourceState('qbx_management') == 'started' then return end
 
 BossMenu = BossMenu or {}
 
