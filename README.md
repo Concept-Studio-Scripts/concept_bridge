@@ -2,7 +2,7 @@
 
 Concept Studio's compatibility layer for FiveM frameworks, inventories, targeting, notifications and other providers. The runtime resource name is **concept_bridge**.
 
-**Current release: 1.0.0** · 2026-10-10.
+**Current release: 1.0.0** <!-- x-release-please-version -->
 
 Derived from [Community Bridge](https://github.com/TheOrderFivem/community_bridge),
 originally developed by The Order of the Sacred Framework and contributors.
@@ -153,11 +153,9 @@ Use this repository's [issues](https://github.com/Concept-Studio-Scripts/concept
 
 Run the commands in [test/README.md](test/README.md). For the NUI, run `npm ci`, `npm run lint` and `npm run build` from web/. The build is finite; web/dist is committed for normal resource installation. CI checks Lua regressions, NUI lint/build and packaging.
 
-Tags such as `v1.0.0` build the NUI and publish a GitHub Release with a full-source,
-prebuilt resource ZIP. Manual runs of the same Release workflow upload a ZIP
-artifact without publishing. Manifest, NUI package and lockfile versions must
-match the tag. [CHANGELOG.md](CHANGELOG.md) contains owner-facing notes;
-[CHANGELOG.dev.md](CHANGELOG.dev.md) supplies the GitHub release notes.
+Releases include a full-source resource ZIP with a prebuilt UI.
+[CHANGELOG.md](CHANGELOG.md) contains the release notes;
+[CONTRIBUTING.md](CONTRIBUTING.md) explains development and releases.
 
 For local packaging with PowerShell 7, run `./tools/package-release.ps1 -Build`. The ZIP includes
 the GPL license, origin/credits, Lua and NUI source, tooling and tests, as well as

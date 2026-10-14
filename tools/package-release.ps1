@@ -31,7 +31,7 @@ if ($Build) {
 }
 
 $ManifestText = [IO.File]::ReadAllText((Join-Path $ResourceRoot 'fxmanifest.lua'))
-$VersionMatch = [regex]::Match($ManifestText, "(?m)^version '([^']+)'$")
+$VersionMatch = [regex]::Match($ManifestText, "(?m)^version '([^']+)'(?: -- x-release-please-version)?$")
 if (-not $VersionMatch.Success) { throw 'Manifest version missing.' }
 $Version = $VersionMatch.Groups[1].Value
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Manifest version must have three numeric components.' }
@@ -41,6 +41,10 @@ if ($Package.version -ne $Version -or $Lock['version'] -ne $Version -or $Lock['p
     throw 'Manifest, NUI package and root lockfile versions must match.'
 }
 if ($ManifestText -notmatch "(?m)^name 'concept_bridge'$") { throw 'Canonical resource name missing.' }
+
+$SourceVersion = (Get-Content -LiteralPath (Join-Path $ResourceRoot 'version.txt') -Raw).Trim()
+$ReleaseVersion = (Get-Content -LiteralPath (Join-Path $ResourceRoot '.release-please-manifest.json') -Raw | ConvertFrom-Json -AsHashtable)['.']
+if ($SourceVersion -ne $Version -or $ReleaseVersion -ne $Version) { throw 'Release manifest and version.txt must match the resource version.' }
 
 $OriginalLicenseHash = '605e9047a563c5c8396ffb18232aa4304ec56586aee537c45064c6fb425e44ad'
 $LicenseHash = (Get-FileHash -LiteralPath (Join-Path $ResourceRoot 'LICENSE') -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -80,7 +84,7 @@ function Copy-ReleaseTree([string]$Source, [string]$Destination) {
 }
 
 try {
-    foreach ($Name in @('fxmanifest.lua', 'init.lua', 'LICENSE', 'ORIGIN.Md', 'README.md', 'CHANGELOG.md')) {
+    foreach ($Name in @('fxmanifest.lua', 'init.lua', 'LICENSE', 'ORIGIN.Md', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'version.txt', 'release-please-config.json', '.release-please-manifest.json')) {
         $InputPath = Join-Path $ResourceRoot $Name
         if (-not (Test-Path -LiteralPath $InputPath -PathType Leaf)) { throw "Package input missing: $Name" }
         Copy-Item -LiteralPath $InputPath -Destination $StagedResource

@@ -6,3 +6,4 @@ release/
 .DS_Store
 __pycache__/
 KNOWN_LIMITATIONS.md
+/release-notes.md

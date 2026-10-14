@@ -5,7 +5,7 @@ use_experimental_fxv2_oal 'yes'
 author 'Concept Studio; derived from The Order of the Sacred Framework and contributors'
 name 'concept_bridge'
 description 'Concept Studio compatibility layer for FiveM frameworks and providers; derived from Community Bridge.'
-version '1.0.0'
+version '1.0.0' -- x-release-please-version
 
 shared_scripts {
     '@ox_lib/init.lua',
