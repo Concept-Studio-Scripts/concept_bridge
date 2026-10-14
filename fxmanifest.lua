@@ -19,13 +19,7 @@ server_scripts {
     'settings/serverConfig.lua',
     'modules/providers/server.lua',
     'modules/version/server/*.lua',
-    'modules/doorlock/**/server.lua',
-    'modules/phone/**/server.lua',
-    'modules/banking/**/server.lua',
-    'modules/dispatch/**/server.lua',
-    'modules/clothing/**/server.lua',
     'modules/shops/**/server.lua',
-    'modules/housing/**/server.lua',
     "lib/**/server.lua",
     'init.lua',
 }
@@ -34,13 +28,8 @@ client_scripts {
     'settings/clientConfig.lua',
     'modules/providers/client.lua',
     'modules/weapons/client.lua',
-    'modules/doorlock/**/client.lua',
-    'modules/phone/**/client.lua',
-    'modules/dispatch/**/client.lua',
-    'modules/clothing/**/client.lua',
     'modules/dialogue/**/client/*.lua',
     'modules/shops/**/client.lua',
-    'modules/housing/**/client.lua',
     'init.lua',
 }
 

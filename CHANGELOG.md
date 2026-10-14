@@ -4,11 +4,8 @@
 
 ### Fixed
 
-- Apply lifecycle provider selection to targeting, vehicle keys, weather, skills,
-  boss menus and the notification, help-text, input, menu and progress interfaces.
-
-- Select only running framework, inventory, fuel, seatbelt and voice providers,
-  resolve conflicts consistently, and refresh adapters on provider lifecycle changes.
+- Select only running providers, resolve conflicts consistently, and refresh adapters
+  and consumer caches when providers start, stop or restart.
 
 - Preserve server shell permission hooks and configured buckets; validate client
   entry and exit points and restore the original player bucket on exit or cleanup.
