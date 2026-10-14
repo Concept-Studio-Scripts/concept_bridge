@@ -82,7 +82,7 @@ Use ox_lib directly for shared utilities and oxmysql for database access.
 | `Voice` | `auto` · `pma-voice` · `none` | `none` falls back to native proximity |
 | `Debug` | `true` · `false` | Extra module registration logging |
 
-Automatic lifecycle selection currently manages Framework, Inventory, Fuel, Seatbelt, Voice.
+Automatic lifecycle selection currently manages Framework, Inventory, HelpText, Notify, Skills, BossMenu, Fuel, Input, ProgressBar, VehicleKey, Weather, Target, Menu, Seatbelt, Voice.
 Other families retain their existing adapter loading until the next rollout.
 Only started providers are selected in managed domains. The explicit order and compatibility overrides
 are defined in [the provider catalog](lib/providers/shared/catalog.lua). Set
