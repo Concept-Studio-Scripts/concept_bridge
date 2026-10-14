@@ -82,8 +82,19 @@ Use ox_lib directly for shared utilities and oxmysql for database access.
 | `Voice` | `auto` · `pma-voice` · `none` | `none` falls back to native proximity |
 | `Debug` | `true` · `false` | Extra module registration logging |
 
-`Fuel`, `VehicleKey`, `Target` and `Phone` providers are detected from started
-resources; they have no config key.
+Automatic lifecycle selection currently manages Framework, Inventory, Fuel, Seatbelt, Voice.
+Other families retain their existing adapter loading until the next rollout.
+Only started providers are selected in managed domains. The explicit order and compatibility overrides
+are defined in [the provider catalog](lib/providers/shared/catalog.lua). Set
+`BridgeSharedConfig.Providers` to override a managed domain, for example
+`{ Inventory = 'ox_inventory', Fuel = 'ox_fuel' }`; `none` selects its default.
+Existing client/shared selectors still apply unless overridden there.
+
+Adapters refresh on provider starts, stops and restarts. `Bridge.Providers.GetStatus()`
+reports each selected resource, generation, other active candidates and load errors.
+Consumers that cache exports or register provider-owned targets/shops should listen to
+`Bridge:Refresh` (domain, module, generation, owner) and refresh or re-register their
+own state when owner is `concept_bridge`.
 
 ### Shared (`settings/sharedConfig.lua`)
 
