@@ -2,7 +2,7 @@
 
 Concept Studio's compatibility layer for FiveM frameworks, inventories, targeting, notifications and other providers. The runtime resource name is **concept_bridge**.
 
-**Current release: 1.0.0** <!-- x-release-please-version -->
+**Current release: 2.0.0** <!-- x-release-please-version -->
 
 Derived from [Community Bridge](https://github.com/TheOrderFivem/community_bridge),
 originally developed by The Order of the Sacred Framework and contributors.
