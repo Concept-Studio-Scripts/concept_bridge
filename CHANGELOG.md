@@ -15,6 +15,9 @@
 - Reject bucket 0 as a shell destination while preserving return to a player's
   original world bucket on exit.
 
+- Reject repeated shell entry when the recorded visit or current routing bucket
+  no longer matches, preserving explicit server recovery after another resource moves a player.
+
 ## [1.0.0] - 2026-10-14
 
 First Concept Bridge release.

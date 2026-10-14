@@ -223,14 +223,18 @@ local function enter(src, shellId, entranceId, network)
         if not shell or not policy then return false, 'unknown_shell' end
         local playerName, generation = GetPlayerName(src), generations[src] or 0
         if not playerName then return false, 'player_unavailable' end
-        if Shells.ActivePlayers[key] == shellId then return true end
+        local previous = visits[key]
+        local currentBucket = GetPlayerRoutingBucket(src)
+        if previous and currentBucket ~= previous.bucket then return false, 'bucket_changed' end
+        if Shells.ActivePlayers[key] == shellId then
+            if not previous or previous.shellId ~= shellId then return false, 'not_inside' end
+            if previous.bucket ~= policy.bucket then return false, 'bucket_changed' end
+            return true
+        end
         local entrance = shell.exterior[entranceId]
         local exitId = entrance and type(entrance.meta) == 'table' and entrance.meta.link
         local interior = identifier(exitId) and shell.interior[exitId]
         if not interior then return false, 'invalid_entrance' end
-        local previous = visits[key]
-        local currentBucket = GetPlayerRoutingBucket(src)
-        if previous and currentBucket ~= previous.bucket then return false, 'bucket_changed' end
         if network and not near(src, entrance) then return false, 'out_of_range' end
         if policy.onEnter then
             local ok, allowed = pcall(policy.onEnter, src, shellId)

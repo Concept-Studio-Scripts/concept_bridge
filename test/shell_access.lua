@@ -110,6 +110,46 @@ do
     expect(replacement.bucket==9000 and not api.BucketsInUse['8000'] and api.BucketsInUse['9000'], 'inactive replacement releases old bucket reservation')
 end
 do
+    local _, state, api, request = fixture()
+    local entries, exits=0,0
+    local shell=api.Create(data('a',8000,function() entries=entries+1; return true end,function() exits=exits+1 end))
+    expect(request('Enter',7,'a','front')==true, 'admit a player before an independent routing change')
+    state.players[7].coords=shell.interior.door.coords
+    local writes, events=state.sets,#state.events
+    expect(api.Enter(7,'a','front')==true and state.sets==writes and #state.events==events and entries==1,
+        'healthy trusted repeat entry remains idempotent from inside the shell')
+    state.players[7].bucket=9000
+    local allowed, reason=request('Enter',7,'a','front')
+    expect(allowed==false and reason=='bucket_changed', 'network repeat entry rejects an independently changed bucket')
+    allowed, reason=api.Enter(7,'a','front')
+    expect(allowed==false and reason=='bucket_changed', 'trusted repeat entry also rejects stale routing state')
+    expect(state.players[7].bucket==9000 and state.sets==writes and #state.events==events and entries==1 and exits==0,
+        'rejected repeat entry preserves the external instance without events or permission-hook side effects')
+    expect(api.ActivePlayers['7']=='a' and api.Inside(7)==shell,
+        'rejected repeat entry retains the visit for explicit trusted recovery')
+    expect(request('Exit',7,'a','door')==false and state.players[7].bucket==9000,
+        'client exit cannot override an independently assigned instance')
+    expect(api.Exit(7,'a')==true and state.players[7].bucket==42 and api.Inside(7)==false and exits==1,
+        'explicit trusted exit still restores the original instance and clears membership')
+end
+
+do
+    local _, state, api, request = fixture()
+    api.Create(data('a',8000))
+    api.ActivePlayers['7']='a'
+    local writes, events=state.sets,#state.events
+    local allowed, reason=request('Enter',7,'a','front')
+    expect(allowed==false and reason=='not_inside' and state.sets==writes and #state.events==events,
+        'public membership alone cannot make repeat entry report success without a private visit')
+    api.ActivePlayers['7']=nil
+    api.Create(data('b',8001))
+    api.Enter(7,'a','front')
+    api.ActivePlayers['7']='b'
+    allowed, reason=api.Enter(7,'b','front')
+    expect(allowed==false and reason=='not_inside' and state.players[7].bucket==8000,
+        'repeat entry requires the private visit to match the claimed shell')
+end
+do
     local env, state, api, request = fixture()
     local exitCalls=0
     local deny=setmetatable({__cfx_functionReference='private-enter'}, {__metatable='private',__call=function() return false end})
