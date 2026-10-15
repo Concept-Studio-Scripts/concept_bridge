@@ -5,7 +5,8 @@
 ### Fixed
 
 - Select only running providers, resolve conflicts consistently, and refresh adapters
-  and consumer caches when providers start, stop or restart.
+  when providers start, stop or restart. Consumers that cache provider state must
+  handle `Bridge:Refresh` to update their own caches.
 
 - Preserve server shell permission hooks and configured buckets; validate client
   entry and exit points and restore the original player bucket on exit or cleanup.
