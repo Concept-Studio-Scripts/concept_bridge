@@ -11,6 +11,7 @@ local function environment(resource)
     env._G = env
     assert(loadfile(root .. 'test/support/ox_lib.lua'))()(env)
     local state = {handlers = {}, events = {}}
+    env.GetResourceMetadata = function() return '1.0.0' end
     env.GetResourceState = function(name) return name == resource and 'started' or 'missing' end
     env.RegisterNetEvent = function(name, handler) if handler then state.handlers[name] = handler end end
     env.AddEventHandler = env.RegisterNetEvent

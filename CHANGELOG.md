@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Select only running framework, inventory, fuel, seatbelt and voice providers,
+  resolve conflicts consistently, and refresh adapters on provider lifecycle changes.
+
 - Preserve server shell permission hooks and configured buckets; validate client
   entry and exit points and restore the original player bucket on exit or cleanup.
 

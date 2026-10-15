@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('jpr-inventory') == 'missing' then return end
+if GetResourceState('jpr-inventory') ~= 'started' then return end
 
 local jpr = exports['jpr-inventory']
 local registeredShops = {}

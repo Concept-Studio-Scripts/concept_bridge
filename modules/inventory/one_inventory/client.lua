@@ -5,7 +5,7 @@
 ]]--
 
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('one_inventory') == 'missing' then return end
+if GetResourceState('one_inventory') ~= 'started' then return end
 local inv = exports['one_inventory']
 Inventory = Inventory or {}
 

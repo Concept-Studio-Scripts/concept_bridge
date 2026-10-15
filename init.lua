@@ -8,7 +8,8 @@ function Bridge.RegisterModule(moduleName, moduleTable)
         return
     end
 
-    local wrappedModule = Bridge[moduleName] or {}
+    local managed = ProviderResolver and ProviderResolver.Owns(moduleName)
+    local wrappedModule = Bridge[moduleName] or (managed and _G[moduleName]) or {}
     if type(moduleTable) == 'function' then
         Bridge[moduleName] = moduleTable
         exports(moduleName, moduleTable)
@@ -44,6 +45,7 @@ function Bridge.RegisterModuleFunction(moduleName, functionName, func)
     TriggerEvent("Bridge:Refresh", moduleName, Bridge[moduleName])
 end
 
+Bridge.RegisterModule("Providers", ProviderResolver)
 Bridge.RegisterModule("Framework", Framework)
 Bridge.RegisterModule("BossMenu", BossMenu)
 Bridge.RegisterModule("Inventory", Inventory)
