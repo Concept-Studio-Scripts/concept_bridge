@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('qb-weathersync') == 'missing' then return end
+if GetResourceState('qb-weathersync') ~= 'started' then return end
 Weather = Weather or {}
 
 ---This will toggle the players weather/time sync

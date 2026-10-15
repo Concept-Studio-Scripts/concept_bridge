@@ -1,7 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "sleepless_interact"
-if GetResourceState(resourceName) == 'missing' then return end
-if GetResourceState("ox_target") == 'started' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 local targetDebug = BridgeSharedConfig and BridgeSharedConfig.DebugLevel == 2 or false
 local sleepless_interact = exports.sleepless_interact

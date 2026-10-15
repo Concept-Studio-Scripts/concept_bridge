@@ -1,6 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "okokGarage"
-if GetResourceState(resourceName) == 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 
 VehicleKey = VehicleKey or {}
 

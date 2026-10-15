@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Apply lifecycle provider selection to targeting, vehicle keys, weather, skills,
+  boss menus and the notification, help-text, input, menu and progress interfaces.
+
 - Select only running framework, inventory, fuel, seatbelt and voice providers,
   resolve conflicts consistently, and refresh adapters on provider lifecycle changes.
 
