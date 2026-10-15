@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('kartik-banking') == 'missing' then return end
+if GetResourceState('kartik-banking') ~= 'started' then return end
 Banking = Banking or {}
 
 local kartik = exports['kartik-banking']

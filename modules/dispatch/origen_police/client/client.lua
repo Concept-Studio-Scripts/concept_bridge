@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('origen_police') == 'missing' then return end
+if GetResourceState('origen_police') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(data)

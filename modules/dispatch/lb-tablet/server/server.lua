@@ -1,4 +1,4 @@
-if GetResourceState('lb-tablet') == 'missing' then return end
+if GetResourceState('lb-tablet') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 RegisterNetEvent("concept_bridge:server:dispatch:sendAlert", function(data)

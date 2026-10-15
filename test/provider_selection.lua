@@ -318,6 +318,30 @@ do
         'live resource readiness is rechecked after yielding even before the stop event is delivered')
 end
 
+-- Compatibility blockers need not have a bridge adapter of their own.
+for _, side in ipairs({'client', 'server'}) do
+    local clothing = definition('Clothing')
+    for _, candidate in ipairs(clothing.candidates) do
+        if candidate[side] then
+            local env = fixture({clothing}, side, false,
+                {[candidate.resource] = 'started', ['17mov_CharacterSystem'] = 'started'})
+            expect(env.Clothing.GetResourceName() == 'default',
+                side .. ' external clothing blocker excludes ' .. candidate.resource)
+        end
+    end
+    local env, state, api, lifecycle = fixture({clothing}, side, true,
+        {esx_skin = 'started', ['17mov_CharacterSystem'] = 'stopped'})
+    expect(env.Clothing.GetResourceName() == 'esx_skin', side .. ' stopped external blocker leaves actual ESX available')
+    lifecycle('17mov_CharacterSystem', true)
+    expect(env.Clothing.GetResourceName() == 'default', side .. ' starting external blocker retires actual ESX')
+    env.BridgeSharedConfig.Providers.Clothing = 'esx_skin'
+    api.Refresh()
+    expect(env.Clothing.GetResourceName() == 'default', side .. ' explicit selection cannot bypass an external blocker')
+    lifecycle('17mov_CharacterSystem', false)
+    expect(env.Clothing.GetResourceName() == 'esx_skin', side .. ' stopping external blocker restores actual ESX')
+    expect(api.GetStatus().Clothing.error == nil, side .. ' actual clothing lifecycle remains error-free')
+end
+
 -- Catalog paths stay case-sensitive on Linux and every adapter is covered.
 for _, item in ipairs(catalog) do
     for _, candidate in ipairs(item.candidates) do

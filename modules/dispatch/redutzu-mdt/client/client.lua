@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('redutzu-mdt') == 'missing' then return end
+if GetResourceState('redutzu-mdt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(data)

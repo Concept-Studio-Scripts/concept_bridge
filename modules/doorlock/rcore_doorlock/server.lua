@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('rcore_doorlock') == 'missing' then return end
+if GetResourceState('rcore_doorlock') ~= 'started' then return end
 
 Doorlock = Doorlock or {}
 

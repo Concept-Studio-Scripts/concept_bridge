@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('Renewed-Banking') == 'missing' then return end
+if GetResourceState('Renewed-Banking') ~= 'started' then return end
 Banking = Banking or {}
 
 local renewed = exports['Renewed-Banking']

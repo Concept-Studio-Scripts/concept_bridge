@@ -1,6 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "qs-smartphone"
-if GetResourceState(resourceName) == 'missing' then return end
+if GetResourceState(resourceName) ~= 'started' then return end
 Phone = Phone or {}
 
 ---This will get the name of the Phone system being being used.

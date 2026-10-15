@@ -1,7 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('esx_skin') == 'missing' then return end
-if GetResourceState('rcore_clothing') ~= 'missing' then return end
-if GetResourceState('17mov_CharacterSystem') ~= 'missing' then return end
+if GetResourceState('esx_skin') ~= 'started' then return end
 Clothing = Clothing or {}
 Clothing.Players = {}
 

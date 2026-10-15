@@ -119,8 +119,20 @@ function Resolver.New(catalog, side)
 
     local function selectProvider(definition)
         local preference, active, activeSet = configured(definition), {}, {}
+        local supported = {}
         for _, candidate in ipairs(definition.candidates) do
-            if candidate[side] and started(candidate.resource) then
+            if candidate[side] then supported[candidate.resource] = true end
+        end
+        local function externalBlocker(candidate)
+            for _, other in ipairs(candidate.blocks or {}) do
+                -- Some compatibility resources have no adapter on this side.
+                -- A configured choice must not bypass those running blockers.
+                if not supported[other] and started(other) then return true end
+            end
+            return false
+        end
+        for _, candidate in ipairs(definition.candidates) do
+            if candidate[side] and started(candidate.resource) and not externalBlocker(candidate) then
                 active[#active + 1] = candidate
                 activeSet[candidate.resource] = #active
             end
@@ -312,6 +324,10 @@ function Resolver.New(catalog, side)
             local relevant = false
             for _, candidate in ipairs(state.definition.candidates) do
                 if candidate.resource == name then relevant = true break end
+                for _, blocker in ipairs(candidate.blocks or {}) do
+                    if blocker == name then relevant = true break end
+                end
+                if relevant then break end
             end
             if relevant or (frameworkChanged and state.definition.name == 'Inventory') then
                 local generation = state.generation

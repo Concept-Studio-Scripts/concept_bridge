@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('tk_dispatch') == 'missing' then return end
+if GetResourceState('tk_dispatch') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(data)

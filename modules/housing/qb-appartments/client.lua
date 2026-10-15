@@ -1,4 +1,4 @@
-if GetResourceState('qb-apartments') == 'missing' then return end
+if GetResourceState('qb-apartments') ~= 'started' then return end
 
 Housing = Housing or {}
 

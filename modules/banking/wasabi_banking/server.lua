@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('wasabi_banking') == 'missing' then return end
+if GetResourceState('wasabi_banking') ~= 'started' then return end
 Banking = Banking or {}
 
 local wasabi_banking = exports['wasabi_banking']

@@ -1,4 +1,4 @@
-if GetResourceState('redutzu-mdt') == 'missing' then return end
+if GetResourceState('redutzu-mdt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 RegisterNetEvent("concept_bridge:server:dispatch:sendAlert", function(data)

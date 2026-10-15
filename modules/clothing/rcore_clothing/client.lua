@@ -1,6 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('rcore_clothing') == 'missing' then return end
-if GetResourceState('17mov_CharacterSystem') ~= 'missing' then return end
+if GetResourceState('rcore_clothing') ~= 'started' then return end
 Clothing = Clothing or {}
 
 function Clothing.OpenMenu()

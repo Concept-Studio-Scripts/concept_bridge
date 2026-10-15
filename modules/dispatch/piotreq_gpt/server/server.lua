@@ -1,4 +1,4 @@
-if GetResourceState('piotreq_gpt') == 'missing' then return end
+if GetResourceState('piotreq_gpt') ~= 'started' then return end
 Dispatch = Dispatch or {}
 
 Dispatch.SendAlert = function(src, alertData)

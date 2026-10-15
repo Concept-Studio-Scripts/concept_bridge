@@ -1,5 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
-if GetResourceState('DHS-BankingSim') == 'missing' then return end
+if GetResourceState('DHS-BankingSim') ~= 'started' then return end
 Banking = Banking or {}
 
 local dhsBanking = exports['DHS-BankingSim']
