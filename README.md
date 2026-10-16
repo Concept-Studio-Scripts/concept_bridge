@@ -106,7 +106,7 @@ own state when owner is `concept_bridge`.
 
 ### Server (`settings/serverConfig.lua`)
 
-`CanSendDispatch(src, provider, data)` authorizes client dispatch relays and must return `true` to allow a request. The default checks the `concept_bridge.dispatch` ACE; replace it with a server-owned mission/job eligibility check where appropriate. Trusted server dispatch calls retain their provider contracts and bypass this client hook. [Request contracts](test/REQUEST_SECURITY.md) describe the network limits and server inventory integration.
+Send gameplay alerts from trusted server code after validating the incident. Client dispatch relays are disabled by default; integrations that need them must supply `CanSendDispatch(src, provider, data)` and return `true` only when the report matches server-owned gameplay state. Trusted server dispatch calls retain their provider contracts and bypass this client hook. [Request contracts](test/REQUEST_SECURITY.md) describe the network limits and server inventory integration.
 
 ### Consumer modules
 

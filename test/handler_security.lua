@@ -8,7 +8,7 @@ local function fixture(domain, provider)
     env._G = env
     local state = {now = 1000, handlers = {}, callbacks = {}, network = {}, effects = {}, resources = {},
         characters = {[7] = 'victim', [8] = 'actor', [9] = 'officer'}, connected = {[7] = true, [8] = true, [9] = true},
-        allowed = false, framework = 'qb-core', reads = 0, roster = {7, 7, 9}}
+        framework = 'qb-core', reads = 0, roster = {7, 7, 9}}
     state.resources['qb-core'], state.resources[provider] = 'started', 'started'
     env.GetGameTimer = function() return state.now end
     env.GetPlayerName = function(src) return state.connected[src] and ('player:' .. src) or nil end
@@ -43,10 +43,6 @@ local function fixture(domain, provider)
     }
     if domain ~= 'Framework' then env[domain] = {GetResourceName = function() return provider end} end
     env.GlobalState, env.Bridge = {}, {Framework = env.Framework}
-    env.IsPlayerAceAllowed = function(src, ace)
-        state.aceSource, state.ace = src, ace
-        return state.allowed
-    end
     env.lib = {callback = {register = function(name, fn) state.callbacks[name] = fn end}}
     local loaded = {}
     local function loadModule(path)
@@ -203,7 +199,7 @@ do
     env.BridgeServerConfig.CanSendDispatch = function() error('must not run for server-local dispatch') end
     fire(event, 0, data)
     expect(#state.effects == 2, 'trusted server-local fallback dispatch preserves the relay contract')
-    state.effects, state.allowed = {}, true
+    state.effects = {}
     env.BridgeServerConfig.CanSendDispatch = function() return true end
     state.pause = 'roster'
     local pending = coroutine.create(function() fire(event, 8, data) end)
@@ -215,9 +211,19 @@ end
 for _, provider in ipairs({'default', 'lb-tablet', 'redutzu-mdt', 'emergencydispatch', 'piotreq_gpt'}) do
     local env, state, fire, event, data = dispatchFixture(provider)
     expect(fire(event, 8, data) == false and #state.effects == 0, provider .. ' client dispatch is denied by default')
-    expect(state.aceSource == 8 and state.ace == 'concept_bridge.dispatch', provider .. ' server authorization uses actual caller')
-    state.allowed, state.now = true, state.now + 5000
+    expect(env.BridgeServerConfig.CanSendDispatch == nil, provider .. ' no general player permission policy is installed')
+    env.BridgeServerConfig.CanSendDispatch = function(src, selected, checked)
+        state.approval = {src = src, provider = selected, code = checked.code}
+        local incident = state.incident
+        return incident ~= nil and incident.src == src and incident.provider == selected and incident.code == checked.code
+    end
+    state.now = state.now + 5000
+    expect(fire(event, 8, data) == false and #state.effects == 0, provider .. ' gameplay policy rejects a report without a server incident')
+    state.incident = {src = 8, provider = provider, code = data.code}
+    state.now = state.now + 5000
     fire(event, 8, data)
+    expect(state.approval.src == 8 and state.approval.provider == provider and state.approval.code == data.code,
+        provider .. ' gameplay policy receives the actual caller, provider and validated report')
     local count = #state.effects
     expect(count == (provider == 'default' and 2 or 1), provider .. ' authorized alert preserves provider flow and deduplicates recipients')
     expect(fire(event, 8, data) == false and #state.effects == count, provider .. ' dispatch spam has no effects')
@@ -253,7 +259,7 @@ do
     loadModule('settings/serverConfig.lua')
     loadModule('modules/dispatch/_default/server/server.lua')
     loadModule('modules/dispatch/lb-tablet/server/server.lua')
-    state.allowed = true
+    env.BridgeServerConfig.CanSendDispatch = function() return true end
     expect(fire('concept_bridge:Server:DispatchAlert', 8, alert) == false and #state.effects == 0,
         'default relay cannot bypass the selected dispatch provider')
     fire('concept_bridge:Server:DispatchAlert', 0, alert)
@@ -362,8 +368,8 @@ do
     local _, state, request = emailFixture('okokPhone')
     expect(request({email = email.email, title = '', message = ''}) == true and #state.effects == 1,
         'bounded empty subject/body strings retain the existing email contract')
-    local _, dispatchState, fire, event = dispatchFixture('lb-tablet')
-    dispatchState.allowed = true
+    local dispatchEnv, dispatchState, fire, event = dispatchFixture('lb-tablet')
+    dispatchEnv.BridgeServerConfig.CanSendDispatch = function() return true end
     local data = {priority = 'high', code = '10-80', title = 'Title', description = '',
         location = {label = '', coords = {x = 10, y = 20}}, time = 300}
     fire(event, 8, data)
