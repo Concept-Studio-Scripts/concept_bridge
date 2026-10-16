@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-17
+
 ### Fixed
 
 - Validate sensitive client requests, authorize dispatch relays on the server, and
