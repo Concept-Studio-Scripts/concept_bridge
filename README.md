@@ -104,6 +104,10 @@ own state when owner is `concept_bridge`.
 | `HelpText` | `auto` · `ox_lib` · ... | |
 | `Skills` | `auto` · `OT_skills` · `evolent_skills` · `pickle_xp` | |
 
+### Server (`settings/serverConfig.lua`)
+
+`CanSendDispatch(src, provider, data)` authorizes client dispatch relays and must return `true` to allow a request. The default checks the `concept_bridge.dispatch` ACE; replace it with a server-owned mission/job eligibility check where appropriate. Trusted server dispatch calls retain their provider contracts and bypass this client hook. [Request contracts](test/REQUEST_SECURITY.md) describe the network limits and server inventory integration.
+
 ### Consumer modules
 
 See the [API documentation](https://conceptstudio.store/docs/concept-bridge) for module usage and [provider contracts](test/PROVIDER_CONTRACTS.md) for inventory export mappings.

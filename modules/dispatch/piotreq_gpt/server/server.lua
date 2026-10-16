@@ -1,5 +1,6 @@
 if GetResourceState('piotreq_gpt') ~= 'started' then return end
 Dispatch = Dispatch or {}
+local DispatchRequests = lib.require('@concept_bridge.lib.security.server.dispatch')
 
 Dispatch.SendAlert = function(src, alertData)
     -- No clue if this works, but itd be nice to have someone test it.
@@ -32,8 +33,10 @@ Dispatch.SendAlert = function(src, alertData)
 end
 
 RegisterNetEvent('concept_bridge:Server:piotreq_gpt', function(data)
-    local src = source
-    Dispatch.SendAlert(src, data)
+    local src = tonumber(source)
+    return DispatchRequests.Send(src, 'piotreq_gpt', function(payload)
+        return Dispatch.SendAlert(src, payload)
+    end, data)
 end)
 
 ---This will get the name of the in use resource.
