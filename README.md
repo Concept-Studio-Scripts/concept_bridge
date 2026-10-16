@@ -104,6 +104,10 @@ own state when owner is `concept_bridge`.
 | `HelpText` | `auto` · `ox_lib` · ... | |
 | `Skills` | `auto` · `OT_skills` · `evolent_skills` · `pickle_xp` | |
 
+### Server (`settings/serverConfig.lua`)
+
+Send gameplay alerts from trusted server code after validating the incident. Client dispatch relays are disabled by default; integrations that need them must supply `CanSendDispatch(src, provider, data)` and return `true` only when the report matches server-owned gameplay state. Trusted server dispatch calls retain their provider contracts and bypass this client hook. [Request contracts](test/REQUEST_SECURITY.md) describe the network limits and server inventory integration.
+
 ### Consumer modules
 
 See the [API documentation](https://conceptstudio.store/docs/concept-bridge) for module usage and [provider contracts](test/PROVIDER_CONTRACTS.md) for inventory export mappings.

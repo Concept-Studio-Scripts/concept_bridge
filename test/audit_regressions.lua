@@ -21,6 +21,7 @@ local function environment(resource)
     env.LoadResourceFile = function() return nil end
     env.lib.callback = {register = function() end}
     env.exports = {}
+    assert(loadfile(root .. 'test/support/security.lua'))()(env, root)
     return env, state
 end
 local function load(path, env) return assert(loadfile(root .. path, 't', env))() end

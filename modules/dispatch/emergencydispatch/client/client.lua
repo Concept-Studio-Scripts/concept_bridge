@@ -12,8 +12,7 @@ Dispatch.SendAlert = function(data)
     local message = data.message or "An Alert Has Been Made"
     local coords = data.coords or GetEntityCoords(ped)
 
-    -- The last boolean argument is unknown. The developer always uses true.
-    TriggerServerEvent('emergencydispatch:emergencycall:new', job, message, coords, true)
+    TriggerServerEvent('concept_bridge:server:dispatch:sendAlert', {job = job, message = message, coords = coords})
 end
 
 ---This will get the name of the in use resource.

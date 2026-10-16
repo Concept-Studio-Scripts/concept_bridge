@@ -1,6 +1,8 @@
 # Bridge regression checks
 
-Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All ten Lua suites and frontend checks run in Concept Bridge CI.
+Run `lua test/handler_security.lua` for sensitive request validation, dispatch authorization and identity/provider changes during yielding work. [REQUEST_SECURITY.md](REQUEST_SECURITY.md) records the endpoint contracts and trusted-server boundaries.
+
+Run `lua test/runtime_identity.lua` for explicit ox_lib module resolution and retained bridge/provider exports. Run `./tools/package-release.ps1 -Build` to build and verify the complete source/runtime archive, including version parity, the original license and prebuilt UI assets. All eleven Lua suites and frontend checks run in Concept Bridge CI.
 
 Stock Lua syntax compilation applies to the standard-Lua inventory helpers and fixtures. Fourteen retained runtime files use extended syntax that stock Lua 5.4 cannot parse; full runtime syntax/behavior requires the appropriate FiveM environment and is not established by this CI gate.
 

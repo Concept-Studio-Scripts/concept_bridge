@@ -1,5 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 if GetResourceState('qb-clothing') ~= 'started' then return end
+local AppearanceRequests = lib.require('@concept_bridge.lib.security.server.appearance')
 Clothing = Clothing or {}
 Clothing.Players = {}
 
@@ -164,9 +165,9 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 --- Callback handler for retrieving a player's appearance data
-lib.callback.register('concept_bridge:cb:GetAppearance', function(source)
-    local src = source
-    return Clothing.GetAppearance(src)
+lib.callback.register('concept_bridge:cb:GetAppearance', function(src, ...)
+    if select('#', ...) ~= 0 then return nil, 'invalid_payload' end
+    return AppearanceRequests.Read(src, 'qb-clothing', Clothing.GetAppearance)
 end)
 
 -- All the this below should go in unit tests if we are to continue using them.
