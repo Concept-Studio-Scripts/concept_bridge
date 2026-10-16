@@ -1,160 +1,17 @@
-# Origin, licensing and attributions
+# Origin and credits
 
-Concept Bridge is maintained by Concept Studio. It is a modified derivative of
-[Community Bridge](https://github.com/TheOrderFivem/community_bridge), originally
-developed by The Order of the Sacred Framework and contributors.
+Concept Bridge is maintained by [Concept Studio](https://github.com/Concept-Studio-Scripts/concept_bridge). It is a modified derivative of [Community Bridge](https://github.com/TheOrderFivem/community_bridge), originally developed by The Order of the Sacred Framework and contributors.
 
-- Original upstream: https://github.com/TheOrderFivem/community_bridge
-- Concept Bridge repository: https://github.com/Concept-Studio-Scripts/concept_bridge
-- Concept Studio modifications began on 2026-10-10.
+The original [GPLv3 license](LICENSE) and source copyright/license notices are retained. Concept Studio's modifications remain under that license.
 
-The full original [GPLv3 license](LICENSE) is retained byte-for-byte. Existing
-source copyright and license notices remain, together with the inherited credits
-below. Concept Studio's modifications retain that license.
+## Inherited attributions
 
-Concept Studio's changes include the `concept_bridge` resource, export, loader,
-event and state-bag namespaces; framework and inventory adapter corrections;
-seatbelt, voice and weapon modules; project branding and update checks; a finite
-NUI build; and automated regression checks and release packaging.
+| Project | Contribution or inspiration |
+|---|---|
+| [r_bridge](https://github.com/rumaier/r_bridge) | codem-inventory bridging and the targeting foundation |
+| [Renewed-Lib](https://github.com/Renewed-Scripts/Renewed-Lib) | Object placement functionality |
+| [duff](https://github.com/DonHulieo/duff) | Version checker formatting and repository information handling |
+| [ESX](https://github.com/esx-framework/es_extended) and [QBCore](https://github.com/qbcore-framework/qb-core) | Vehicle properties concepts and implementation patterns |
+| [ox_lib](https://github.com/overextended/ox_lib) | Architectural inspiration, shared conventions and external dependency integration |
 
-## Attributions
-
-> **Community Bridge** incorporates code from several outstanding libraries and resources, all licensed under GPLv3. We’re grateful to the talented developers who made their work available to the community.
-
----
-
-## Libraries & Resources
-
-<details>
-<summary><strong>r_bridge</strong></summary>
-
-**Purpose:** Code for codem-inventory bridging, and initial targeting
-**Repository:** [r_bridge](https://github.com/rumaier/r_bridge)
-
-**Code we use:**
-
-- Inventory bridging code for codem-inventory integration
-- Targeting system foundation
-
-**Modifications made:**
-
-- Adapted inventory bridge for codem compatibility in alternative structure
-
-</details>
-
----
-
-<details>
-<summary><strong>ox_lib</strong></summary>
-
-**Purpose:** Architectural inspiration
-**Repository:** [ox_lib](https://github.com/overextended/ox_lib)
-
-**Compatibility features:**
-
-- External resource integration for raycasting utilities
-- Shared conventions
-
-**Implementation approach:**
-
-- No direct code usage — maintains compatibility as external resource
-- Follows ox_lib conventions for seamless integration
-- Provides bridge compatibility for servers using ox_lib ecosystem
-
-</details>
-
----
-
-<details>
-<summary><strong>renewed_lib</strong></summary>
-
-**Purpose:** Object placer functionality
-**Repository:** [renewed_lib](https://github.com/Renewed-Scripts/Renewed-Lib)
-
-**Code we use:**
-
-- Object placement system
-
-**Modifications made:**
-
-- Updated variable naming for consistency
-- Added missing parameters for native functions
-- Updated deprecated ox_lib raycast camera export
-- Enhanced showtext UI to work with multiple systems
-- Moved placement text to locales for internationalization
-- Replaced ox_lib model request exports with our bridge functions
-
-</details>
-
----
-
-<details>
-<summary><strong>duff</strong></summary>
-
-**Purpose:** Version checker system and update notifications
-**Repository:** [duff](https://github.com/DonHulieo/duff)
-
-**Code we use:**
-
-- Version checker formatting patterns
-- Repository information handling
-
-**Modifications made:**
-
-- Removed unnecessary variables
-- Enhanced to pull repository information from passed strings
-- Adapted print formatting for our use case
-
-</details>
-
----
-
-<details>
-<summary><strong>Vehicle Properties System</strong></summary>
-
-**Purpose:** Set and manage vehicle properties in the game world, inspired by multiple community frameworks.
-**Repositories referenced:**
-
-- [ESX-Framework (ESX.Game.SetVehicleProperties)](https://github.com/esx-framework/es_extended)
-- [QB-Core (qb-core)](https://github.com/qbcore-framework/qb-core)
-- [ox_lib](https://github.com/overextended/ox_lib) (architectural inspiration and modifications)
-
-**Code origin and inspiration:**
-
-- Primarily draws on concepts and structures from ESX and QB-Core, with ox_lib serving as architectural inspiration.
-- ESX and QB-Core implementations use similar approaches for setting vehicle mods, colors, damages, and extras.
-- ox_lib adapts and extends these approaches within its framework, showing overlapping code patterns.
-
-**Modifications made:**
-
-- Combined and refactored logic to suit Community Bridge project needs.
-- Adapted license to GPLv3 for compatibility and open-source compliance.
-- Added explicit handling of custom colors, mod toggles, and damage states.
-
-**Licensing notes:**
-
-- Original ESX and QB-Core frameworks are GPLv3 licensed.
-- ox_lib is LGPL licensed, used here as architectural inspiration only.
-- This project’s vehicle properties code inherits GPLv3 licensing consistent with ESX/QB-Core, honoring their licensing terms and attributions.
-
-</details>
-
----
-
-## Special Thanks
-
-A heartfelt thank you to all creators and maintainers of these libraries, bridges, and resources. Your dedication to open-source development and the FiveM community makes projects like Community Bridge possible.
-
-Your willingness to share knowledge and code under GPLv3 licensing enables the entire community to build better, more compatible systems together.
-
----
-
-## License Compliance
-
-All incorporated code maintains its original GPLv3 licensing. Community Bridge inherits this license to ensure continued open-source availability and community collaboration.
-
-For detailed license information, see the [LICENSE](LICENSE) file in the project root.
-
----
-
-> *"If I have seen further it is by standing on the shoulders of Giants."* – Isaac Newton
+Inherited code was adapted for the bridge's module structure, providers, parameters, UI and locales. The inherited vehicle-properties attribution identifies ESX/QBCore as GPLv3 sources and ox_lib as LGPL-licensed inspiration. These acknowledgements preserve the upstream credits; they do not replace the original projects' license notices.

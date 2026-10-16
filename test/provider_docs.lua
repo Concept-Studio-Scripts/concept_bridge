@@ -1,5 +1,5 @@
 -- Run from bridge root: lua test/provider_docs.lua [checkout/]
--- Export fixtures enforce the official contracts linked in PROVIDER_CONTRACTS.md.
+-- Provider API references: https://conceptstudio.store/docs/concept-bridge#inventory-provider-details
 local root = arg[1] or './'
 local assertions = 0
 local function expect(condition, message)
