@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Validate sensitive client requests, authorize dispatch relays on the server, and
+  reject stale identity/provider results and client assertions of inventory-less item use.
+  Keep server configuration out of the client download.
+
 - Select only running providers, resolve conflicts consistently, and refresh adapters
   when providers start, stop or restart. Consumers that cache provider state must
   handle `Bridge:Refresh` to update their own caches.
