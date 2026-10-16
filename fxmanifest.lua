@@ -43,7 +43,8 @@ files {
     'lib/**/**/*.lua',
     'lib/**/**/**/*.lua',
     'modules/**',
-    'settings/*.lua',
+    'settings/clientConfig.lua',
+    'settings/sharedConfig.lua',
     'lib/init.lua',
 }
 
