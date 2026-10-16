@@ -1,4 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
+local FrameworkRequests = lib.require('@concept_bridge.lib.security.server.framework')
 if GetResourceState('ox_core') ~= 'started' then return end
 
 Framework = Framework or {}
@@ -839,8 +840,10 @@ end
 ---@param cb function
 ---@return function|nil
 Framework.RegisterUsableItem = function(itemName, cb)
+    if type(itemName) ~= 'string' or #itemName == 0 or #itemName > 128 or type(cb) ~= 'function' then return end
     local func = function(src, item, itemData)
         itemData = itemData or item
+        if type(itemData) ~= 'table' then itemData = {name = type(itemData) == 'string' and itemData or itemName} end
         itemData.metadata = itemData.metadata or itemData.info or {}
         itemData.slot = itemData.id or itemData.slot
         cb(src, itemData)
@@ -849,9 +852,12 @@ Framework.RegisterUsableItem = function(itemName, cb)
     if oxInventoryStarted() then
         return exports.ox_inventory:registerUsableItem(itemName, func)
     end
-    RegisterNetEvent('ox_core:useItem:' .. itemName, func)
-    AddEventHandler('ox_core:useItem:' .. itemName, function(...)
-        func(source, ...)
+    -- Without an authoritative inventory, only a trusted server may assert item use.
+    AddEventHandler('ox_core:useItem:' .. itemName, function(src, item, itemData)
+        if tonumber(source) and tonumber(source) > 0 then return end
+        src = tonumber(src)
+        if not src or src < 1 or src % 1 ~= 0 then return end
+        return func(src, item, itemData)
     end)
 end
 
@@ -956,15 +962,15 @@ end
 
 ---@description Callback to get framework jobs list
 ---@param source number
-lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(source)
-    return Framework.GetFrameworkJobs() or {}
+lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(src, ...)
+    return FrameworkRequests.Registry(src, 'ox_core', 'jobs', Framework.GetFrameworkJobs, ...)
 end)
 
 ---@description Callback to get account balance
 ---@param source number
 ---@param _type string
-lib.callback.register('concept_bridge:Callback:GetAccountBalance', function(source, _type)
-    return Framework.GetAccountBalance(source, _type) or 0
+lib.callback.register('concept_bridge:Callback:GetAccountBalance', function(src, account, ...)
+    return FrameworkRequests.Balance(src, 'ox_core', Framework.GetAccountBalance, account, ...)
 end)
 
 return Framework

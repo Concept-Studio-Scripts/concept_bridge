@@ -1,4 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
+local FrameworkRequests = lib.require('@concept_bridge.lib.security.server.framework')
 if GetResourceState('es_extended') ~= 'started' then return end
 
 
@@ -658,14 +659,14 @@ end)
 
 ---@description Callback to get framework jobs list
 ---@param source number
-lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(source)
-    return Framework.GetFrameworkJobs() or {}
+lib.callback.register('concept_bridge:Callback:GetFrameworkJobs', function(src, ...)
+    return FrameworkRequests.Registry(src, 'es_extended', 'jobs', Framework.GetFrameworkJobs, ...)
 end)
 
 ---@description This is linked to an internal function, its an attempt to standardize the item list across frameworks.
 ---@param source number
-lib.callback.register('concept_bridge:Callback:GetFrameworkItems', function(source)
-    return Framework.ItemList() or {}
+lib.callback.register('concept_bridge:Callback:GetFrameworkItems', function(src, ...)
+    return FrameworkRequests.Registry(src, 'es_extended', 'items', Framework.ItemList, ...)
 end)
 
 Framework.Commands = {}

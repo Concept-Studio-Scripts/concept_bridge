@@ -1,4 +1,5 @@
 ---@diagnostic disable: duplicate-set-field
+local AppearanceRequests = lib.require('@concept_bridge.lib.security.server.appearance')
 Clothing = Clothing or {}
 Clothing.LastAppearance = Clothing.LastAppearance or {}
 
@@ -21,7 +22,9 @@ end
 ---@param src number
 ---@return table
 function Clothing.GetAppearance(src)
-    return lib.callback.await('concept_bridge:cb:GetAppearance', src)
+    return AppearanceRequests.Read(src, Clothing.GetResourceName(), function(target)
+        return lib.callback.await('concept_bridge:cb:GetAppearance', target)
+    end, true)
 end
 
 ---Apply skin data to a player

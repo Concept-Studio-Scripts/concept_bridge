@@ -1,6 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 local resourceName = "qb-phone"
 if GetResourceState(resourceName) ~= 'started' then return end
+local PhoneRequests = lib.require('@concept_bridge.lib.security.server.phone')
 Phone = Phone or {}
 
 ---This will get the name of the Phone system being being used.
@@ -26,18 +27,24 @@ end
 ---@param title string
 ---@param message string
 ---@return boolean
-Phone.SendEmail = function(src, email, title, message)
+local function sendEmail(src, email, title, message, request)
     local identifier = Bridge.Framework.GetPlayerIdentifier(src)
     if not identifier then return false, print(" ^6 Could not Find Player Identifier ^0") end
 
+    if request and not PhoneRequests.Current(request) then return false end
     local mailData = { sender = email, subject = title, message = message }
     exports["qb-phone"]:sendNewMailToOffline(identifier, mailData)
     return true
 end
 
+Phone.SendEmail = function(src, email, title, message)
+    return sendEmail(src, email, title, message)
+end
+
 RegisterNetEvent('concept_bridge:Server:genericEmail', function(data)
-    local src = source
-    return Phone.SendEmail(src, data.email, data.title, data.message)
+    local src = tonumber(source)
+    if not src or src <= 0 or type(data) ~= 'table' then return false end
+    return PhoneRequests.Send(src, resourceName, sendEmail, data.email, data.title, data.message)
 end)
 
 return Phone

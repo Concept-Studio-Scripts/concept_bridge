@@ -16,6 +16,7 @@ local function environment(provider)
     env.AddEventHandler = env.RegisterNetEvent
     env.CreateThread, env.Wait, env.TriggerEvent = function() end, function() end, function() end
     env.lib = {callback = {register = function(name, handler) state.callbacks[name] = handler end}}
+    assert(loadfile('test/support/security.lua'))()(env)
     return env, state
 end
 local function loadModule(path, env)
@@ -75,7 +76,6 @@ end
 for _, provider in ipairs({'qb-clothing', 'illenium-appearance', 'fivem-appearance', 'esx_skin'}) do
     local env, state = environment(provider)
     env.exports = {['qb-core'] = {GetCoreObject = function() return {} end}}
-    env.lib.require = function(path) error('unexpected clothing import: ' .. path) end
     loadModule('modules/clothing/' .. provider .. '/server.lua', env)
     expect(type(state.callbacks['concept_bridge:cb:GetAppearance']) == 'function', provider .. ' registers with ox_lib without bridge callback globals')
 end
