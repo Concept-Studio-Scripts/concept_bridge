@@ -17,7 +17,6 @@ ensure oxmysql
 ensure ox_lib
 # Start your framework, inventory and other providers here.
 ensure concept_bridge
-ensure concept_hud
 ```
 
 Configure the files in `settings/`. See the [documentation](https://conceptstudio.store/docs/concept-bridge) for provider selection, configuration, exports, events and integration requirements.
