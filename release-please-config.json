@@ -18,21 +18,6 @@
           "path": "fxmanifest.lua"
         },
         {
-          "type": "json",
-          "path": "web/package.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "web/package-lock.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "web/package-lock.json",
-          "jsonpath": "$.packages[''].version"
-        },
-        {
           "type": "generic",
           "path": "README.md"
         }

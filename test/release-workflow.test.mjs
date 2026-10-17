@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
@@ -18,12 +18,9 @@ test('release gates reject mismatched versions, tags and automatic changelogs', 
   const root = mkdtempSync(join(tmpdir(), 'concept-release-test-'))
   const json = (path, data) => writeFileSync(join(root, path), JSON.stringify(data))
   try {
-    mkdirSync(join(root, 'web'))
     writeFileSync(join(root, 'version.txt'), '1.0.0\n')
     writeFileSync(join(root, 'fxmanifest.lua'), "version '1.0.0' -- x-release-please-version\n")
     writeFileSync(join(root, 'CHANGELOG.md'), '## [1.0.0]\n- Manual notes.\n')
-    json('web/package.json', { version: '1.0.0' })
-    json('web/package-lock.json', { version: '1.0.0', packages: { '': { version: '1.0.0' } } })
     json('.release-please-manifest.json', { '.': '1.0.0' })
     json('release-please-config.json', { packages: { '.': { 'skip-changelog': true } } })
     assert.equal(checkRelease(root, 'v1.0.0').notes, '- Manual notes.\n')
@@ -36,9 +33,9 @@ test('release gates reject mismatched versions, tags and automatic changelogs', 
     assert.throws(() => checkRelease(root), /releaseManifest version differs/)
     json('.release-please-manifest.json', { '.': '1.0.0' })
 
-    json('web/package-lock.json', { version: '1.0.0', packages: { '': { version: '9.0.0' } } })
-    assert.throws(() => checkRelease(root), /lockRoot version differs/)
-    json('web/package-lock.json', { version: '1.0.0', packages: { '': { version: '1.0.0' } } })
+    writeFileSync(join(root, 'fxmanifest.lua'), "version '9.0.0' -- x-release-please-version\n")
+    assert.throws(() => checkRelease(root), /manifest version differs/)
+    writeFileSync(join(root, 'fxmanifest.lua'), "version '1.0.0' -- x-release-please-version\n")
     json('release-please-config.json', { packages: { '.': { 'skip-changelog': false } } })
     assert.throws(() => checkRelease(root), /manually maintained/)
   } finally {

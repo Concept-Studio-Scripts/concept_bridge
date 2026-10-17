@@ -66,23 +66,13 @@ jobs:
           luac5.4 -p modules/framework/es_extended/client.lua
           find lib/inventory lib/shells lib/providers lib/security modules/providers modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
 
-  web:
+  package:
+    name: web # Preserve the required status name; this job now validates resource packaging.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-      - name: Install, lint and build NUI
-        working-directory: web
-        run: |
-          npm ci
-          npm run lint
-          npm run build
-      - name: Check rebuilt resource and package
+      - name: Check resource package
         shell: pwsh
         run: ./tools/package-release.ps1 -OutFile ./release/concept_bridge.zip

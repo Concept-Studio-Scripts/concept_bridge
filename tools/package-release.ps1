@@ -1,14 +1,11 @@
 <#
 .SYNOPSIS
-    Builds a complete Concept Bridge source/resource ZIP with a prebuilt NUI (PowerShell 7).
-.PARAMETER Build
-    Install locked dependencies, lint and build the NUI before packaging.
+    Builds a complete Concept Bridge source/resource ZIP (PowerShell 7).
 .PARAMETER OutFile
     ZIP destination. Defaults to release/concept_bridge-<version>.zip.
 #>
 [CmdletBinding()]
 param(
-    [switch]$Build,
     [string]$OutFile = ''
 )
 
@@ -19,27 +16,11 @@ if (-not ('System.IO.Compression.ZipFile' -as [type])) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 }
 
-if ($Build) {
-    $NpmCommand = Get-Command npm -ErrorAction Stop
-    $WebPath = Join-Path $ResourceRoot 'web'
-    & $NpmCommand.Source ci --prefix $WebPath
-    if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
-    & $NpmCommand.Source run lint --prefix $WebPath
-    if ($LASTEXITCODE -ne 0) { throw 'NUI lint failed.' }
-    & $NpmCommand.Source run build --prefix $WebPath
-    if ($LASTEXITCODE -ne 0) { throw 'NUI build failed.' }
-}
-
 $ManifestText = [IO.File]::ReadAllText((Join-Path $ResourceRoot 'fxmanifest.lua'))
 $VersionMatch = [regex]::Match($ManifestText, "(?m)^version '([^']+)'(?: -- x-release-please-version)?$")
 if (-not $VersionMatch.Success) { throw 'Manifest version missing.' }
 $Version = $VersionMatch.Groups[1].Value
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Manifest version must have three numeric components.' }
-$Package = Get-Content -LiteralPath (Join-Path $ResourceRoot 'web/package.json') -Raw | ConvertFrom-Json
-$Lock = Get-Content -LiteralPath (Join-Path $ResourceRoot 'web/package-lock.json') -Raw | ConvertFrom-Json -AsHashtable
-if ($Package.version -ne $Version -or $Lock['version'] -ne $Version -or $Lock['packages']['']['version'] -ne $Version) {
-    throw 'Manifest, NUI package and root lockfile versions must match.'
-}
 if ($ManifestText -notmatch "(?m)^name 'concept_bridge'$") { throw 'Canonical resource name missing.' }
 
 $SourceVersion = (Get-Content -LiteralPath (Join-Path $ResourceRoot 'version.txt') -Raw).Trim()
@@ -53,17 +34,6 @@ if ($SourceVersion -ne $Version) { throw 'version.txt must match the resource ve
 $OriginalLicenseHash = '605e9047a563c5c8396ffb18232aa4304ec56586aee537c45064c6fb425e44ad'
 $LicenseHash = (Get-FileHash -LiteralPath (Join-Path $ResourceRoot 'LICENSE') -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($LicenseHash -ne $OriginalLicenseHash) { throw 'Original license changed.' }
-
-$DistPath = Join-Path $ResourceRoot 'web/dist'
-$IndexPath = Join-Path $DistPath 'index.html'
-if (-not (Test-Path -LiteralPath $IndexPath)) { throw 'Prebuilt UI missing. Run with -Build.' }
-$IndexText = [IO.File]::ReadAllText($IndexPath)
-foreach ($AssetMatch in [regex]::Matches($IndexText, '(?:src|href)="([^"]+)"')) {
-    $Asset = $AssetMatch.Groups[1].Value
-    if ($Asset -match '^(https?:|data:|#)') { continue }
-    $AssetPath = Join-Path $DistPath ($Asset -replace '^\./|^/', '')
-    if (-not (Test-Path -LiteralPath $AssetPath -PathType Leaf)) { throw "Prebuilt UI asset missing: $Asset" }
-}
 
 if ([string]::IsNullOrWhiteSpace($OutFile)) {
     $OutFile = Join-Path $ResourceRoot ('release/concept_bridge-{0}.zip' -f $Version)
@@ -93,9 +63,9 @@ try {
         if (-not (Test-Path -LiteralPath $InputPath -PathType Leaf)) { throw "Package input missing: $Name" }
         Copy-Item -LiteralPath $InputPath -Destination $StagedResource
     }
-    # Include editable Lua/NUI source, locked dependencies, build tooling and tests.
+    # Include editable Lua source, packaging tooling and tests.
     # node_modules and local metadata/logs are excluded; GPL license/credits ship.
-    foreach ($Name in @('lib', 'modules', 'locales', 'settings', 'web', 'tools', 'test')) {
+    foreach ($Name in @('lib', 'modules', 'locales', 'settings', 'tools', 'test')) {
         $InputPath = Join-Path $ResourceRoot $Name
         if (-not (Test-Path -LiteralPath $InputPath -PathType Container)) { throw "Package directory missing: $Name" }
         Copy-ReleaseTree $InputPath (Join-Path $StagedResource $Name)
@@ -118,11 +88,11 @@ try {
     $Archive = [IO.Compression.ZipFile]::OpenRead($ArchivePath)
     try {
         $Names = @($Archive.Entries.FullName)
-        foreach ($Required in @('fxmanifest.lua', 'init.lua', 'LICENSE', 'ORIGIN.Md', 'CHANGELOG.md', 'web/dist/index.html', 'web/src/main.jsx', 'web/package-lock.json', 'tools/package-release.ps1')) {
+        foreach ($Required in @('fxmanifest.lua', 'init.lua', 'LICENSE', 'ORIGIN.Md', 'CHANGELOG.md', 'tools/package-release.ps1', 'version.txt', 'release-please-config.json', '.release-please-manifest.json')) {
             if ($Names -notcontains ('concept_bridge/' + $Required)) { throw "Archive entry missing: $Required" }
         }
         foreach ($Name in $Names) {
-            if (-not $Name.StartsWith('concept_bridge/') -or $Name.Contains('\') -or $Name -match '/(node_modules|__pycache__|\.git|review)/' -or $Name -cmatch '/(Attributions\.md|ORIGIN\.md|KNOWN_LIMITATIONS\.md|check_identity\.py|package_resource\.py)$') {
+            if (-not $Name.StartsWith('concept_bridge/') -or $Name.Contains('\') -or $Name -match '/(node_modules|__pycache__|\.git|review|web)/|/modules/dialogue/' -or $Name -cmatch '/(Attributions\.md|ORIGIN\.md|KNOWN_LIMITATIONS\.md|check_identity\.py|package_resource\.py)$') {
                 throw "Unexpected archive entry: $Name"
             }
         }
@@ -143,4 +113,4 @@ try {
 }
 
 Write-Output ('Release ZIP verified: {0} entries; {1}' -f $Names.Count, $ArchivePath)
-Write-Output ('Version: {0}; root: concept_bridge/; prebuilt NUI, complete source, original GPL license and credits included.' -f $Version)
+Write-Output ('Version: {0}; root: concept_bridge/; complete source, original GPL license and credits included.' -f $Version)

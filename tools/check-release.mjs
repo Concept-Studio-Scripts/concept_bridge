@@ -20,12 +20,9 @@ export function checkRelease(root, tag = '', requireNotes = false) {
   const version = text('version.txt').trim()
   assert(/^\d+\.\d+\.\d+$/.test(version), 'version.txt must contain a stable semantic version.')
   const manifest = text('fxmanifest.lua').match(/^version '([^']+)'/m)?.[1]
-  const lock = json('web/package-lock.json')
   const config = json('release-please-config.json')
   const released = json('.release-please-manifest.json')
-  for (const [name, value] of Object.entries({ manifest, package: json('web/package.json').version, lock: lock.version, lockRoot: lock.packages[''].version })) {
-    assert.equal(value, version, `${name} version differs from version.txt.`)
-  }
+  assert.equal(manifest, version, 'manifest version differs from version.txt.')
   if (tag) assert.equal(tag, `v${version}`, 'Release tag differs from the checked-out version.')
   if (Object.keys(released).length === 0) {
     assert.equal(config.packages['.']['initial-version'], version, 'An empty release manifest requires the configured initial version.')

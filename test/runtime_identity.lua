@@ -20,6 +20,7 @@ for _, server in ipairs({true, false}) do
     end
     expect(env.cLib.Entity and env.cLib.Math and env.cLib.LA, 'bridge extensions retained')
     env.Framework, env.Inventory = {marker = true}, {marker = true}
+    env.Dialogue = {Open = function() error('removed module must not be exposed') end}
     assert(loadfile('init.lua', 't', env))()
     expect(exported.Bridge() == env.Bridge, 'Bridge getter retained')
     expect(exported.Framework().marker and exported.Inventory().marker, 'provider getters retained')
@@ -28,6 +29,7 @@ for _, server in ipairs({true, false}) do
         'Vehicles', 'Scaleform', 'Language', 'Zones', 'SQL'}) do
         expect(exported[name] == nil and env.cLib[name] == nil, 'dependency utility is not exported: ' .. name)
     end
+    expect(exported.Dialogue == nil and env.Bridge.Dialogue == nil, 'removed dialogue module is not exposed')
 end
 -- Every library file lib/init.lua loads must RETURN its table: ox_lib's require hands back `true` for a file that
 -- returns nothing, and the bridge then tried to register `true` as a module and did not start.
