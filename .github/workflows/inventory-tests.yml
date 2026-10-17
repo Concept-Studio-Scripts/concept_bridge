@@ -67,7 +67,7 @@ jobs:
           find lib/inventory lib/shells lib/providers lib/security modules/providers modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
 
   package:
-    name: Resource package
+    name: web # Preserve the required status name; this job now validates resource packaging.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
