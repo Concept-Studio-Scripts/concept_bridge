@@ -19,6 +19,6 @@ lua test/handler_security.lua
 
 The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax and cannot be compiled by stock Lua.
 
-CI also checks standard-Lua syntax, release metadata, the UI and resource packaging. See [CONTRIBUTING.md](../CONTRIBUTING.md) and [web/README.md](../web/README.md) for those commands.
+CI also checks standard-Lua syntax, release metadata and resource packaging. See [CONTRIBUTING.md](../CONTRIBUTING.md) for those commands.
 
 User-facing contracts and integration guidance live in the [documentation](https://conceptstudio.store/docs/concept-bridge).
