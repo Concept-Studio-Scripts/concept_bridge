@@ -43,8 +43,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: web/package-lock.json
       - name: Verify release versions and manual notes
         env:
           RELEASE_TAG: ${{ inputs.tag }}
@@ -59,7 +57,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           $suffix = if ($env:RELEASE_TAG) { $env:RELEASE_TAG } else { 'preview' }
-          ./tools/package-release.ps1 -Build -OutFile "./concept_bridge-$suffix.zip"
+          ./tools/package-release.ps1 -OutFile "./concept_bridge-$suffix.zip"
       - name: Save verified ZIP
         uses: actions/upload-artifact@v7
         with:
@@ -73,5 +71,5 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
-          gh release upload "$RELEASE_TAG" "concept_bridge-${RELEASE_TAG}.zip#Full resource (prebuilt UI)" --clobber --repo "$GITHUB_REPOSITORY"
+          gh release upload "$RELEASE_TAG" "concept_bridge-${RELEASE_TAG}.zip#Full resource" --clobber --repo "$GITHUB_REPOSITORY"
           gh release edit "$RELEASE_TAG" --title "concept_bridge $RELEASE_TAG" --notes-file release-notes.md --draft=false --latest --repo "$GITHUB_REPOSITORY"
