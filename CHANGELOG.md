@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Remove the unused entity-action extension, which depended on a missing action engine.
+
 ### Fixed
 
 - Validate sensitive client requests, authorize dispatch relays on the server, and
