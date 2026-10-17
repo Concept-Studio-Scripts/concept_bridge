@@ -59,9 +59,11 @@ jobs:
           lua5.4 test/consumer_contracts.lua
           lua5.4 test/shell_access.lua
           lua5.4 test/provider_selection.lua
+          lua5.4 test/esx_status_cache.lua
           lua5.4 test/handler_security.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
+          luac5.4 -p modules/framework/es_extended/client.lua
           find lib/inventory lib/shells lib/providers lib/security modules/providers modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
 
   web:

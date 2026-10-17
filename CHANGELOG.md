@@ -8,6 +8,9 @@
 
 ### Fixed
 
+- Clear ESX needs caches across character changes and status-resource restarts,
+  and discard delayed status results from previous sessions.
+
 - Validate sensitive client requests, authorize dispatch relays on the server, and
   reject stale identity/provider results and client assertions of inventory-less item use.
   Keep server configuration out of the client download.

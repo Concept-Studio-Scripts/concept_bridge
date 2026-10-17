@@ -134,8 +134,25 @@ end
 -- ticks so GetHunger/GetThirst/GetStress return live values (playerData
 -- variables go stale once esx_status:add fires).
 local EsxStatusLive = {}
+local EsxStatusGeneration = 0
+local EsxStatusLoggedOut = false
+local EsxStatusRunning = GetResourceState('esx_status') == 'started'
+
+local function ResetEsxStatus()
+    EsxStatusGeneration = EsxStatusGeneration + 1
+    EsxStatusLive = {}
+end
+
+local function StatusPlayerReady()
+    return not EsxStatusLoggedOut and ESX.IsPlayerLoaded()
+end
+
+local function StatusProviderReady()
+    return EsxStatusRunning and GetResourceState('esx_status') == 'started'
+end
 
 local function ApplyEsxStatusList(statuses)
+    if not StatusPlayerReady() or not StatusProviderReady() then return end
     if type(statuses) ~= 'table' then return end
     local changed = false
     for i = 1, #statuses do
@@ -158,36 +175,52 @@ local function ApplyEsxStatusList(statuses)
 end
 
 AddEventHandler('esx_status:onTick', ApplyEsxStatusList)
+AddEventHandler('esx_status:loaded', ResetEsxStatus)
+AddEventHandler('onClientResourceStop', function(resource)
+    if resource ~= 'esx_status' then return end
+    EsxStatusRunning = false
+    ResetEsxStatus()
+end)
+AddEventHandler('onClientResourceStart', function(resource)
+    if resource ~= 'esx_status' then return end
+    EsxStatusRunning = true
+    ResetEsxStatus()
+end)
 
 ---@param name string
 ---@return number|nil
 local function RefreshEsxStatus(name)
-    if GetResourceState('esx_status') ~= 'started' then return nil end
-    local percent = nil
+    if not StatusPlayerReady() or not StatusProviderReady() then return nil end
+    local generation = EsxStatusGeneration
     pcall(function()
         TriggerEvent('esx_status:getStatus', name, function(status)
+            if generation ~= EsxStatusGeneration or not StatusPlayerReady() or not StatusProviderReady() then return end
             if type(status) ~= 'table' then return end
-            if type(status.getPercent) == 'function' then
-                percent = status.getPercent()
-            elseif type(status.val) == 'number' then
-                percent = (status.val / 1000000.0) * 100.0
+            local ok, percent = pcall(function()
+                if type(status.getPercent) == 'function' then return status.getPercent() end
+                if type(status.val) == 'number' then return (status.val / 1000000.0) * 100.0 end
+            end)
+            -- A provider callback (including getPercent) may finish after a
+            -- character switch or status-resource restart.
+            if generation ~= EsxStatusGeneration or not StatusPlayerReady() or not StatusProviderReady() then return end
+            if ok and type(percent) == 'number' then
+                EsxStatusLive[name] = math.max(0, math.min(100, percent + 0.0))
             end
         end)
     end)
-    if type(percent) == 'number' then
-        EsxStatusLive[name] = math.max(0, math.min(100, percent + 0.0))
-    end
     return EsxStatusLive[name]
 end
 
 ---@description This is an internal function to get status data
 --- @param search string
 Framework.GetStatusData = function(search)
-    if type(search) ~= 'string' then return 0 end
-    if EsxStatusLive[search] == nil then
+    if type(search) ~= 'string' or not StatusPlayerReady() then return 0 end
+    local generation = EsxStatusGeneration
+    if StatusProviderReady() and EsxStatusLive[search] == nil then
         RefreshEsxStatus(search)
     end
-    if EsxStatusLive[search] ~= nil then
+    if generation ~= EsxStatusGeneration or not StatusPlayerReady() then return 0 end
+    if StatusProviderReady() and EsxStatusLive[search] ~= nil then
         return EsxStatusLive[search]
     end
     local playerData = Framework.GetPlayerData()
@@ -327,12 +360,16 @@ end
 ---@description Event handler for when player is loaded in ESX framework
 ---@param xPlayer table
 RegisterNetEvent('esx:playerLoaded', function(xPlayer)
+    EsxStatusLoggedOut = false
+    ResetEsxStatus()
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player logs out in ESX framework
 RegisterNetEvent('esx:onPlayerLogout', function()
+    EsxStatusLoggedOut = true
+    ResetEsxStatus()
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
