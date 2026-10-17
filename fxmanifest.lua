@@ -28,17 +28,11 @@ client_scripts {
     'settings/clientConfig.lua',
     'modules/providers/client.lua',
     'modules/weapons/client.lua',
-    'modules/dialogue/**/client/*.lua',
     'modules/shops/**/client.lua',
     'init.lua',
 }
 
-ui_page 'web/dist/index.html'
-
 files {
-    'web/dist/index.html',
-    'web/dist/assets/*.css',
-    'web/dist/assets/*.js',
     'locales/*.json',
     'lib/**/**/*.lua',
     'lib/**/**/**/*.lua',

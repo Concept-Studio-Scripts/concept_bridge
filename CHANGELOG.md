@@ -4,6 +4,11 @@
 
 ### Removed
 
+- Remove the built-in `Dialogue` module, its NPC dialogue UI and the unused clipboard
+  listener. Scripts using `Dialogue()`, `Bridge().Dialogue`, `Dialogue.Open` or
+  `Dialogue.Close` must use a separate dialogue resource. Bridge no longer ships a
+  web app or requires frontend dependencies/builds for installation or releases.
+
 - Remove the unused entity-action extension, which depended on a missing action engine.
 
 ### Fixed
