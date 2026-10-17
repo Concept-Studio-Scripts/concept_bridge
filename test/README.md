@@ -13,6 +13,7 @@ lua test/housing_transitions.lua
 lua test/consumer_contracts.lua
 lua test/shell_access.lua
 lua test/provider_selection.lua
+lua test/esx_status_cache.lua
 lua test/handler_security.lua
 ```
 
