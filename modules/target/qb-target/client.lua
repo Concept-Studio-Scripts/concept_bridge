@@ -219,14 +219,23 @@ function Target.RemoveZone(name)
     end
 end
 
-AddEventHandler('onResourceStop', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
-    for _, target in pairs(targetZones) do
-        if target.creator == resource then
-            qb_target:RemoveZone(target.name)
+-- Forget only the zones of a stopping resource; others stay removable. If the provider stops,
+-- its zones and ids are gone, so forget all of them without removing anything.
+local function cleanupZones(resource)
+    if resource == resourceName then
+        targetZones = {}
+        return
+    end
+    local all = resource == GetCurrentResourceName()
+    for index = #targetZones, 1, -1 do
+        local zone = targetZones[index]
+        if all or zone.creator == resource then
+            pcall(function() qb_target:RemoveZone(zone.name) end)
+            table.remove(targetZones, index)
         end
     end
-    targetZones = {}
-end)
+end
+
+AddEventHandler('onResourceStop', cleanupZones)
 
 return Target

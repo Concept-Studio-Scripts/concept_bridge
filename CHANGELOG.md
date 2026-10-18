@@ -13,6 +13,10 @@
 
 ### Fixed
 
+- Target zones: a stopping resource removes only its own zones. Zones of other resources stay
+  tracked and removable (ox_target forgot all of them on any stop, which left ghost options and
+  duplicate zones after a restart), and a restarted target system no longer receives stale zone ids.
+
 - Clear ESX needs caches across character changes and status-resource restarts,
   and discard delayed status results from previous sessions.
 

@@ -143,7 +143,7 @@ function Target.AddBoxZone(name, coords, size, heading, options)
         coords = coords,
         options = options,
     })
-    table.insert(targetZones, { name = name, id = target, creator = GetInvokingResource() or GetCurrentResourceName() })
+    table.insert(targetZones, { name = name, id = target, coords = true, creator = GetInvokingResource() or GetCurrentResourceName() })
     return target
 end
 
@@ -170,21 +170,30 @@ end
 function Target.RemoveZone(name)
     for _, data in pairs(targetZones) do
         if data.name == name then
-            sleepless_interact:removeCoords(data.id)
+            if data.coords then sleepless_interact:removeCoords(data.id) else sleepless_interact:removeZone(data.id) end
             table.remove(targetZones, _)
             break
         end
     end
 end
 
-AddEventHandler('onResourceStop', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
-    for _, target in pairs(targetZones) do
-        if target.creator == resource then
-            sleepless_interact:removeZone(target.id)
+-- Forget only the zones of a stopping resource; others stay removable. If the provider stops,
+-- its zones and ids are gone, so forget all of them without removing anything.
+local function cleanupZones(resource)
+    if resource == resourceName then
+        targetZones = {}
+        return
+    end
+    local all = resource == GetCurrentResourceName()
+    for index = #targetZones, 1, -1 do
+        local zone = targetZones[index]
+        if all or zone.creator == resource then
+            pcall(function() if zone.coords then sleepless_interact:removeCoords(zone.id) else sleepless_interact:removeZone(zone.id) end end)
+            table.remove(targetZones, index)
         end
     end
-    targetZones = {}
-end)
+end
+
+AddEventHandler('onResourceStop', cleanupZones)
 
 return Target

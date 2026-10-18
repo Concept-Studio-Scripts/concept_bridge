@@ -204,13 +204,25 @@ function Target.RemoveZone(name)
     end
 end
 
-AddEventHandler('onResourceStop', function(resource)
-    for _, target in pairs(targetZones) do
-        if target.creator == resource then
-            ox_target:removeZone(target.id)
+-- Forget only the zones of a stopping resource; others stay removable. If the provider stops,
+-- its zones and ids are gone, so forget all of them without removing anything.
+local function cleanupZones(resource)
+    if resource == resourceName then
+        targetZones = {}
+        return
+    end
+    local all = resource == GetCurrentResourceName()
+    for index = #targetZones, 1, -1 do
+        local zone = targetZones[index]
+        if all or zone.creator == resource then
+            pcall(function() ox_target:removeZone(zone.id) end)
+            table.remove(targetZones, index)
         end
     end
-    targetZones = {}
+end
+
+AddEventHandler('onResourceStop', function(resource)
+    cleanupZones(resource)
     if resourceTargets.entities[resource] and #resourceTargets.entities[resource] > 0 then
         for _, data in pairs(resourceTargets.entities[resource]) do
             Target.RemoveLocalEntity(data.entities)
