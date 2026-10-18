@@ -97,6 +97,16 @@ do
     expect(#state.removed == 1, 'sleepless_interact: ... and the other zone on that spot stays')
     Target.RemoveZone('ball')
     expect(state.removedNames[2] and state.removedNames[2][1] == 'ball:1', 'sleepless_interact: ... until it is removed itself')
+    -- two zones on one spot, given the same option name, and an unnamed table used twice
+    local named = {{name = 'open', label = 'Open', onSelect = function() end}}
+    local unnamed = {{label = 'Look', onSelect = function() end}}
+    Target.AddBoxZone('left', {x = 5, y = 5, z = 5}, {x = 1, y = 1, z = 1}, 0.0, named)
+    Target.AddBoxZone('right', {x = 5, y = 5, z = 5}, {x = 1, y = 1, z = 1}, 0.0, named)
+    Target.AddBoxZone('again', {x = 6, y = 6, z = 6}, {x = 1, y = 1, z = 1}, 0.0, unnamed)
+    expect(named[1].name == 'open' and unnamed[1].name == nil, 'sleepless_interact: the option tables passed in keep their own names')
+    Target.RemoveZone('left')
+    local names = state.removedNames[#state.removedNames]
+    expect(names[1] == 'left:open' and #names == 1, 'sleepless_interact: a zone removes only its own options at a shared spot, even with a shared name')
 end
 
 for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
