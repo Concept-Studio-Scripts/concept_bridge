@@ -26,9 +26,20 @@ end
 
 ---@description This is an internal function, do not use this outside of bridge as there is no standard format between the frameworks.
 ---@return table
+-- PlayerData read through the core's export is copied on every call: a loaded character's data is kept
+-- here and follows QBCore:Player:SetPlayerData (the core sends the whole data on every change).
+local playerCache = nil
+
 Framework.GetPlayerData = function()
-    return QBox.GetPlayerData()
+    if playerCache then return playerCache end
+    local data = QBox.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+    return data
 end
+
+RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+end)
 
 -- Character data only once a character is loaded: on the character select screen PlayerData is empty
 -- and getters return nil (or an empty value) instead of erroring.
@@ -202,18 +213,21 @@ end
 
 ---@description Event handler for when player is loaded in QBX Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    playerCache = nil
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player is unloaded in QBX Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    playerCache = nil
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
 ---@description Event handler for when player job is updated in QBX Core framework
 ---@param data table Job data containing name, label, and grade information
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(data)
+    if playerCache and type(data) == 'table' then playerCache.job = data end
     TriggerEvent('concept_bridge:Client:OnPlayerJobUpdate', data.name, data.label, data.grade.name, data.grade.level)
 end)
 

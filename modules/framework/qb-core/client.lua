@@ -30,9 +30,20 @@ end
 ---@description This will return a table of the player data, this will be in the framework format.
 ---This is mainly for internal bridge use and should be avoided.
 ---@return table
+-- PlayerData read through the core's export is copied on every call: a loaded character's data is kept
+-- here and follows QBCore:Player:SetPlayerData (the core sends the whole data on every change).
+local playerCache = nil
+
 Framework.GetPlayerData = function()
-    return QBCore.Functions.GetPlayerData()
+    if playerCache then return playerCache end
+    local data = QBCore.Functions.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+    return data
 end
+
+RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+end)
 
 -- Character data only once a character is loaded: on the character select screen PlayerData is empty
 -- and getters return nil (or an empty value) instead of erroring.
@@ -243,14 +254,13 @@ Framework.SetVehicleProperties = function(vehicle, properties)
     if not vehicle or not DoesEntityExist(vehicle) then return false end
     if not properties then return false end
     if NetworkGetEntityIsNetworked(vehicle) then
-        local vehNetID = NetworkGetNetworkIdFromEntity(vehicle)
-        local entOwner = GetPlayerServerId(NetworkGetEntityOwner(vehNetID))
-        if entOwner ~= GetPlayerServerId(PlayerId()) then
+        -- (the owner of the entity itself - a net id is not an entity - asked for control, at most 2 s)
+        if NetworkGetEntityOwner(vehicle) ~= PlayerId() then
+            local deadline = GetGameTimer() + 2000
             NetworkRequestControlOfEntity(vehicle)
-            local count = 0
-            while not NetworkHasControlOfEntity(vehicle) and count < 3000 do
-                Wait(1)
-                count = count + 1
+            while not NetworkHasControlOfEntity(vehicle) and GetGameTimer() < deadline do
+                Wait(0)
+                NetworkRequestControlOfEntity(vehicle)
             end
         end
     end
@@ -275,18 +285,21 @@ end
 
 ---@description Event handler for when player is loaded in QB-Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    playerCache = nil
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player is unloaded in QB-Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    playerCache = nil
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
 ---@description Event handler for when player job is updated in QB-Core framework
 ---@param data table Job data containing name, label, grade_label, and grade
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(data)
+    if playerCache and type(data) == 'table' then playerCache.job = data end
     TriggerEvent('concept_bridge:Client:OnPlayerJobUpdate', data.name, data.label, data.grade_label, data.grade)
 end)
 

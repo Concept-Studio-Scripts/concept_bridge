@@ -37,9 +37,19 @@ end
 
 ---@description This is an internal function, do not use this outside of bridge as there is no standard format between the frameworks.
 --- @return table
+-- PlayerData read through the ESX export is copied on every call: a copy is reused for a second, and kept
+-- current in between by esx:setPlayerData (every ESX.SetPlayerData but the loadout), job and account events.
+local playerCache, cachedAt = nil, 0
+
 Framework.GetPlayerData = function()
-    return ESX.GetPlayerData()
+    if playerCache and GetGameTimer() - cachedAt < 1000 then return playerCache end
+    playerCache, cachedAt = ESX.GetPlayerData(), GetGameTimer()
+    return playerCache
 end
+
+AddEventHandler('esx:setPlayerData', function(key, value)
+    if playerCache and key ~= nil then playerCache[key] = value end
+end)
 
 ---@description This will return a table of all the jobs in the framework.
 ---@return table
@@ -360,6 +370,7 @@ end
 ---@description Event handler for when player is loaded in ESX framework
 ---@param xPlayer table
 RegisterNetEvent('esx:playerLoaded', function(xPlayer)
+    playerCache, cachedAt = type(xPlayer) == 'table' and xPlayer or nil, GetGameTimer()
     EsxStatusLoggedOut = false
     ResetEsxStatus()
     Wait(1500)
@@ -368,6 +379,7 @@ end)
 
 ---@description Event handler for when player logs out in ESX framework
 RegisterNetEvent('esx:onPlayerLogout', function()
+    playerCache = nil
     EsxStatusLoggedOut = true
     ResetEsxStatus()
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
@@ -376,6 +388,7 @@ end)
 ---@description Event handler for when player job is updated in ESX framework
 ---@param data table Job data containing name, label, grade_label, and grade
 RegisterNetEvent('esx:setJob', function(data)
+    if playerCache and type(data) == 'table' then playerCache.job = data end
     TriggerEvent('concept_bridge:Client:OnPlayerJobUpdate', data.name, data.label, data.grade_label, data.grade)
 end)
 
@@ -386,6 +399,11 @@ end)
 ---@param account table Account table containing name ('bank', 'money', ...) and money
 RegisterNetEvent('esx:setAccountMoney', function(account)
     local name = type(account) == 'table' and account.name or nil
+    if playerCache and name and type(playerCache.accounts) == 'table' then
+        for _, entry in pairs(playerCache.accounts) do
+            if entry.name == name then entry.money = account.money end
+        end
+    end
     TriggerEvent('concept_bridge:Client:OnAccountUpdate', { account = name })
 end)
 

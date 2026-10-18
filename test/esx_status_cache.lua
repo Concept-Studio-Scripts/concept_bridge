@@ -19,6 +19,8 @@ local function fixture()
         end,
     }
     env.exports = { es_extended = { getSharedObject = function() return esx end } }
+    local clock = 0
+    env.GetGameTimer = function() clock = clock + 2000 return clock end   -- (each read a moment later: no cached copy is reused)
     env.AddEventHandler = function(name, fn) handlers[name] = fn end
     env.RegisterNetEvent = env.AddEventHandler
     env.Wait = function() end
