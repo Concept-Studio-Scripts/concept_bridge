@@ -110,6 +110,16 @@ for _, provider in ipairs({'qb-core', 'qbx_core'}) do
         provider .. ': SetPlayerData updates the cache')
     env.handlers['QBCore:Client:OnJobUpdate']({name = 'ambulance', label = 'EMS', grade = {name = 'a', level = 1}})
     expect(F.GetPlayerJobData().jobName == 'ambulance', provider .. ': a job update reaches the cache')
+    if provider == 'qb-core' then
+        -- (qb-core 1.3: Player:UpdateClient sends one key at a time, 'all' for the whole data)
+        env.handlers['QBCore:Client:OnPlayerUpdated']('money', {cash = 40, bank = 0})
+        env.handlers['QBCore:Client:OnPlayerUpdated']('metadata', {hunger = 12, isdead = true})
+        expect(F.GetAccountBalance('cash') == 40 and F.GetPlayerMetaData('hunger') == 12 and F.GetIsPlayerDead() == true,
+            provider .. ': per-key updates (money, metadata) reach the cache')
+        env.handlers['QBCore:Client:OnPlayerUpdated']('all', {citizenid = 'A1', job = {name = 'mechanic'}, money = {cash = 7}})
+        expect(F.GetAccountBalance('cash') == 7 and F.GetPlayerJobData().jobName == 'mechanic' and reads == before,
+            provider .. ': an all update replaces the cache')
+    end
     env.handlers['QBCore:Client:OnPlayerUnload']()
     data = {}
     expect(F.GetPlayerIdentifier() == nil and reads > before, provider .. ': after unload the core is asked again')

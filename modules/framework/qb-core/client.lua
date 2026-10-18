@@ -31,7 +31,8 @@ end
 ---This is mainly for internal bridge use and should be avoided.
 ---@return table
 -- PlayerData read through the core's export is copied on every call: a loaded character's data is kept
--- here and follows QBCore:Player:SetPlayerData (the core sends the whole data on every change).
+-- here and follows the core's updates: QBCore:Client:OnPlayerUpdated(key, value) ('all' = the whole data;
+-- qb-core 1.3) and QBCore:Player:SetPlayerData (the whole data; older cores).
 local playerCache = nil
 
 Framework.GetPlayerData = function()
@@ -43,6 +44,14 @@ end
 
 RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
     if type(data) == 'table' and data.citizenid then playerCache = data end
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerUpdated', function(key, value)
+    if key == 'all' then
+        playerCache = type(value) == 'table' and value.citizenid and value or nil
+    elseif playerCache and key ~= nil then
+        playerCache[key] = value
+    end
 end)
 
 -- Character data only once a character is loaded: on the character select screen PlayerData is empty
