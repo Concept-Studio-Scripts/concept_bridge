@@ -37,6 +37,24 @@ function Target.CreateCanInteract(cb)
     return id
 end
 
+---Options are wrapped on a copy: the caller's tables stay as they were, so passing the same options again
+---(a shell spawned twice) wraps the caller's own callbacks, never an earlier wrapper.
+---@param options table
+---@return table
+function Target.CopyOptions(options)
+    local copy = {}
+    for key, option in pairs(options or {}) do
+        if type(option) == 'table' then
+            local fresh = {}
+            for field, value in pairs(option) do fresh[field] = value end
+            copy[key] = fresh
+        else
+            copy[key] = option
+        end
+    end
+    return copy
+end
+
 ---The canInteract ids made since the last call (FixOptions starts with one, so a call right after it
 ---returns that call's ids only).
 ---@return table
@@ -116,6 +134,7 @@ end
 
 function Target.FixOptions(options)
     Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = function(entityOrData)

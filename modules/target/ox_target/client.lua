@@ -21,6 +21,7 @@ end
 ---@return table
 function Target.FixOptions(options)
     Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for _, v in pairs(options) do
         local action = v.onSelect or v.action
         if not action then

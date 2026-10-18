@@ -27,6 +27,7 @@ end
 ---@return table
 function Target.FixOptions(options)
     Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = action and function(entityOrData)

@@ -125,4 +125,26 @@ for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
     expect(count() == before + 1, provider .. ': a global option\'s check is never taken by the next entity')
 end
 
+-- the same option tables passed again (a shell spawned twice): each spawn wraps the caller's own check,
+-- so freeing the first spawn's check leaves the second one working
+for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
+    local Target = adapter(provider)
+    local allowed = false
+    local shared = {{name = 'enter', label = 'Enter', onSelect = function() end, canInteract = function() return allowed end}}
+    local original = shared[1].canInteract
+    local seen = {}
+    local function capture(fixed) seen[#seen + 1] = fixed end
+    local realFix = Target.FixOptions
+    Target.FixOptions = function(options) local fixed = realFix(options) capture(fixed) return fixed end
+    Target.AddLocalEntity(6001, shared)
+    Target.AddLocalEntity(6002, shared)
+    Target.FixOptions = realFix
+    expect(shared[1].canInteract == original, provider .. ': the caller\'s option tables are not changed')
+    Target.RemoveLocalEntity(6001)
+    local second = seen[2] and (seen[2][1] or select(2, next(seen[2])))
+    expect(second and second.canInteract(6002) == false, provider .. ': after the first spawn is removed the second still asks the caller')
+    allowed = true
+    expect(second.canInteract(6003) == true, provider .. ': ... and follows its answer')
+end
+
 print(('target_zones: %d assertions passed'):format(assertions))
