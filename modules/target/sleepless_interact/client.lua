@@ -131,6 +131,24 @@ function Target.RemoveModel(model)
     sleepless_interact:removeModel(model)
 end
 
+-- sleepless_interact has no zones: a zone is a coords point (addCoords). Points share ids by position, so
+-- every option gets a name and a zone removes only its own options by name.
+local function addZone(name, coords, options)
+    options = Target.FixOptions(options or {})
+    local names = {}
+    for index, option in pairs(options) do
+        option.name = option.name or ('%s:%s'):format(name, index)
+        names[#names + 1] = option.name
+    end
+    local target = sleepless_interact:addCoords(vector3(coords.x, coords.y, coords.z), options)
+    table.insert(targetZones, { name = name, id = target, names = names, creator = GetInvokingResource() or GetCurrentResourceName() })
+    return target
+end
+
+local function removeZone(zone)
+    sleepless_interact:removeCoords(zone.id, zone.names)
+end
+
 ---This will add a box zone to the target system. This is useful for when you want to add target options to a specific area.
 ---@param name string
 ---@param coords table
@@ -138,13 +156,7 @@ end
 ---@param heading number
 ---@param options table
 function Target.AddBoxZone(name, coords, size, heading, options)
-    options = Target.FixOptions(options)
-    local target = sleepless_interact:addCoords({
-        coords = coords,
-        options = options,
-    })
-    table.insert(targetZones, { name = name, id = target, coords = true, creator = GetInvokingResource() or GetCurrentResourceName() })
-    return target
+    return addZone(name, coords, options)
 end
 
 ---This will add a circle zone to the target system. This is useful for when you want to add target options to a specific area.
@@ -153,25 +165,16 @@ end
 ---@param radius number
 ---@param options table
 function Target.AddSphereZone(name, coords, radius, options, debug)
-    options = Target.FixOptions(options)
-    local target = sleepless_interact:addSphereZone({
-        coords = coords,
-        radius = radius,
-        name = name,
-        debug = targetDebug or debug,
-        options = options
-    })
-    table.insert(targetZones, { name = name, id = target, creator = GetInvokingResource() or GetCurrentResourceName() })
-    return target
+    return addZone(name, coords, options)
 end
 
 ---This will remove target options from a specific zone.
 ---@param name string
 function Target.RemoveZone(name)
-    for _, data in pairs(targetZones) do
+    for index, data in pairs(targetZones) do
         if data.name == name then
-            if data.coords then sleepless_interact:removeCoords(data.id) else sleepless_interact:removeZone(data.id) end
-            table.remove(targetZones, _)
+            removeZone(data)
+            table.remove(targetZones, index)
             break
         end
     end
@@ -188,7 +191,7 @@ local function cleanupZones(resource)
     for index = #targetZones, 1, -1 do
         local zone = targetZones[index]
         if all or zone.creator == resource then
-            pcall(function() if zone.coords then sleepless_interact:removeCoords(zone.id) else sleepless_interact:removeZone(zone.id) end end)
+            pcall(removeZone, zone)
             table.remove(targetZones, index)
         end
     end
