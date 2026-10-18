@@ -35,6 +35,11 @@ local function adapter(provider)
     env.RegisterNetEvent = function() end
     env.Target = {}
     env.vector3 = function(x, y, z) return {x = x, y = y, z = z} end
+    local ids = 0
+    env.lib = {string = {random = function() ids = ids + 1 return 'id' .. ids end}}
+    env.GetGameTimer = function() return 0 end
+    -- (the resolver loads the domain's _default module before an adapter)
+    assert(loadfile(root .. 'modules/target/_default/client.lua', 't', env))()
     local chunk = assert(loadfile(root .. 'modules/target/' .. provider .. '/client.lua', 't', env))
     chunk()
     return env.Target, state
@@ -92,6 +97,32 @@ do
     expect(#state.removed == 1, 'sleepless_interact: ... and the other zone on that spot stays')
     Target.RemoveZone('ball')
     expect(state.removedNames[2] and state.removedNames[2][1] == 'ball:1', 'sleepless_interact: ... until it is removed itself')
+end
+
+for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
+    local Target = adapter(provider)
+    local check = {{name = 'rob', label = 'Rob', onSelect = function() end, canInteract = function() return true end}}
+    local function count()
+        local n = 0
+        for _ in pairs(Target.CanInteractIds and Target.CanInteractIds() or {}) do n = n + 1 end
+        return n
+    end
+    local before = count()
+    Target.AddLocalEntity(5001, check)
+    Target.AddLocalEntity({5002, 5003}, check)
+    Target.AddSphereZone('fh_zone', {x = 0, y = 0, z = 0}, 1.0, check)
+    expect(count() == before + 3, provider .. ': each added target keeps its canInteract check')
+    Target.RemoveLocalEntity(5001)
+    expect(count() == before + 2, provider .. ': a removed entity frees its check')
+    Target.RemoveLocalEntity(5002)
+    expect(count() == before + 2, provider .. ': a check shared by two entities stays while one of them is left')
+    Target.RemoveLocalEntity(5003)
+    Target.RemoveZone('fh_zone')
+    expect(count() == before, provider .. ': ... and goes with the last; a removed zone frees its check')
+    Target.AddGlobalPlayer(check)
+    Target.AddLocalEntity(5004, {{name = 'plain', label = 'Plain', onSelect = function() end}})
+    Target.RemoveLocalEntity(5004)
+    expect(count() == before + 1, provider .. ': a global option\'s check is never taken by the next entity')
 end
 
 print(('target_zones: %d assertions passed'):format(assertions))

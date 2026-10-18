@@ -26,6 +26,7 @@ end
 ---@param options table
 ---@return table
 function Target.FixOptions(options)
+    Target.TakeNewCanInteract()
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = action and function(entityOrData)
@@ -135,6 +136,7 @@ end
 ---@param options table
 function Target.AddLocalEntity(entities, options)
     options = Target.FixOptions(options)
+    Target.OwnCanInteractEntities(entities, Target.TakeNewCanInteract())
     qb_target:AddTargetEntity(entities, {
         options = options,
         distance = getLargestDistance(options)
@@ -146,6 +148,7 @@ end
 ---@param labels string | table | nil
 function Target.RemoveLocalEntity(entity, labels)
     qb_target:RemoveTargetEntity(entity, labels)
+    if labels == nil then Target.FreeCanInteractEntities(entity) end
 end
 
 ---This will add target options to all specified models. This is useful for when you want to add target options to all models of a specific type.
@@ -174,6 +177,7 @@ end
 function Target.AddBoxZone(name, coords, size, heading, options, debug)
     options = Target.FixOptions(options)
     if not next(options) then return end
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     qb_target:AddBoxZone(name, coords, size.x, size.y, {
         name = name,
         debugPoly = debug or targetDebug,
@@ -195,6 +199,7 @@ end
 ---@param options table
 function Target.AddSphereZone(name, coords, radius, options, debug)
     options = Target.FixOptions(options)
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     qb_target:AddCircleZone(name, coords, radius, {
         name = name,
         debugPoly = targetDebug or debug,
@@ -213,6 +218,7 @@ function Target.RemoveZone(name)
     for _, data in pairs(targetZones) do
         if data.name == name then
             qb_target:RemoveZone(name)
+            Target.FreeCanInteract('zone:' .. name)
             table.remove(targetZones, _)
             break
         end
@@ -231,6 +237,7 @@ local function cleanupZones(resource)
         local zone = targetZones[index]
         if all or zone.creator == resource then
             pcall(function() qb_target:RemoveZone(zone.name) end)
+            Target.FreeCanInteract('zone:' .. zone.name)
             table.remove(targetZones, index)
         end
     end

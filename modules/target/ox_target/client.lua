@@ -20,6 +20,7 @@ end
 ---@param options table
 ---@return table
 function Target.FixOptions(options)
+    Target.TakeNewCanInteract()
     for _, v in pairs(options) do
         local action = v.onSelect or v.action
         if not action then
@@ -105,10 +106,31 @@ end
 ---@param options table
 function Target.AddLocalEntity(entities, options)
     options = Target.FixOptions(options)
+    Target.OwnCanInteractEntities(entities, Target.TakeNewCanInteract())
     ox_target:addLocalEntity(entities, options)
     local resource = GetInvokingResource() or GetCurrentResourceName()
     resourceTargets.entities[resource] = resourceTargets.entities[resource] or {}
     table.insert(resourceTargets.entities[resource], { entities = entities})
+end
+
+-- A removed entity is no longer tracked for its resource's stop cleanup.
+local function forgetEntities(list, entities)
+    if type(entities) ~= 'table' then entities = {entities} end
+    local gone = {}
+    for _, entity in pairs(entities) do gone[entity] = true end
+    for _, records in pairs(list) do
+        for index = #records, 1, -1 do
+            local tracked = records[index].entities
+            if type(tracked) == 'table' then
+                for slot = #tracked, 1, -1 do
+                    if gone[tracked[slot]] then table.remove(tracked, slot) end
+                end
+                if #tracked == 0 then table.remove(records, index) end
+            elseif gone[tracked] then
+                table.remove(records, index)
+            end
+        end
+    end
 end
 
 ---This will remove the target options from a local entity. This is useful for when you want to remove target options from a specific entity.
@@ -116,6 +138,10 @@ end
 ---@param optionNames string | table | nil
 function Target.RemoveLocalEntity(entities, optionNames)
     ox_target:removeLocalEntity(entities, optionNames)
+    if optionNames == nil then
+        Target.FreeCanInteractEntities(entities)
+        forgetEntities(resourceTargets.entities, entities)
+    end
 end
 
 ---This will add a networked entity to the target system.
@@ -162,6 +188,7 @@ end
 function Target.AddBoxZone(name, coords, size, heading, options, debug)
     options = Target.FixOptions(options or {})
     if not next(options) then return end
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     local target = ox_target:addBoxZone({
         coords = coords,
         size = size,
@@ -180,6 +207,7 @@ end
 ---@param options table
 function Target.AddSphereZone(name, coords, radius, options, debug)
     options = Target.FixOptions(options)
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     local target = ox_target:addSphereZone({
         coords = coords,
         radius = radius,
@@ -198,6 +226,7 @@ function Target.RemoveZone(name)
     for _, data in pairs(targetZones) do
         if data.name == name then
             ox_target:removeZone(data.id)
+            Target.FreeCanInteract('zone:' .. name)
             table.remove(targetZones, _)
             break
         end
@@ -216,6 +245,7 @@ local function cleanupZones(resource)
         local zone = targetZones[index]
         if all or zone.creator == resource then
             pcall(function() ox_target:removeZone(zone.id) end)
+            Target.FreeCanInteract('zone:' .. zone.name)
             table.remove(targetZones, index)
         end
     end
@@ -223,12 +253,12 @@ end
 
 AddEventHandler('onResourceStop', function(resource)
     cleanupZones(resource)
-    if resourceTargets.entities[resource] and #resourceTargets.entities[resource] > 0 then
-        for _, data in pairs(resourceTargets.entities[resource]) do
-            Target.RemoveLocalEntity(data.entities)
-        end
-    end
+    -- (detached first: removing an entity also forgets it in this list)
+    local entities = resourceTargets.entities[resource]
     resourceTargets.entities[resource] = nil
+    for _, data in ipairs(entities or {}) do
+        Target.RemoveLocalEntity(data.entities)
+    end
     if resourceTargets.networkedEntities[resource] and #resourceTargets.networkedEntities[resource] > 0 then
         for _, data in pairs(resourceTargets.networkedEntities[resource]) do
             Target.RemoveNetworkedEntity(data.netids)
