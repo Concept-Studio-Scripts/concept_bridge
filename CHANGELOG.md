@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-18
+
 ### Removed
 
 - Remove the built-in `Dialogue` module, its NPC dialogue UI and the unused clipboard
