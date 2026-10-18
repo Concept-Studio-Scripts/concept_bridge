@@ -13,7 +13,7 @@ end
 function FrameworkRequests.Balance(src, expected, read, account, ...)
     if select('#', ...) ~= 0 or (account ~= nil and not Requests.Text(account, 64, true)) then return nil end
     -- Cash/bank/custom-item reads often arrive together; allow a bounded burst.
-    local ctx = Requests.Begin('Framework', src, expected, 1000, true, 'Framework:balance', 8)
+    local ctx = Requests.Begin('Framework', src, expected, 1000, true, 'Framework:balance', 8, true)
     if not ctx then return nil end
     local ok, result = Requests.Execute(ctx, read, ctx.src, account)
     if ok and type(result) == 'number' and result == result and math.abs(result) < math.huge then return result end

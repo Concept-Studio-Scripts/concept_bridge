@@ -78,7 +78,8 @@ function Requests.Capture(domain, src, expected, requireCharacter)
     return ctx
 end
 
-function Requests.Begin(domain, src, expected, interval, requireCharacter, key, burst)
+-- concurrent: read-only requests may overlap (cash and bank asked together); the burst still limits them.
+function Requests.Begin(domain, src, expected, interval, requireCharacter, key, burst, concurrent)
     src = tonumber(src)
     if not Requests.Integer(src, 1, 65535) or not GetPlayerName(src) then return nil, 'player_unavailable' end
     key = key or domain
@@ -86,10 +87,16 @@ function Requests.Begin(domain, src, expected, interval, requireCharacter, key, 
     local slot = slots[key][src] or {}
     slots[key][src] = slot
     local now = GetGameTimer()
-    if slot.busy then return nil, 'request_busy' end
+    if slot.busy and not concurrent then return nil, 'request_busy' end
     if not slot.at or now < slot.at or now - slot.at >= interval then slot.at, slot.count = now, 0 end
     if slot.count >= (burst or 1) then return nil, 'rate_limited' end
     slot.count = slot.count + 1
+    if concurrent then
+        local ctx, reason = Requests.Capture(domain, src, expected, requireCharacter)
+        if not ctx then return nil, reason end
+        ctx.key = key
+        return ctx
+    end
     -- Reserve before identity reads, which may yield in custom adapters.
     local reservation = {}
     slot.busy = reservation

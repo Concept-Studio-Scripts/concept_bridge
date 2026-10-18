@@ -333,6 +333,12 @@ for _, provider in ipairs({'ox_core', 'es_extended'}) do
         expect(balance(8, 'cash') == 100 and balance(8, 'money') == 100 and balance(8, 'bank') == 200,
             'normal consumer cash/money/bank burst remains supported')
         expect(actors[1] == 8 and balance(8, 'bank', 7) == nil, 'account target is source-bound and cannot be injected')
+        state.now, state.pause = state.now + 1000, true
+        local first = coroutine.create(function() return balance(8, 'cash') end)
+        assert(coroutine.resume(first))
+        expect(balance(8, 'bank') == 200, 'a balance read while another is still running is answered (cash and bank together)')
+        local resumed, cash = coroutine.resume(first)
+        expect(resumed and cash == 100, '... and so is the read that was running')
         expect(balance(8, {}) == nil, 'invalid account cannot reach the provider')
         state.now, state.pause = state.now + 1000, true
         local pending = coroutine.create(function() expect(balance(8, 'bank') == nil, 'old-character account result is discarded') end)
