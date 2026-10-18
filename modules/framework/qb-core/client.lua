@@ -34,6 +34,13 @@ Framework.GetPlayerData = function()
     return QBCore.Functions.GetPlayerData()
 end
 
+-- Character data only once a character is loaded: on the character select screen PlayerData is empty
+-- and getters return nil (or an empty value) instead of erroring.
+local function loadedData()
+    local data = Framework.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then return data end
+end
+
 ---@description This will return a table of all the jobs in the framework.
 ---@return table
 Framework.GetFrameworkJobs = function()
@@ -51,16 +58,16 @@ end
 ---@description This will get the players birth date
 ---@return string
 Framework.GetPlayerDob = function()
-    local player = Framework.GetPlayerData()
-    local playerData = player.PlayerData
-    return playerData.charinfo.birthdate
+    local playerData = loadedData()
+    return playerData and playerData.charinfo and playerData.charinfo.birthdate
 end
 
 ---@description This will return the players metadata for the specified metadata key.
 ---@param metadata table | string
 ---@return table | string | number | boolean
 Framework.GetPlayerMetaData = function(metadata)
-    return Framework.GetPlayerData().metadata[metadata]
+    local data = loadedData()
+    return data and data.metadata and data.metadata[metadata]
 end
 
 ---@description This will send a notification to the player.
@@ -91,9 +98,9 @@ end
 ---@param _type string
 ---@return number
 Framework.GetAccountBalance = function(_type)
-    local player = Framework.GetPlayerData()
-    if not player then return 0 end
-    local account = player.money
+    local player = loadedData()
+    local account = player and player.money
+    if not account then return 0 end
     if _type == 'money' then _type = 'cash' end
     return account[_type] or 0
 end
@@ -132,14 +139,16 @@ end
 ---@description This will get the players identifier (citizenid) etc.
 ---@return string
 Framework.GetPlayerIdentifier = function()
-    return Framework.GetPlayerData().citizenid
+    local data = loadedData()
+    return data and data.citizenid
 end
 
 ---@description This will get the players name (first and last).
 ---@return string
 ---@return string
 Framework.GetPlayerName = function()
-    local playerData = Framework.GetPlayerData()
+    local playerData = loadedData()
+    if not playerData or not playerData.charinfo then return nil, nil end
     return playerData.charinfo.firstname, playerData.charinfo.lastname
 end
 
@@ -151,20 +160,23 @@ end
 Framework.GetPlayerJob = function()
     --print("This is depricated, please use Framework.GetPlayerJobData() instead.")
     local jobData = Framework.GetPlayerJobData()
+    if not jobData then return nil end
     return jobData.jobName, jobData.jobLabel, jobData.gradeName, jobData.gradeRank
 end
 
 ---@description This will return the players job name, job label, job grade label job grade level, boss status, and duty status in a table
 ---@return table
 Framework.GetPlayerJobData = function()
-    local playerData = Framework.GetPlayerData()
-    local jobData = playerData.job
+    local playerData = loadedData()
+    local jobData = playerData and playerData.job
+    if not jobData then return nil end
+    local grade = jobData.grade or {}
     return {
         jobName = jobData.name,
         jobLabel = jobData.label,
-        gradeName = jobData.grade.name,
-        gradeLabel = jobData.grade.name,
-        gradeRank = jobData.grade.level,
+        gradeName = grade.name,
+        gradeLabel = grade.name,
+        gradeRank = grade.level,
         boss = jobData.isboss,
         onDuty = jobData.onduty,
     }
@@ -182,7 +194,8 @@ end
 ---@param item string
 ---@return number
 Framework.GetItemCount = function(item)
-    local frameworkInv = Framework.GetPlayerData().items
+    local data = loadedData()
+    local frameworkInv = data and data.items or {}
     local count = 0
     for _, v in pairs(frameworkInv) do
         if v.name == item then
@@ -196,7 +209,8 @@ end
 ---@return table
 Framework.GetPlayerInventory = function()
     local items = {}
-    local frameworkInv = Framework.GetPlayerData().items
+    local data = loadedData()
+    local frameworkInv = data and data.items or {}
     for _, v in pairs(frameworkInv) do
         table.insert(items, {
             name = v.name,
@@ -246,8 +260,10 @@ end
 ---@description This will get a players dead status
 ---@return boolean
 Framework.GetIsPlayerDead = function()
-    local playerData = Framework.GetPlayerData()
-    return playerData.metadata["isdead"] or playerData.metadata["inlaststand"]
+    local playerData = loadedData()
+    local metadata = playerData and playerData.metadata
+    if not metadata then return false end
+    return metadata["isdead"] or metadata["inlaststand"] or false
 end
 
 ---@description Is the local player down: dead OR in last stand.

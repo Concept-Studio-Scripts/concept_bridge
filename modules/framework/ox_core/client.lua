@@ -4,7 +4,6 @@ if GetResourceState('ox_core') ~= 'started' then return end
 Framework = Framework or {}
 
 local Ox = require '@ox_core.lib.init'
-LocalPlayer.state.isLoggedIn = true
 
 local UNEMPLOYED = {
     name = 'unemployed',
@@ -17,6 +16,15 @@ local UNEMPLOYED = {
 local function getPlayerObject()
     return Ox.GetPlayer(cache.playerId)
 end
+
+-- ox_core always returns a player object; it carries a charId only while a character is loaded.
+local function characterLoaded()
+    local ok, player = pcall(getPlayerObject)
+    return ok and type(player) == 'table' and player.charId ~= nil
+end
+
+-- qb-style scripts read isLoggedIn: it follows the character, not just the bridge starting.
+LocalPlayer.state.isLoggedIn = characterLoaded()
 
 --- Job definitions keyed by group name (parity with qbx_core). Definitions are
 --- read from replicated GlobalState, so this never yields.
@@ -125,7 +133,7 @@ end
 ---authoritative readiness signal (the isLoggedIn state is set at load).
 ---@return boolean
 Framework.GetIsPlayerLoaded = function()
-    return getPlayerObject() ~= nil
+    return characterLoaded()
 end
 
 ---@description Returns the raw OxPlayer object. Internal use, avoid outside of bridge.
@@ -383,18 +391,21 @@ end
 
 ---@description Event handler for when player is loaded in ox_core framework
 AddEventHandler('ox:playerLoaded', function(playerId, isNew)
+    LocalPlayer.state.isLoggedIn = true
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player logs out (returns to character select)
 AddEventHandler('ox:playerLogout', function()
+    LocalPlayer.state.isLoggedIn = false
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
 ---@description Entering character select is also an unload for consumers:
 ---ox_core fires this when swapping characters, not just on full logout.
 AddEventHandler('ox:startCharacterSelect', function()
+    LocalPlayer.state.isLoggedIn = false
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 

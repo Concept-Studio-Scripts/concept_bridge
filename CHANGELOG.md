@@ -13,6 +13,20 @@
 
 ### Fixed
 
+- Target `canInteract` results are cached per option and per target entity, so looking from one
+  player to another within a second no longer shows the first player's options.
+
+- ox_core: `LocalPlayer.state.isLoggedIn` and `GetIsPlayerLoaded` follow the loaded character
+  instead of always reporting a loaded player, including on the character select screen.
+
+- QBCore and Qbox: client getters return nil or an empty value before a character is loaded
+  instead of erroring, and QBCore `GetPlayerDob` reads the birth date from the player data.
+
+- ox_core: account balances requested at the same time (for example cash and bank) are all
+  answered; the request limit still applies.
+
+- `oxmysql` is listed as a dependency; the bridge loads its MySQL library on the server.
+
 - Target zones: a stopping resource removes only its own zones. Zones of other resources stay
   tracked and removable (ox_target forgot all of them on any stop, which left ghost options and
   duplicate zones after a restart), and a restarted target system no longer receives stale zone ids.

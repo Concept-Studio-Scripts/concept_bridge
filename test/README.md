@@ -15,6 +15,8 @@ lua test/shell_access.lua
 lua test/provider_selection.lua
 lua test/esx_status_cache.lua
 lua test/handler_security.lua
+lua test/target_caninteract.lua
+lua test/framework_client_state.lua
 lua test/target_zones.lua
 ```
 
