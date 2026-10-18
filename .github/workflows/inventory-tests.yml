@@ -64,6 +64,7 @@ jobs:
           lua5.4 test/target_caninteract.lua
           lua5.4 test/framework_client_state.lua
           lua5.4 test/target_zones.lua
+          lua5.4 test/manifest_files.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
           luac5.4 -p modules/framework/es_extended/client.lua

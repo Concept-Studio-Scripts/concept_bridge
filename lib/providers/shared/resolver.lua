@@ -17,14 +17,27 @@ end
 function Resolver.New(catalog, side)
     local states, stopped, callbackSlots = {}, {}, {}
     local resource = GetCurrentResourceName()
+    -- [name] = running, for the guard on every public call: asked of the game once, then kept by the resource
+    -- start / stop events below. Selecting a provider still asks the game itself (it can stop mid-load).
+    local running = {}
 
     local function started(name)
         return not stopped[name] and GetResourceState(name) == 'started'
     end
 
+    local function knownStarted(name)
+        if stopped[name] then return false end
+        local known = running[name]
+        if known == nil then
+            known = GetResourceState(name) == 'started'
+            running[name] = known
+        end
+        return known
+    end
+
     local function guard(scope, fn)
         return function(...)
-            if not scope.active or (scope.resource and not started(scope.resource)) then
+            if not scope.active or (scope.resource and not knownStarted(scope.resource)) then
                 return nil, 'provider_unavailable'
             end
             return fn(...)
@@ -191,7 +204,7 @@ function Resolver.New(catalog, side)
             local reference
             reference = function(...)
                 local currentScope = state.scope or state.baseScope
-                if not currentScope.active or (currentScope.resource and not started(currentScope.resource)) then
+                if not currentScope.active or (currentScope.resource and not knownStarted(currentScope.resource)) then
                     return nil, 'provider_unavailable'
                 end
                 local exposed, implementation = state.public[key], state.implementation[key]
@@ -319,6 +332,7 @@ function Resolver.New(catalog, side)
     local function changed(name, stopping)
         if name == resource then return end
         stopped[name] = stopping or nil
+        running[name] = not stopping
         local frameworkChanged = false
         for _, state in ipairs(states) do
             local relevant = false
