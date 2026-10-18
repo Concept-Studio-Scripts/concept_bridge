@@ -15,6 +15,8 @@ lua test/shell_access.lua
 lua test/provider_selection.lua
 lua test/esx_status_cache.lua
 lua test/handler_security.lua
+lua test/target_caninteract.lua
+lua test/framework_client_state.lua
 ```
 
 The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax and cannot be compiled by stock Lua.
