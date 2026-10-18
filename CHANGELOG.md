@@ -27,6 +27,14 @@
 
 - `oxmysql` is listed as a dependency; the bridge loads its MySQL library on the server.
 
+- Target zones: a stopping resource removes only its own zones. Zones of other resources stay
+  tracked and removable (ox_target forgot all of them on any stop, which left ghost options and
+  duplicate zones after a restart), and a restarted target system no longer receives stale zone ids.
+
+- sleepless_interact zones: box and sphere zones are added as coords points the way the
+  provider expects (box zones were never registered, sphere zones called a missing export) and
+  each zone removes only its own options at a shared position.
+
 - Clear ESX needs caches across character changes and status-resource restarts,
   and discard delayed status results from previous sessions.
 
