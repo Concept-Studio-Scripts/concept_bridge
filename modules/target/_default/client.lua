@@ -21,24 +21,39 @@ function Target.CreateCanInteract(cb)
     local id = lib.string.random('................')
     InteractIds[id] = {
         id = id,
-        ableToInteract = -1,
-        onInteract = cb
+        onInteract = cb,
+        results = {},
     }
     return id
 end
 
+local CAN_INTERACT_MS = 1000
+
+-- The target the check is about: providers pass the entity first (or a table carrying it).
+local function interactTarget(first)
+    if type(first) == 'table' then return first.entity or 0 end
+    return first or 0
+end
+
+-- A result is reused for a second, per option AND per target: looking from one player to another
+-- within that second must not show the first one's options.
 function Target.CanInteract(id, ...)
     local interactData = InteractIds[id]
     if not interactData then return true end
-    if interactData.ableToInteract == -1 then
-        local cb = interactData.onInteract
-        local canInteractStatus = cb(...)
-        interactData.ableToInteract = canInteractStatus and 1 or 0
-        SetTimeout(1000, function()
-            interactData.ableToInteract = -1
-        end)
+    local key = interactTarget(...)
+    local now = GetGameTimer()
+    local cached = interactData.results[key]
+    if cached and now - cached.at < CAN_INTERACT_MS then return cached.allowed end
+    local allowed = interactData.onInteract(...) and true or false
+    if cached then
+        cached.at, cached.allowed = now, allowed
+    else
+        for target, result in pairs(interactData.results) do
+            if now - result.at >= CAN_INTERACT_MS then interactData.results[target] = nil end
+        end
+        interactData.results[key] = {at = now, allowed = allowed}
     end
-    return interactData.ableToInteract > 0
+    return allowed
 end
 
 function Target.FixOptions(options)
