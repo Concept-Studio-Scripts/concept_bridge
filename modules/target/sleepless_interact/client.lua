@@ -16,6 +16,8 @@ end
 ---@param options table
 ---@return table
 function Target.FixOptions(options)
+    Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = function(entityOrData)
@@ -107,6 +109,7 @@ end
 ---@param options table
 function Target.AddLocalEntity(entities, options)
     options = Target.FixOptions(options)
+    Target.OwnCanInteractEntities(entities, Target.TakeNewCanInteract())
     sleepless_interact:addLocalEntity(entities, options)
 end
 
@@ -115,6 +118,7 @@ end
 ---@param labels string | table | nil
 function Target.RemoveLocalEntity(entity, labels)
     sleepless_interact:removeLocalEntity(entity, labels)
+    if labels == nil then Target.FreeCanInteractEntities(entity) end
 end
 
 ---This will add target options to all specified models. This is useful for when you want to add target options to all models of a specific type.
@@ -144,6 +148,7 @@ local function addZone(name, coords, options)
         own[index] = copy
     end
     options = Target.FixOptions(own)
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     local names = {}
     for _, option in pairs(options) do names[#names + 1] = option.name end
     local target = sleepless_interact:addCoords(vector3(coords.x, coords.y, coords.z), options)
@@ -152,6 +157,7 @@ local function addZone(name, coords, options)
 end
 
 local function removeZone(zone)
+    Target.FreeCanInteract('zone:' .. zone.name)
     sleepless_interact:removeCoords(zone.id, zone.names)
 end
 

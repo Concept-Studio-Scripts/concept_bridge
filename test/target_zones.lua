@@ -35,6 +35,11 @@ local function adapter(provider)
     env.RegisterNetEvent = function() end
     env.Target = {}
     env.vector3 = function(x, y, z) return {x = x, y = y, z = z} end
+    local ids = 0
+    env.lib = {string = {random = function() ids = ids + 1 return 'id' .. ids end}}
+    env.GetGameTimer = function() return 0 end
+    -- (the resolver loads the domain's _default module before an adapter)
+    assert(loadfile(root .. 'modules/target/_default/client.lua', 't', env))()
     local chunk = assert(loadfile(root .. 'modules/target/' .. provider .. '/client.lua', 't', env))
     chunk()
     return env.Target, state
@@ -102,6 +107,62 @@ do
     Target.RemoveZone('left')
     local names = state.removedNames[#state.removedNames]
     expect(names[1] == 'left:open' and #names == 1, 'sleepless_interact: a zone removes only its own options at a shared spot, even with a shared name')
+end
+
+for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
+    local Target = adapter(provider)
+    local check = {{name = 'rob', label = 'Rob', onSelect = function() end, canInteract = function() return true end}}
+    local function count()
+        local n = 0
+        for _ in pairs(Target.CanInteractIds and Target.CanInteractIds() or {}) do n = n + 1 end
+        return n
+    end
+    local before = count()
+    Target.AddLocalEntity(5001, check)
+    Target.AddLocalEntity({5002, 5003}, check)
+    Target.AddSphereZone('fh_zone', {x = 0, y = 0, z = 0}, 1.0, check)
+    expect(count() == before + 3, provider .. ': each added target keeps its canInteract check')
+    Target.RemoveLocalEntity(5001)
+    expect(count() == before + 2, provider .. ': a removed entity frees its check')
+    Target.RemoveLocalEntity(5002)
+    expect(count() == before + 2, provider .. ': a check shared by two entities stays while one of them is left')
+    Target.RemoveLocalEntity(5003)
+    Target.RemoveZone('fh_zone')
+    expect(count() == before, provider .. ': ... and goes with the last; a removed zone frees its check')
+    Target.AddGlobalPlayer(check)
+    Target.AddLocalEntity(5004, {{name = 'plain', label = 'Plain', onSelect = function() end}})
+    Target.RemoveLocalEntity(5004)
+    expect(count() == before + 1, provider .. ': a global option\'s check is never taken by the next entity')
+end
+
+-- the same option tables passed again (a shell spawned twice): each spawn wraps the caller's own check,
+-- so freeing the first spawn's check leaves the second one working
+for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
+    local Target = adapter(provider)
+    local allowed = false
+    local shared = {{name = 'enter', label = 'Enter', onSelect = function() end, canInteract = function() return allowed end}}
+    local original = shared[1].canInteract
+    local seen = {}
+    local function capture(fixed) seen[#seen + 1] = fixed end
+    local realFix = Target.FixOptions
+    Target.FixOptions = function(options) local fixed = realFix(options) capture(fixed) return fixed end
+    Target.AddLocalEntity(6001, shared)
+    Target.AddLocalEntity(6002, shared)
+    Target.FixOptions = realFix
+    expect(shared[1].canInteract == original, provider .. ': the caller\'s option tables are not changed')
+    Target.RemoveLocalEntity(6001)
+    local second = seen[2] and (seen[2][1] or select(2, next(seen[2])))
+    expect(second and second.canInteract(6002) == false, provider .. ': after the first spawn is removed the second still asks the caller')
+    allowed = true
+    expect(second.canInteract(6003) == true, provider .. ': ... and follows its answer')
+end
+
+do  -- ox_target tracks a copy of an entity list: removing one entity leaves the caller's list alone
+    local Target = adapter('ox_target')
+    local list = {7001, 7002}
+    Target.AddLocalEntity(list, {{name = 'look', label = 'Look', onSelect = function() end}})
+    Target.RemoveLocalEntity(7001)
+    expect(#list == 2 and list[1] == 7001, 'ox_target: the entity list passed in is not edited')
 end
 
 print(('target_zones: %d assertions passed'):format(assertions))

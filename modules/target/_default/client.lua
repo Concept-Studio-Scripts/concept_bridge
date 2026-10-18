@@ -16,6 +16,14 @@ function Target.GetCanInteract(id)
     return InteractIds[id]
 end
 
+---Every live canInteract check (diagnostics and tests).
+function Target.CanInteractIds()
+    return InteractIds
+end
+
+-- Ids made by the latest FixOptions call, until an entity or a zone claims them (TakeNewCanInteract).
+local freshIds, ownedIds = {}, {}
+
 function Target.CreateCanInteract(cb)
     if not cb then return end
     local id = lib.string.random('................')
@@ -23,8 +31,76 @@ function Target.CreateCanInteract(cb)
         id = id,
         onInteract = cb,
         results = {},
+        refs = 0,
     }
+    freshIds[#freshIds + 1] = id
     return id
+end
+
+---Options are wrapped on a copy: the caller's tables stay as they were, so passing the same options again
+---(a shell spawned twice) wraps the caller's own callbacks, never an earlier wrapper.
+---@param options table
+---@return table
+function Target.CopyOptions(options)
+    local copy = {}
+    for key, option in pairs(options or {}) do
+        if type(option) == 'table' then
+            local fresh = {}
+            for field, value in pairs(option) do fresh[field] = value end
+            copy[key] = fresh
+        else
+            copy[key] = option
+        end
+    end
+    return copy
+end
+
+---The canInteract ids made since the last call (FixOptions starts with one, so a call right after it
+---returns that call's ids only).
+---@return table
+function Target.TakeNewCanInteract()
+    local ids = freshIds
+    freshIds = {}
+    return ids
+end
+
+---An entity or a zone (key) keeps these canInteract checks until it is removed.
+function Target.OwnCanInteract(key, ids)
+    if key == nil or not ids or #ids == 0 then return end
+    local owned = ownedIds[key] or {}
+    ownedIds[key] = owned
+    for _, id in ipairs(ids) do
+        local data = InteractIds[id]
+        if data then
+            data.refs = data.refs + 1
+            owned[#owned + 1] = id
+        end
+    end
+end
+
+---The entity or zone (key) is gone: its canInteract checks are freed once nothing else uses them.
+function Target.FreeCanInteract(key)
+    local owned = key ~= nil and ownedIds[key]
+    if not owned then return end
+    ownedIds[key] = nil
+    for _, id in ipairs(owned) do
+        local data = InteractIds[id]
+        if data then
+            data.refs = data.refs - 1
+            if data.refs <= 0 then InteractIds[id] = nil end
+        end
+    end
+end
+
+---Each entity of a number or a list owns the checks; removal frees them per entity.
+function Target.OwnCanInteractEntities(entities, ids)
+    if type(entities) ~= 'table' then entities = {entities} end
+    for _, entity in pairs(entities) do Target.OwnCanInteract(entity, ids) end
+end
+
+function Target.FreeCanInteractEntities(entities)
+    if type(entities) ~= 'table' then entities = {entities} end
+    for _, entity in pairs(entities) do Target.FreeCanInteract(entity) end
 end
 
 local CAN_INTERACT_MS = 1000
@@ -57,6 +133,8 @@ function Target.CanInteract(id, ...)
 end
 
 function Target.FixOptions(options)
+    Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = function(entityOrData)
@@ -91,9 +169,11 @@ end
 
 function Target.AddLocalEntity(entities, options)
     local fixedOptions = Target.FixOptions(options)
+    local ids = Target.TakeNewCanInteract()
     if type(entities) == 'number' then entities = {entities} end
     for _, entity in pairs(entities) do
         Target.RemoveLocalEntity(entity)
+        Target.OwnCanInteract(entity, ids)
         local menu = {id = lib.string.random('................'), title = locale('target.title'), options = {}}
         for _, option in pairs(fixedOptions) do
             menu.options[#menu.options + 1] = {
@@ -136,6 +216,7 @@ end
 function Target.AddBoxZone(name, coords, size, heading, options)
     Target.RemoveZone(name)
     local fixedOptions = Target.FixOptions(options)
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
     local menu = {id = name, title = locale('target.title'), options = {}}
     for _, option in pairs(fixedOptions) do
         menu.options[#menu.options + 1] = {
@@ -165,6 +246,7 @@ function Target.RemoveLocalEntity(entities)
     for _, entity in pairs(entities or {}) do
         if localEntities[entity] then localEntities[entity]:remove() end
         localEntities[entity] = nil
+        Target.FreeCanInteract(entity)
     end
 end
 
@@ -175,6 +257,7 @@ end
 function Target.RemoveZone(name)
     if localZones[name] then localZones[name]:remove() end
     localZones[name] = nil
+    Target.FreeCanInteract('zone:' .. name)
 end
 
 AddEventHandler('onResourceStop', function(resource)

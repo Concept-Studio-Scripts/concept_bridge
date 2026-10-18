@@ -11,6 +11,14 @@
 
 - Remove the unused entity-action extension, which depended on a missing action engine.
 
+### Changed
+
+- Clients download only client and shared code; server modules are no longer sent to them.
+
+- Lower client cost: QBCore, Qbox and ESX player data is cached and follows the framework's
+  update events, public calls no longer ask the game for the provider state each time, and
+  target `canInteract` checks are freed with their entity or zone.
+
 ### Fixed
 
 - Target `canInteract` results are cached per option and per target entity, so looking from one

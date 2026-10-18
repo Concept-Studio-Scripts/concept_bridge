@@ -353,4 +353,15 @@ for _, item in ipairs(catalog) do
         end
     end
 end
+do  -- a public call is guarded with the provider's running state as the start / stop events left it
+    local env, state, api, lifecycle = fixture({definition('Framework')}, 'client', true, {ox_core = 'started'})
+    local real, asked = env.GetResourceState, 0
+    env.GetResourceState = function(...) asked = asked + 1 return real(...) end
+    -- (GetResourceName answers from the selection itself: a provider function goes through the guard)
+    for _ = 1, 50 do env.Framework.GetFrameworkName() end
+    expect(asked <= 1 and env.Framework.GetResourceName() == 'ox_core', 'public calls do not ask the game for the provider state each time')
+    lifecycle('ox_core', false)
+    expect(env.Framework.GetResourceName() == 'default', '... and a stopped provider is noticed from its stop event')
+end
+
 print(('provider_selection: %d assertions passed'):format(assertions))

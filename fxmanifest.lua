@@ -32,14 +32,17 @@ client_scripts {
     'init.lua',
 }
 
+-- Clients download only what runs on them: client and shared code, never server modules.
 files {
     'locales/*.json',
-    'lib/**/**/*.lua',
-    'lib/**/**/**/*.lua',
-    'modules/**',
+    'lib/init.lua',
+    'lib/**/client/*.lua',
+    'lib/**/shared/*.lua',
+    'modules/**/client.lua',
+    'modules/**/client/*.lua',
+    'modules/**/shared.lua',
     'settings/clientConfig.lua',
     'settings/sharedConfig.lua',
-    'lib/init.lua',
 }
 
 dependencies {

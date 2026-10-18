@@ -83,4 +83,69 @@ do
     expect(env.LocalPlayer.state.isLoggedIn == false and F.GetIsPlayerLoaded() == false, 'ox_core: logged out after logout')
 end
 
+-- PlayerData through the core's export is copied on every call: the bridge keeps a loaded character's
+-- data and follows the framework's own update events.
+for _, provider in ipairs({'qb-core', 'qbx_core'}) do
+    local reads, data = 0, {}
+    local function fetch() reads = reads + 1 return data end
+    local env = load('modules/framework/' .. provider .. '/client.lua', function(env)
+        if provider == 'qb-core' then
+            local core = {Shared = {Items = {}, Jobs = {}}, Functions = {GetPlayerData = fetch}}
+            env.exports = setmetatable({}, {__index = function() return {GetCoreObject = function() return core end} end})
+        else
+            env.exports = setmetatable({}, {__index = function() return {GetPlayerData = fetch} end})
+        end
+    end)
+    local F = env.Framework
+    F.GetPlayerData()
+    F.GetPlayerData()
+    expect(reads == 2, provider .. ': before a character is loaded every read asks the core')
+    data = {citizenid = 'A1', job = {name = 'unemployed'}, money = {cash = 1}}
+    F.GetPlayerData()
+    local before = reads
+    for _ = 1, 10 do F.GetPlayerIdentifier() end
+    expect(reads == before, provider .. ': a loaded character is read from the cache')
+    env.handlers['QBCore:Player:SetPlayerData']({citizenid = 'A1', job = {name = 'police'}, money = {cash = 5}})
+    expect(F.GetPlayerJobData().jobName == 'police' and F.GetAccountBalance('cash') == 5 and reads == before,
+        provider .. ': SetPlayerData updates the cache')
+    env.handlers['QBCore:Client:OnJobUpdate']({name = 'ambulance', label = 'EMS', grade = {name = 'a', level = 1}})
+    expect(F.GetPlayerJobData().jobName == 'ambulance', provider .. ': a job update reaches the cache')
+    if provider == 'qb-core' then
+        -- (qb-core 1.3: Player:UpdateClient sends one key at a time, 'all' for the whole data)
+        env.handlers['QBCore:Client:OnPlayerUpdated']('money', {cash = 40, bank = 0})
+        env.handlers['QBCore:Client:OnPlayerUpdated']('metadata', {hunger = 12, isdead = true})
+        expect(F.GetAccountBalance('cash') == 40 and F.GetPlayerMetaData('hunger') == 12 and F.GetIsPlayerDead() == true,
+            provider .. ': per-key updates (money, metadata) reach the cache')
+        env.handlers['QBCore:Client:OnPlayerUpdated']('all', {citizenid = 'A1', job = {name = 'mechanic'}, money = {cash = 7}})
+        expect(F.GetAccountBalance('cash') == 7 and F.GetPlayerJobData().jobName == 'mechanic' and reads == before,
+            provider .. ': an all update replaces the cache')
+    end
+    env.handlers['QBCore:Client:OnPlayerUnload']()
+    data = {}
+    expect(F.GetPlayerIdentifier() == nil and reads > before, provider .. ': after unload the core is asked again')
+end
+
+do
+    local reads, now, data = 0, 0, {job = {name = 'unemployed'}, accounts = {{name = 'bank', money = 10}}}
+    local env = load('modules/framework/es_extended/client.lua', function(env)
+        local esx = {GetPlayerData = function() reads = reads + 1 return data end, IsPlayerLoaded = function() return true end}
+        env.exports = setmetatable({}, {__index = function() return {getSharedObject = function() return esx end} end})
+        env.GetGameTimer = function() return now end
+    end)
+    local F = env.Framework
+    F.GetPlayerData()
+    F.GetPlayerData()
+    expect(reads == 1, 'es_extended: a copy is reused within a second')
+    env.handlers['esx:setPlayerData']('job', {name = 'police'})
+    expect(F.GetPlayerData().job.name == 'police' and reads == 1, 'es_extended: esx:setPlayerData updates the copy')
+    env.handlers['esx:setAccountMoney']({name = 'bank', money = 99})
+    expect(F.GetPlayerData().accounts[1].money == 99, 'es_extended: an account update reaches the copy')
+    now = 1500
+    F.GetPlayerData()
+    expect(reads == 2, 'es_extended: after a second the data is read again')
+    env.handlers['esx:onPlayerLogout']()
+    F.GetPlayerData()
+    expect(reads == 3, 'es_extended: after logout the data is read again')
+end
+
 print(('framework_client_state: %d assertions passed'):format(assertions))
