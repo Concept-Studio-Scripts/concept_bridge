@@ -157,4 +157,12 @@ for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
     expect(second.canInteract(6003) == true, provider .. ': ... and follows its answer')
 end
 
+do  -- ox_target tracks a copy of an entity list: removing one entity leaves the caller's list alone
+    local Target = adapter('ox_target')
+    local list = {7001, 7002}
+    Target.AddLocalEntity(list, {{name = 'look', label = 'Look', onSelect = function() end}})
+    Target.RemoveLocalEntity(7001)
+    expect(#list == 2 and list[1] == 7001, 'ox_target: the entity list passed in is not edited')
+end
+
 print(('target_zones: %d assertions passed'):format(assertions))

@@ -111,7 +111,13 @@ function Target.AddLocalEntity(entities, options)
     ox_target:addLocalEntity(entities, options)
     local resource = GetInvokingResource() or GetCurrentResourceName()
     resourceTargets.entities[resource] = resourceTargets.entities[resource] or {}
-    table.insert(resourceTargets.entities[resource], { entities = entities})
+    -- (a copy of a list: forgetting a removed entity must not edit the caller's own table)
+    local tracked = entities
+    if type(entities) == 'table' then
+        tracked = {}
+        for index, entity in pairs(entities) do tracked[index] = entity end
+    end
+    table.insert(resourceTargets.entities[resource], { entities = tracked })
 end
 
 -- A removed entity is no longer tracked for its resource's stop cleanup.

@@ -156,7 +156,10 @@ end
 ---@return table {name, label, count, slot, metadata, stack, close, weight}
 Framework.GetPlayerInventory = function()
     local data = loadedData()
-    return data and data.items or {}
+    -- (a copy: a caller that sorts or trims the list must not change the cached player data)
+    local items = {}
+    for slot, item in pairs(data and data.items or {}) do items[slot] = item end
+    return items
 end
 
 ---@description This will return the players money by type, I recommend not useing this as its the client and not secure or to be trusted.

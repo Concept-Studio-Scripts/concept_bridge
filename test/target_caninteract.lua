@@ -32,6 +32,9 @@ now = 1000
 handsUp[101] = false
 expect(Target.CanInteract(id, 101) == false and calls == 3, 'after a second the option is asked again')
 expect(Target.CanInteract(id, {entity = 202}) == false, 'a target passed inside a table is keyed by its entity')
+local before = calls
+expect(Target.CanInteract(id, {entity = 101}) == false and calls == before,
+    'a table and its plain entity share one cached result (no second call within the second)')
 expect(Target.CanInteract('unknown', 101) == true, 'an option without a check is always shown')
 
 -- old results are dropped as new targets come in (a crowd does not grow the cache for ever)
