@@ -134,12 +134,18 @@ end
 -- sleepless_interact has no zones: a zone is a coords point (addCoords). Points share ids by position, so
 -- every option gets a name and a zone removes only its own options by name.
 local function addZone(name, coords, options)
-    options = Target.FixOptions(options or {})
-    local names = {}
-    for index, option in pairs(options) do
-        option.name = option.name or ('%s:%s'):format(name, index)
-        names[#names + 1] = option.name
+    -- (copies: the caller's tables keep their own names; every name carries the zone's, so two zones on one
+    -- spot never share an option name, whatever names they were given)
+    local own = {}
+    for index, option in pairs(options or {}) do
+        local copy = {}
+        for field, value in pairs(option) do copy[field] = value end
+        copy.name = ('%s:%s'):format(name, option.name or index)
+        own[index] = copy
     end
+    options = Target.FixOptions(own)
+    local names = {}
+    for _, option in pairs(options) do names[#names + 1] = option.name end
     local target = sleepless_interact:addCoords(vector3(coords.x, coords.y, coords.z), options)
     table.insert(targetZones, { name = name, id = target, names = names, creator = GetInvokingResource() or GetCurrentResourceName() })
     return target
