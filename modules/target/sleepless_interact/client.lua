@@ -16,6 +16,8 @@ end
 ---@param options table
 ---@return table
 function Target.FixOptions(options)
+    Target.TakeNewCanInteract()
+    options = Target.CopyOptions(options)
     for k, v in pairs(options) do
         local action = v.onSelect or v.action
         local select = function(entityOrData)
@@ -107,6 +109,7 @@ end
 ---@param options table
 function Target.AddLocalEntity(entities, options)
     options = Target.FixOptions(options)
+    Target.OwnCanInteractEntities(entities, Target.TakeNewCanInteract())
     sleepless_interact:addLocalEntity(entities, options)
 end
 
@@ -115,6 +118,7 @@ end
 ---@param labels string | table | nil
 function Target.RemoveLocalEntity(entity, labels)
     sleepless_interact:removeLocalEntity(entity, labels)
+    if labels == nil then Target.FreeCanInteractEntities(entity) end
 end
 
 ---This will add target options to all specified models. This is useful for when you want to add target options to all models of a specific type.
@@ -131,6 +135,32 @@ function Target.RemoveModel(model)
     sleepless_interact:removeModel(model)
 end
 
+-- sleepless_interact has no zones: a zone is a coords point (addCoords). Points share ids by position, so
+-- every option gets a name and a zone removes only its own options by name.
+local function addZone(name, coords, options)
+    -- (copies: the caller's tables keep their own names; every name carries the zone's, so two zones on one
+    -- spot never share an option name, whatever names they were given)
+    local own = {}
+    for index, option in pairs(options or {}) do
+        local copy = {}
+        for field, value in pairs(option) do copy[field] = value end
+        copy.name = ('%s:%s'):format(name, option.name or index)
+        own[index] = copy
+    end
+    options = Target.FixOptions(own)
+    Target.OwnCanInteract('zone:' .. name, Target.TakeNewCanInteract())
+    local names = {}
+    for _, option in pairs(options) do names[#names + 1] = option.name end
+    local target = sleepless_interact:addCoords(vector3(coords.x, coords.y, coords.z), options)
+    table.insert(targetZones, { name = name, id = target, names = names, creator = GetInvokingResource() or GetCurrentResourceName() })
+    return target
+end
+
+local function removeZone(zone)
+    Target.FreeCanInteract('zone:' .. zone.name)
+    sleepless_interact:removeCoords(zone.id, zone.names)
+end
+
 ---This will add a box zone to the target system. This is useful for when you want to add target options to a specific area.
 ---@param name string
 ---@param coords table
@@ -138,13 +168,7 @@ end
 ---@param heading number
 ---@param options table
 function Target.AddBoxZone(name, coords, size, heading, options)
-    options = Target.FixOptions(options)
-    local target = sleepless_interact:addCoords({
-        coords = coords,
-        options = options,
-    })
-    table.insert(targetZones, { name = name, id = target, creator = GetInvokingResource() or GetCurrentResourceName() })
-    return target
+    return addZone(name, coords, options)
 end
 
 ---This will add a circle zone to the target system. This is useful for when you want to add target options to a specific area.
@@ -153,38 +177,38 @@ end
 ---@param radius number
 ---@param options table
 function Target.AddSphereZone(name, coords, radius, options, debug)
-    options = Target.FixOptions(options)
-    local target = sleepless_interact:addSphereZone({
-        coords = coords,
-        radius = radius,
-        name = name,
-        debug = targetDebug or debug,
-        options = options
-    })
-    table.insert(targetZones, { name = name, id = target, creator = GetInvokingResource() or GetCurrentResourceName() })
-    return target
+    return addZone(name, coords, options)
 end
 
 ---This will remove target options from a specific zone.
 ---@param name string
 function Target.RemoveZone(name)
-    for _, data in pairs(targetZones) do
+    for index, data in pairs(targetZones) do
         if data.name == name then
-            sleepless_interact:removeCoords(data.id)
-            table.remove(targetZones, _)
+            removeZone(data)
+            table.remove(targetZones, index)
             break
         end
     end
 end
 
-AddEventHandler('onResourceStop', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
-    for _, target in pairs(targetZones) do
-        if target.creator == resource then
-            sleepless_interact:removeZone(target.id)
+-- Forget only the zones of a stopping resource; others stay removable. If the provider stops,
+-- its zones and ids are gone, so forget all of them without removing anything.
+local function cleanupZones(resource)
+    if resource == resourceName then
+        targetZones = {}
+        return
+    end
+    local all = resource == GetCurrentResourceName()
+    for index = #targetZones, 1, -1 do
+        local zone = targetZones[index]
+        if all or zone.creator == resource then
+            pcall(removeZone, zone)
+            table.remove(targetZones, index)
         end
     end
-    targetZones = {}
-end)
+end
+
+AddEventHandler('onResourceStop', cleanupZones)
 
 return Target

@@ -90,6 +90,8 @@ for _, provider in ipairs({'ox_target', 'qb-target', 'sleepless_interact'}) do
         for _, id in pairs(type(identifiers) == 'table' and identifiers or {identifiers}) do entries[id] = nil end
     end
     env.exports[provider] = native
+    env.Target = {}
+    load('modules/target/_default/client.lua', env)
     local api = load('modules/target/' .. provider .. '/client.lua', env) or env.Target
     api.AddGlobalPlayer({{name = 'inspect', label = 'Inspect player'}, {name = 'search', label = 'Search player'}, {name = 'other', label = 'Other'}})
     local inspect, search, other = qb and 'Inspect player' or 'inspect', qb and 'Search player' or 'search', qb and 'Other' or 'other'

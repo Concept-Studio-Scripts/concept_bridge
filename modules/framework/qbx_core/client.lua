@@ -26,8 +26,26 @@ end
 
 ---@description This is an internal function, do not use this outside of bridge as there is no standard format between the frameworks.
 ---@return table
+-- PlayerData read through the core's export is copied on every call: a loaded character's data is kept
+-- here and follows QBCore:Player:SetPlayerData (the core sends the whole data on every change).
+local playerCache = nil
+
 Framework.GetPlayerData = function()
-    return QBox.GetPlayerData()
+    if playerCache then return playerCache end
+    local data = QBox.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+    return data
+end
+
+RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+end)
+
+-- Character data only once a character is loaded: on the character select screen PlayerData is empty
+-- and getters return nil (or an empty value) instead of erroring.
+local function loadedData()
+    local data = Framework.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then return data end
 end
 
 ---@description This will return a table of all the jobs in the framework.
@@ -39,8 +57,8 @@ end
 ---@description This will get the players birth date
 ---@return string
 Framework.GetPlayerDob = function()
-    local playerData = Framework.GetPlayerData()
-    return playerData.charinfo.birthdate
+    local playerData = loadedData()
+    return playerData and playerData.charinfo and playerData.charinfo.birthdate
 end
 
 ---@description Will Display the help text message on the screen
@@ -61,7 +79,8 @@ end
 ---@param metadata table | string
 ---@return table | string | number | boolean
 Framework.GetPlayerMetaData = function(metadata)
-    return Framework.GetPlayerData().metadata[metadata]
+    local data = loadedData()
+    return data and data.metadata and data.metadata[metadata]
 end
 
 ---@description This will send a notification to the player.
@@ -90,14 +109,16 @@ end
 ---@description This will get the players identifier (citizenid) etc.
 ---@return string
 Framework.GetPlayerIdentifier = function()
-    return Framework.GetPlayerData().citizenid
+    local data = loadedData()
+    return data and data.citizenid
 end
 
 ---@description This will get the players name (first and last).
 ---@return string
 ---@return string
 Framework.GetPlayerName = function()
-    local playerData = Framework.GetPlayerData()
+    local playerData = loadedData()
+    if not playerData or not playerData.charinfo then return nil, nil end
     return playerData.charinfo.firstname, playerData.charinfo.lastname
 end
 
@@ -109,20 +130,23 @@ end
 Framework.GetPlayerJob = function()
     --print("This is depricated, please use Framework.GetPlayerJobData() instead.")
     local jobData = Framework.GetPlayerJobData()
+    if not jobData then return nil end
     return jobData.jobName, jobData.jobLabel, jobData.gradeName, jobData.gradeRank
 end
 
 ---@description This will return the players job name, job label, job grade label job grade level, boss status, and duty status in a table
 ---@return table
 Framework.GetPlayerJobData = function()
-    local playerData = Framework.GetPlayerData()
-    local jobData = playerData.job
+    local playerData = loadedData()
+    local jobData = playerData and playerData.job
+    if not jobData then return nil end
+    local grade = jobData.grade or {}
     return {
         jobName = jobData.name,
         jobLabel = jobData.label,
-        gradeName = jobData.grade.name,
-        gradeLabel = jobData.grade.name,
-        gradeRank = jobData.grade.level,
+        gradeName = grade.name,
+        gradeLabel = grade.name,
+        gradeRank = grade.level,
         boss = jobData.isboss,
         onDuty = jobData.onduty,
     }
@@ -131,7 +155,11 @@ end
 ---@description This is an internal function used as a fallback, please use the Inventory.GetPlayerInventory instead.
 ---@return table {name, label, count, slot, metadata, stack, close, weight}
 Framework.GetPlayerInventory = function()
-    return Framework.GetPlayerData().items
+    local data = loadedData()
+    -- (a copy: a caller that sorts or trims the list must not change the cached player data)
+    local items = {}
+    for slot, item in pairs(data and data.items or {}) do items[slot] = item end
+    return items
 end
 
 ---@description This will return the players money by type, I recommend not useing this as its the client and not secure or to be trusted.
@@ -139,9 +167,9 @@ end
 ---@param _type string
 ---@return number
 Framework.GetAccountBalance = function(_type)
-    local player = Framework.GetPlayerData()
-    if not player then return 0 end
-    local account = player.money
+    local player = loadedData()
+    local account = player and player.money
+    if not account then return 0 end
     if _type == 'money' then _type = 'cash' end
     local balance = account[_type] or 0
     if balance <= 0 then return 0 end
@@ -173,8 +201,10 @@ end
 ---@description This will get a players dead status.
 ---@return boolean
 Framework.GetIsPlayerDead = function()
-    local playerData = Framework.GetPlayerData()
-    return playerData.metadata["isdead"] or playerData.metadata["inlaststand"]
+    local playerData = loadedData()
+    local metadata = playerData and playerData.metadata
+    if not metadata then return false end
+    return metadata["isdead"] or metadata["inlaststand"] or false
 end
 
 ---@description Is the local player down: dead OR in last stand.
@@ -186,18 +216,21 @@ end
 
 ---@description Event handler for when player is loaded in QBX Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    playerCache = nil
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player is unloaded in QBX Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    playerCache = nil
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
 ---@description Event handler for when player job is updated in QBX Core framework
 ---@param data table Job data containing name, label, and grade information
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(data)
+    if playerCache and type(data) == 'table' then playerCache.job = data end
     TriggerEvent('concept_bridge:Client:OnPlayerJobUpdate', data.name, data.label, data.grade.name, data.grade.level)
 end)
 

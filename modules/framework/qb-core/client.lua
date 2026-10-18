@@ -30,8 +30,35 @@ end
 ---@description This will return a table of the player data, this will be in the framework format.
 ---This is mainly for internal bridge use and should be avoided.
 ---@return table
+-- PlayerData read through the core's export is copied on every call: a loaded character's data is kept
+-- here and follows the core's updates: QBCore:Client:OnPlayerUpdated(key, value) ('all' = the whole data;
+-- qb-core 1.3) and QBCore:Player:SetPlayerData (the whole data; older cores).
+local playerCache = nil
+
 Framework.GetPlayerData = function()
-    return QBCore.Functions.GetPlayerData()
+    if playerCache then return playerCache end
+    local data = QBCore.Functions.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+    return data
+end
+
+RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
+    if type(data) == 'table' and data.citizenid then playerCache = data end
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerUpdated', function(key, value)
+    if key == 'all' then
+        playerCache = type(value) == 'table' and value.citizenid and value or nil
+    elseif playerCache and key ~= nil then
+        playerCache[key] = value
+    end
+end)
+
+-- Character data only once a character is loaded: on the character select screen PlayerData is empty
+-- and getters return nil (or an empty value) instead of erroring.
+local function loadedData()
+    local data = Framework.GetPlayerData()
+    if type(data) == 'table' and data.citizenid then return data end
 end
 
 ---@description This will return a table of all the jobs in the framework.
@@ -51,16 +78,16 @@ end
 ---@description This will get the players birth date
 ---@return string
 Framework.GetPlayerDob = function()
-    local player = Framework.GetPlayerData()
-    local playerData = player.PlayerData
-    return playerData.charinfo.birthdate
+    local playerData = loadedData()
+    return playerData and playerData.charinfo and playerData.charinfo.birthdate
 end
 
 ---@description This will return the players metadata for the specified metadata key.
 ---@param metadata table | string
 ---@return table | string | number | boolean
 Framework.GetPlayerMetaData = function(metadata)
-    return Framework.GetPlayerData().metadata[metadata]
+    local data = loadedData()
+    return data and data.metadata and data.metadata[metadata]
 end
 
 ---@description This will send a notification to the player.
@@ -91,9 +118,9 @@ end
 ---@param _type string
 ---@return number
 Framework.GetAccountBalance = function(_type)
-    local player = Framework.GetPlayerData()
-    if not player then return 0 end
-    local account = player.money
+    local player = loadedData()
+    local account = player and player.money
+    if not account then return 0 end
     if _type == 'money' then _type = 'cash' end
     return account[_type] or 0
 end
@@ -132,14 +159,16 @@ end
 ---@description This will get the players identifier (citizenid) etc.
 ---@return string
 Framework.GetPlayerIdentifier = function()
-    return Framework.GetPlayerData().citizenid
+    local data = loadedData()
+    return data and data.citizenid
 end
 
 ---@description This will get the players name (first and last).
 ---@return string
 ---@return string
 Framework.GetPlayerName = function()
-    local playerData = Framework.GetPlayerData()
+    local playerData = loadedData()
+    if not playerData or not playerData.charinfo then return nil, nil end
     return playerData.charinfo.firstname, playerData.charinfo.lastname
 end
 
@@ -151,20 +180,23 @@ end
 Framework.GetPlayerJob = function()
     --print("This is depricated, please use Framework.GetPlayerJobData() instead.")
     local jobData = Framework.GetPlayerJobData()
+    if not jobData then return nil end
     return jobData.jobName, jobData.jobLabel, jobData.gradeName, jobData.gradeRank
 end
 
 ---@description This will return the players job name, job label, job grade label job grade level, boss status, and duty status in a table
 ---@return table
 Framework.GetPlayerJobData = function()
-    local playerData = Framework.GetPlayerData()
-    local jobData = playerData.job
+    local playerData = loadedData()
+    local jobData = playerData and playerData.job
+    if not jobData then return nil end
+    local grade = jobData.grade or {}
     return {
         jobName = jobData.name,
         jobLabel = jobData.label,
-        gradeName = jobData.grade.name,
-        gradeLabel = jobData.grade.name,
-        gradeRank = jobData.grade.level,
+        gradeName = grade.name,
+        gradeLabel = grade.name,
+        gradeRank = grade.level,
         boss = jobData.isboss,
         onDuty = jobData.onduty,
     }
@@ -182,7 +214,8 @@ end
 ---@param item string
 ---@return number
 Framework.GetItemCount = function(item)
-    local frameworkInv = Framework.GetPlayerData().items
+    local data = loadedData()
+    local frameworkInv = data and data.items or {}
     local count = 0
     for _, v in pairs(frameworkInv) do
         if v.name == item then
@@ -196,7 +229,8 @@ end
 ---@return table
 Framework.GetPlayerInventory = function()
     local items = {}
-    local frameworkInv = Framework.GetPlayerData().items
+    local data = loadedData()
+    local frameworkInv = data and data.items or {}
     for _, v in pairs(frameworkInv) do
         table.insert(items, {
             name = v.name,
@@ -229,14 +263,13 @@ Framework.SetVehicleProperties = function(vehicle, properties)
     if not vehicle or not DoesEntityExist(vehicle) then return false end
     if not properties then return false end
     if NetworkGetEntityIsNetworked(vehicle) then
-        local vehNetID = NetworkGetNetworkIdFromEntity(vehicle)
-        local entOwner = GetPlayerServerId(NetworkGetEntityOwner(vehNetID))
-        if entOwner ~= GetPlayerServerId(PlayerId()) then
+        -- (the owner of the entity itself - a net id is not an entity - asked for control, at most 2 s)
+        if NetworkGetEntityOwner(vehicle) ~= PlayerId() then
+            local deadline = GetGameTimer() + 2000
             NetworkRequestControlOfEntity(vehicle)
-            local count = 0
-            while not NetworkHasControlOfEntity(vehicle) and count < 3000 do
-                Wait(1)
-                count = count + 1
+            while not NetworkHasControlOfEntity(vehicle) and GetGameTimer() < deadline do
+                Wait(0)
+                NetworkRequestControlOfEntity(vehicle)
             end
         end
     end
@@ -246,8 +279,10 @@ end
 ---@description This will get a players dead status
 ---@return boolean
 Framework.GetIsPlayerDead = function()
-    local playerData = Framework.GetPlayerData()
-    return playerData.metadata["isdead"] or playerData.metadata["inlaststand"]
+    local playerData = loadedData()
+    local metadata = playerData and playerData.metadata
+    if not metadata then return false end
+    return metadata["isdead"] or metadata["inlaststand"] or false
 end
 
 ---@description Is the local player down: dead OR in last stand.
@@ -259,18 +294,21 @@ end
 
 ---@description Event handler for when player is loaded in QB-Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    playerCache = nil
     Wait(1500)
     TriggerEvent('concept_bridge:Client:OnPlayerLoaded')
 end)
 
 ---@description Event handler for when player is unloaded in QB-Core framework
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    playerCache = nil
     TriggerEvent('concept_bridge:Client:OnPlayerUnload')
 end)
 
 ---@description Event handler for when player job is updated in QB-Core framework
 ---@param data table Job data containing name, label, grade_label, and grade
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(data)
+    if playerCache and type(data) == 'table' then playerCache.job = data end
     TriggerEvent('concept_bridge:Client:OnPlayerJobUpdate', data.name, data.label, data.grade_label, data.grade)
 end)
 
