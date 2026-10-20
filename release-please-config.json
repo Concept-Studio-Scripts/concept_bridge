@@ -5,6 +5,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
+      "versioning": "always-bump-patch",
       "version-file": "version.txt",
       "package-name": "concept_bridge",
       "include-component-in-tag": false,

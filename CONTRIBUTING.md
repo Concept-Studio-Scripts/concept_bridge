@@ -18,6 +18,6 @@ Keep user-facing API and configuration documentation in [conceptstudio-web](http
 3. Before merging that PR, submit the applicable notes in a dated `CHANGELOG.md` section for its proposed version through a normal PR to `main`. The bot refreshes its branch; avoid editing that branch directly.
 4. Merge the version PR after its checks pass. The release workflow tags the source, reruns checks, builds the complete source/resource ZIP and publishes it with the manual notes.
 
-`fix:` proposes a patch, `feat:` a minor release, and `!` or a `BREAKING CHANGE:` footer a major release. GitHub Actions must be allowed to create pull requests. The workflows use `GITHUB_TOKEN`; no personal token is needed.
+Automatic releases increment only the patch number, including `feat:`, `!` and `BREAKING CHANGE:` commits. Keep breaking-change markers and compatibility notes for contributors; they do not automatically select a new major version. GitHub Actions must be allowed to create pull requests. The workflows use `GITHUB_TOKEN`; no personal token is needed.
 
 For local packaging, use PowerShell 7: `./tools/package-release.ps1`. Verify provider behavior on a FiveM development server before publishing. Run the **Release** workflow with an empty tag for an unpublished build artifact. To retry a failed publication, rerun the failed jobs or run **Release** with the existing tag. Normal releases do not require manually pushed tags.
