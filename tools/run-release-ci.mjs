@@ -4,6 +4,8 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareVersions, promoteUnreleased } from './changelog.mjs'
 
+const MAIN_RELEASE_BRANCH = /^release-please--branches--main(?:--components--[\w.-]+)?$/
+
 export function githubApi(path, body) {
   const args = ['api', path]
   if (body !== undefined) args.push('--method', 'PUT', '--input', '-')
@@ -23,7 +25,7 @@ export function prepareReleasePr(repository, number, api = githubApi, date = new
   assert(Number.isSafeInteger(number) && number > 0, 'Invalid release PR number.')
   const pr = api(`repos/${repository}/pulls/${number}`)
   assert(pr.state === 'open' && pr.base.ref === 'main' && pr.base.repo.full_name === repository, 'Unexpected release PR target.')
-  assert(pr.head.repo?.full_name === repository && pr.head.ref.startsWith('release-please--'), 'Unexpected release PR source.')
+  assert(pr.head.repo?.full_name === repository && MAIN_RELEASE_BRANCH.test(pr.head.ref), 'Unexpected release PR source.')
   assert(/^[a-f0-9]{40}$/.test(pr.base.sha) && /^[a-f0-9]{40}$/.test(pr.head.sha), 'Invalid release PR revisions.')
   const contents = (path, sha) => api(`repos/${repository}/contents/${path}?ref=${sha}`)
   const version = decode(contents('version.txt', pr.head.sha)).trim()
@@ -59,7 +61,7 @@ export function releasePrs(repository, requests, api = githubApi) {
     const prs = api(`repos/${repository}/pulls?state=open&base=main&per_page=100&page=${page}`)
     assert(Array.isArray(prs), 'Invalid open PR list.')
     pending.push(...prs.filter(pr => pr.head?.repo?.full_name === repository
-      && pr.head.ref.startsWith('release-please--')
+      && MAIN_RELEASE_BRANCH.test(pr.head.ref)
       && pr.labels?.some(label => label.name === 'autorelease: pending')))
     if (prs.length < 100) return pending
   }
