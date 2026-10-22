@@ -25,6 +25,16 @@ test('existing dated sections stay authoritative and empty Unreleased cannot cre
   assert.throws(() => promoteUnreleased('', '1.0.4', '2026-02-30'), /Invalid release date/)
 })
 
+test('valid ATX heading spacing and closing hashes preserve the written format', () => {
+  for (const heading of ['  ## [Unreleased]', '## [Unreleased] ##', '   ## Unreleased ###  ']) {
+    const source = heading + '\n\n- Manual note.\n\n   ## [1.0.3] ###\n- History.\n'
+    const actual = promoteUnreleased(source, '1.0.4', '2026-10-22')
+    assert.equal(actual, heading + '\n\n## [1.0.4] - 2026-10-22\n\n- Manual note.\n\n   ## [1.0.3] ###\n- History.\n')
+    assert.equal(releaseNotes(actual, '1.0.4'), '- Manual note.\n')
+    assert.equal(releaseNotes(actual, '1.0.3'), '- History.\n')
+  }
+})
+
 test('commented templates and empty fences cannot stand in for visible notes', () => {
   const template = '## Unreleased\n\n<!--\n## [1.0.4]\n- Example only.\n-->\n<!-- ## [8.0.0] -->\n- Actual note.\n'
   const promoted = promoteUnreleased(template, '1.0.4', '2026-10-22')

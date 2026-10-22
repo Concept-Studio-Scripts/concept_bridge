@@ -31,8 +31,8 @@ function sections(markdown) {
     } else if (marker) {
       fence = marker[1]
     } else {
-      const heading = text.match(/^##[\t ]+(.+?)[\t ]*$/)
-      if (heading) result.push({ title: heading[1], index: offset, start: offset + line.length })
+      const heading = text.match(/^ {0,3}##[\t ]+(.+?)[\t ]*$/)
+      if (heading) result.push({ title: heading[1].replace(/[\t ]+#+$/, ''), index: offset, start: offset + line.length })
     }
     offset += line.length
   }
