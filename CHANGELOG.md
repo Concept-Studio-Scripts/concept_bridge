@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-22
+
 ### Fixed
 
 - Preserve negative Qbox cash, bank and other account balances on the server and
