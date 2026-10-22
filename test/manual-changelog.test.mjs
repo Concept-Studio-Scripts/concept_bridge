@@ -110,6 +110,34 @@ test('only complete reference definitions and their continuation lines are invis
   }
 })
 
+test('multiline reference labels and literal titles cannot become notes or hide release headings', () => {
+  for (const newline of ['\n', '\r\n']) {
+    const definition = ['[compare', '  versions', '  across', '  multiple', '  releases]: /url', '  "<!-- literal title `"', ''].join(newline)
+    const empty = '## Unreleased' + newline + newline + definition
+    assert.equal(promoteUnreleased(empty, '1.0.4', '2026-10-22'), empty)
+    assert.throws(() => releaseNotes('## [1.0.4]' + newline + definition, '1.0.4'), /empty/)
+    const body = definition + '- Actual note.' + newline
+    const source = '## Unreleased' + newline + newline + body + newline + '## [1.0.3]' + newline + '- History.' + newline
+    const promoted = promoteUnreleased(source, '1.0.4', '2026-10-22')
+    assert.equal(releaseNotes(promoted, '1.0.4'), body.slice(0, -newline.length) + '\n')
+    assert.equal(releaseNotes(promoted, '1.0.3'), '- History.\n')
+    assert.equal(promoteUnreleased(promoted, '1.0.4', '2026-10-23'), promoted)
+  }
+  const singleLine = '[compare]: /url "<!-- literal title"\n- Actual note.\n'
+  assert.equal(releaseNotes('## [1.0.4]\n' + singleLine, '1.0.4'), singleLine)
+})
+
+test('setext headings alone are empty while real notes and literal examples remain visible', () => {
+  for (const body of ['Fixed\n---\n', 'Fixed\n===\n', 'Fixed\nacross multiple lines\n---\n']) {
+    const source = '## Unreleased\n\n' + body
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
+    assert.throws(() => releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), /empty/)
+  }
+  for (const body of ['Fixed\n---\n- Actual note.\n', '- Actual note.\n---\n', '```md\nFixed\n---\n```\n', '    Fixed\n    ---\n']) {
+    assert.equal(releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), body)
+  }
+})
+
 test('thematic breaks cannot replace written notes and code indentation is preserved', () => {
   for (const body of ['---\n', '* * *\n', '___\n']) {
     const source = '## Unreleased\n\n' + body

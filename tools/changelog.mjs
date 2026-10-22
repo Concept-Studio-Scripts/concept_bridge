@@ -43,6 +43,7 @@ function commentFilter() {
     return visible
   }
   filter.isOpen = () => open
+  filter.isCode = () => Boolean(codeTicks)
   return filter
 }
 
@@ -53,8 +54,17 @@ function sections(markdown) {
   const visible = commentFilter()
   let offset = 0
   let fence
+  let referenceRemaining = 0
   for (const line of markdown.split(/(?<=\n)/)) {
     const raw = line.replace(/\r?\n$/, '')
+    if (!referenceRemaining && !fence && !visible.isOpen() && !visible.isCode()) {
+      referenceRemaining = referenceLines(markdown.slice(offset).replace(/\r\n/g, '\n'))
+    }
+    if (referenceRemaining) {
+      referenceRemaining--
+      offset += line.length
+      continue
+    }
     const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw, markdown.slice(offset + raw.length))
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
@@ -86,7 +96,7 @@ function versionOf(title) {
 
 // Only a complete definition is invisible. Text such as
 // "[Windows]: Fixed the launcher" is an ordinary paragraph.
-const REFERENCE = /^ {0,3}\[((?:\\.|[^\[\]\\\r\n]){1,999})\]:[\t ]*(?:\n[\t ]*)?(<(?:(?:\\.)|[^<>\\\r\n])*>|(?:\\.|[^\x00-\x20<>\\])+)(?:(?:[\t ]+(?:\n[\t ]*)?|\n[\t ]*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^()\\])*\)))?[\t ]*(?:\n|$)/
+const REFERENCE = /^ {0,3}\[((?:\\.|[^\[\]\\\r]){1,999})\]:[\t ]*(?:\n[\t ]*)?(<(?:(?:\\.)|[^<>\\\r\n])*>|(?:\\.|[^\x00-\x20<>\\])+)(?:(?:[\t ]+(?:\n[\t ]*)?|\n[\t ]*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^()\\])*\)))?[\t ]*(?:\n|$)/
 
 function referenceLines(text) {
   const match = REFERENCE.exec(text)
@@ -111,6 +121,15 @@ function hasNotes(body) {
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i]
     const following = '\n' + lines.slice(i + 1).join('\n')
+    // Link labels, destinations and titles are metadata, not inline Markdown.
+    // Consume them before they can change HTML-comment or code-span state.
+    if (!fence && !visible.isOpen() && !visible.isCode()) {
+      const count = referenceLines(raw + following)
+      if (count) {
+        i += count - 1
+        continue
+      }
+    }
     const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw, following)
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
@@ -119,11 +138,8 @@ function hasNotes(body) {
     } else if (marker) {
       fence = marker[1]
     } else {
-      const count = referenceLines(text + following)
-      if (count) {
-        for (let skipped = 1; skipped < count; skipped++) visible(lines[++i])
-        continue
-      }
+      const heading = setextLines([text, ...lines.slice(i + 1)])
+      if (heading) { i += heading - 1; continue }
       if (text.trim()
       && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)
       && !/^ {0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/.test(text)
@@ -131,6 +147,16 @@ function hasNotes(body) {
     }
   }
   return false
+}
+
+function setextLines(lines) {
+  const block = /^(?: {4}|\t)|^ {0,3}(?:#{1,6}(?:[\t ]|$)|>|[-+*](?:[\t ]|$)|\d{1,9}[.)][\t ]|`{3,}|~{3,}|<)/
+  if (!lines[0]?.trim() || block.test(lines[0])) return 0
+  for (let i = 1; i < lines.length; i++) {
+    if (/^ {0,3}(?:=+|-+)[\t ]*$/.test(lines[i])) return i + 1
+    if (!lines[i].trim() || block.test(lines[i])) return 0
+  }
+  return 0
 }
 
 export function releaseNotes(markdown, version) {
