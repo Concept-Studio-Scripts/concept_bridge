@@ -25,6 +25,21 @@ test('existing dated sections stay authoritative and empty Unreleased cannot cre
   assert.throws(() => promoteUnreleased('', '1.0.4', '2026-02-30'), /Invalid release date/)
 })
 
+test('commented templates and empty fences cannot stand in for visible notes', () => {
+  const template = '## Unreleased\n\n<!--\n## [1.0.4]\n- Example only.\n-->\n<!-- ## [8.0.0] -->\n- Actual note.\n'
+  const promoted = promoteUnreleased(template, '1.0.4', '2026-10-22')
+  assert.ok(promoted.startsWith('## Unreleased\n\n## [1.0.4] - 2026-10-22\n'))
+  assert.ok(releaseNotes(promoted, '1.0.4').endsWith('- Actual note.\n'))
+  const afterComment = '<!--\n## [8.0.0]\n-->\n## [1.0.4]\n- Visible note.\n'
+  assert.equal(releaseNotes(afterComment, '1.0.4'), '- Visible note.\n')
+  for (const body of ['<!-- Add notes here -->\n', '<!--\n- Example only.\n-->\n', '```md\n```\n', '<!-- example -->\n### Fixed\n~~~\n~~~\n']) {
+    const source = '## Unreleased\n' + body
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
+    assert.throws(() => releaseNotes('## [1.0.4]\n' + body, '1.0.4'), /empty/)
+  }
+  assert.equal(releaseNotes('## [1.0.4]\n```html\n<!-- literal code -->\n```\n', '1.0.4'), '```html\n<!-- literal code -->\n```\n')
+})
+
 function fixture({ base = '1.0.3', version = '1.0.4', source = '## Unreleased\n\n### Fixed\n- Manual note.\n', current = source, fork = false, branch = 'main', state = 'open' } = {}) {
   const repository = 'Concept-Studio-Scripts/example'
   const baseSha = 'a'.repeat(40)

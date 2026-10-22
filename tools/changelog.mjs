@@ -1,13 +1,30 @@
 import assert from 'node:assert/strict'
 
+function commentFilter() {
+  let open = false
+  return text => {
+    let visible = ''
+    while (text) {
+      const index = text.indexOf(open ? '-->' : '<!--')
+      if (index < 0) return visible + (open ? '' : text)
+      if (!open) visible += text.slice(0, index)
+      text = text.slice(index + (open ? 3 : 4))
+      open = !open
+    }
+    return visible
+  }
+}
+
 // Keep offsets into the original text so notes, indentation and line endings
 // are copied verbatim. Markdown headings inside fenced examples are not sections.
 function sections(markdown) {
   const result = []
+  const visible = commentFilter()
   let offset = 0
   let fence
   for (const line of markdown.split(/(?<=\n)/)) {
-    const text = line.replace(/\r?\n$/, '')
+    const raw = line.replace(/\r?\n$/, '')
+    const text = fence ? raw : visible(raw)
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
       if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
@@ -27,7 +44,19 @@ function versionOf(title) {
 }
 
 function hasNotes(body) {
-  return body.trim().split(/\r?\n/).some(line => line.trim() && !line.startsWith('#'))
+  const visible = commentFilter()
+  let fence
+  for (const raw of body.split(/\r?\n/)) {
+    const text = fence ? raw : visible(raw)
+    const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
+    if (fence) {
+      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
+      else if (text.trim()) return true
+    } else if (marker) {
+      fence = marker[1]
+    } else if (text.trim() && !/^\s*#/.test(text)) return true
+  }
+  return false
 }
 
 export function releaseNotes(markdown, version) {
