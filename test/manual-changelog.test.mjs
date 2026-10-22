@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { promoteUnreleased, releaseNotes } from '../tools/changelog.mjs'
-import { prepareReleasePr } from '../tools/run-release-ci.mjs'
+import { prepareReleasePr, releasePrs } from '../tools/run-release-ci.mjs'
 
 for (const newline of ['\n', '\r\n']) {
   test(`manual promotion preserves formatting and history (${JSON.stringify(newline)})`, () => {
@@ -33,6 +33,11 @@ test('valid ATX heading spacing and closing hashes preserve the written format',
     assert.equal(releaseNotes(actual, '1.0.4'), '- Manual note.\n')
     assert.equal(releaseNotes(actual, '1.0.3'), '- History.\n')
   }
+  assert.equal(releaseNotes('## \\[1.0.4\\]\n#123 fixed the crash.\n', '1.0.4'), '#123 fixed the crash.\n')
+  const code = '## Unreleased\n- Render `<!--` or `` `<!--` `` as literal code.\n\n## [1.0.3]\n- History.\n'
+  const promoted = promoteUnreleased(code, '1.0.4', '2026-10-22')
+  assert.equal(releaseNotes(promoted, '1.0.4'), '- Render `<!--` or `` `<!--` `` as literal code.\n')
+  assert.equal(releaseNotes(promoted, '1.0.3'), '- History.\n')
 })
 
 test('commented templates and empty fences cannot stand in for visible notes', () => {
@@ -109,4 +114,20 @@ test('release preparation refuses duplicate versions and untrusted PR targets', 
   const initial = fixture({ base: null, version: '1.0.0' })
   prepareReleasePr(initial.repository, 1, initial.api, '2026-10-22')
   assert.equal(initial.writes.length, 1)
+})
+
+test('a no-candidate bot run still refreshes trusted pending release PRs', () => {
+  const repository = 'Concept-Studio-Scripts/example'
+  const pending = { number: 1, head: { ref: 'release-please--branches--main', repo: { full_name: repository } }, labels: [{ name: 'autorelease: pending' }] }
+  let reads = 0
+  const api = path => {
+    reads++
+    assert.equal(path, `repos/${repository}/pulls?state=open&base=main&per_page=100&page=1`)
+    return [pending, { ...pending, number: 2, labels: [] }, { ...pending, number: 3, head: { ...pending.head, repo: { full_name: 'someone/fork' } } }]
+  }
+  assert.deepEqual(releasePrs(repository, [], api), [pending])
+  assert.equal(reads, 1)
+  assert.deepEqual(releasePrs(repository, [{ number: 4 }], api), [{ number: 4 }])
+  assert.equal(reads, 1, 'candidate PRs from the action need no fallback search')
+  assert.deepEqual(releasePrs(repository, [], () => []), [])
 })

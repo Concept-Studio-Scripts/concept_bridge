@@ -50,11 +50,25 @@ export function prepareReleasePr(repository, number, api = githubApi, date = new
   return pr.head.ref
 }
 
+export function releasePrs(repository, requests, api = githubApi) {
+  assert(/^[\w.-]+\/[\w.-]+$/.test(repository ?? ''), 'Invalid repository.')
+  assert(Array.isArray(requests), 'Invalid release PR list.')
+  if (requests.length) return requests
+  const pending = []
+  for (let page = 1; ; page++) {
+    const prs = api(`repos/${repository}/pulls?state=open&base=main&per_page=100&page=${page}`)
+    assert(Array.isArray(prs), 'Invalid open PR list.')
+    pending.push(...prs.filter(pr => pr.head?.repo?.full_name === repository
+      && pr.head.ref.startsWith('release-please--')
+      && pr.labels?.some(label => label.name === 'autorelease: pending')))
+    if (prs.length < 100) return pending
+  }
+}
+
 export function runReleaseCi(env = process.env) {
   const requests = JSON.parse(env.RELEASE_PRS || '[]')
-  assert(Array.isArray(requests), 'Invalid release PR list.')
   assert(/^[\w.-]+\.ya?ml$/.test(env.CI_WORKFLOW ?? ''), 'Invalid CI workflow.')
-  for (const request of requests) {
+  for (const request of releasePrs(env.GITHUB_REPOSITORY, requests)) {
     const branch = prepareReleasePr(env.GITHUB_REPOSITORY, request.number)
     execFileSync('gh', ['workflow', 'run', env.CI_WORKFLOW, '--repo', env.GITHUB_REPOSITORY, '--ref', branch], { stdio: 'inherit' })
   }

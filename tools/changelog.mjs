@@ -5,9 +5,19 @@ function commentFilter() {
   const filter = text => {
     let visible = ''
     while (text) {
-      const index = text.indexOf(open ? '-->' : '<!--')
+      const token = open ? null : text.match(/<!--|`+/)
+      const index = open ? text.indexOf('-->') : (token?.index ?? -1)
       if (index < 0) return visible + (open ? '' : text)
       if (!open) visible += text.slice(0, index)
+      if (token?.[0].startsWith('`')) {
+        const ticks = token[0]
+        const rest = text.slice(index + ticks.length)
+        const close = new RegExp('(?<!`)' + ticks + '(?!`)').exec(rest)
+        const length = close ? ticks.length + close.index + ticks.length : ticks.length
+        visible += text.slice(index, index + length)
+        text = text.slice(index + length)
+        continue
+      }
       text = text.slice(index + (open ? 3 : 4))
       open = !open
     }
@@ -66,7 +76,7 @@ function hasNotes(body) {
       else if (text.trim()) return true
     } else if (marker) {
       fence = marker[1]
-    } else if (text.trim() && !/^\s*#/.test(text)) return true
+    } else if (text.trim() && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)) return true
   }
   return false
 }
