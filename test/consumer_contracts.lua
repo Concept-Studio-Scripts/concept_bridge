@@ -68,4 +68,26 @@ expect(ok == false and why == 'provider_error', 'the provider threw: false with 
 expect(source('modules/inventory/_default/server.lua'):find('Inventory.SavePlayerInventory = function', 1, true) ~= nil,
     'the inventory module offers SavePlayerInventory')
 
+-- Actual server account getters preserve signed balances and each framework's aliases.
+for _, fw in ipairs({'qb-core', 'qbx_core', 'es_extended'}) do
+    local s = source(('modules/framework/%s/server.lua'):format(fw))
+    local body = assert(s:match('Framework%.GetAccountBalance = function%(src, _type%)(.-)\nend'))
+    local balances = {}
+    local player = {PlayerData = {money = balances}, getAccount = function(name)
+        return {money = balances[name]}
+    end}
+    local env = setmetatable({Framework = {GetPlayer = function(src)
+        if src == 1 then return player end
+    end}}, {__index = _G})
+    local read = assert(load('return function(src, _type)' .. body .. '\nend', fw, 't', env))()
+    for _, value in ipairs({-1250, 0, 500}) do
+        balances.cash, balances.money, balances.bank, balances.black_money = value, value, value, value
+        for _, account in ipairs({'cash', 'money', 'bank', 'black_money'}) do
+            expect(read(1, account) == value, fw .. ': signed server ' .. account .. ' balance ' .. value)
+        end
+    end
+    local unloaded = read(2, 'bank')
+    expect(unloaded == nil or unloaded == 0, fw .. ': missing player remains unavailable or zero')
+end
+
 print(('consumer_contracts: %d assertions passed'):format(assertions))
