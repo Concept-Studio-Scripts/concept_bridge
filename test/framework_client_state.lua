@@ -148,4 +148,27 @@ do
     expect(reads == 3, 'es_extended: after logout the data is read again')
 end
 
+-- Signed balances pass through the real client adapters, including cash aliases.
+for _, provider in ipairs({'qb-core', 'qbx_core', 'es_extended'}) do
+    local data = {citizenid = 'SIGNED', money = {}, accounts = {}}
+    local env = load('modules/framework/' .. provider .. '/client.lua', function(env)
+        local core = {Shared = {Items = {}, Jobs = {}}, Functions = {GetPlayerData = function() return data end}}
+        local esx = {GetPlayerData = function() return data end, IsPlayerLoaded = function() return true end}
+        env.exports = setmetatable({}, {__index = function() return {
+            GetCoreObject = function() return core end,
+            GetPlayerData = function() return data end,
+            getSharedObject = function() return esx end,
+        } end})
+        env.GetGameTimer = function() return 0 end
+    end)
+    for _, value in ipairs({-1250, 0, 500}) do
+        data.money = {cash = value, bank = value, black_money = value}
+        data.accounts = {{name = 'money', money = value}, {name = 'bank', money = value}, {name = 'black_money', money = value}}
+        for _, account in ipairs({'cash', 'money', 'bank', 'black_money'}) do
+            expect(env.Framework.GetAccountBalance(account) == value,
+                provider .. ': signed client ' .. account .. ' balance ' .. value)
+        end
+    end
+end
+
 print(('framework_client_state: %d assertions passed'):format(assertions))

@@ -474,9 +474,7 @@ Framework.GetAccountBalance = function(src, _type)
     if not player then return end
     local playerData = player.PlayerData
     if _type == 'money' then _type = 'cash' end
-    local balance = playerData.money[_type] or 0
-    if balance <= 0 then return 0 end
-    return balance
+    return tonumber(playerData.money[_type]) or 0
 end
 
 ---@description Returns a table of owned vehicles for the player. format is {vehicle = vehicle, plate = plate}

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve negative Qbox cash, bank and other account balances on the server and
+  client, and negative ESX client account balances, including the cash/money alias.
+  Consumers receive the signed balance instead of zero.
+
 ## [1.1.0] - 2026-10-20
 
 ### Removed

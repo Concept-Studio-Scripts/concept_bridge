@@ -347,8 +347,7 @@ Framework.GetAccountBalance = function(_type)
     if _type == 'cash' then _type = 'money' end
     for _, account in ipairs(accounts) do
         if account.name == _type then
-            if not account.money or account.money <= 0 then return 0 end
-            return account.money or 0
+            return tonumber(account.money) or 0
         end
     end
     return 0

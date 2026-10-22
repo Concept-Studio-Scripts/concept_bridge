@@ -171,9 +171,7 @@ Framework.GetAccountBalance = function(_type)
     local account = player and player.money
     if not account then return 0 end
     if _type == 'money' then _type = 'cash' end
-    local balance = account[_type] or 0
-    if balance <= 0 then return 0 end
-    return balance
+    return tonumber(account[_type]) or 0
 end
 
 ---@description This is an internal function used as a fallback, please use the Inventory.GetItemCount instead.
