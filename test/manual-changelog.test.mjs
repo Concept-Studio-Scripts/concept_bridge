@@ -81,14 +81,52 @@ test('comment-only list items cannot satisfy the release-notes gate', () => {
   assert.equal(releaseNotes(promoted, '1.0.4'), body, 'real notes still pass without rewriting the Markdown')
 })
 
-function fixture({ base = '1.0.3', version = '1.0.4', source = '## Unreleased\n\n### Fixed\n- Manual note.\n', current = source, fork = false, branch = 'main', state = 'open' } = {}) {
+test('multiline code spans preserve literal comment markers and release boundaries', () => {
+  for (const newline of ['\n', '\r\n']) {
+    for (const ticks of ['`', '``']) {
+      const body = ['- Render ' + ticks + '<!--', '  literal marker' + ticks + ' in examples.', ''].join(newline)
+      const source = '## Unreleased' + newline + newline + body + newline + '## [1.0.3]' + newline + '- History.' + newline
+      const promoted = promoteUnreleased(source, '1.0.4', '2026-10-22')
+      assert.equal(releaseNotes(promoted, '1.0.4'), body.slice(0, -newline.length) + '\n')
+      assert.equal(releaseNotes(promoted, '1.0.3'), '- History.\n')
+    }
+  }
+  const unmatched = '## Unreleased\n- An unmatched ` stays literal.\n\n<!--\n## [9.9.9]\n-->\n\n## [1.0.3]\n- History.\n'
+  assert.equal(releaseNotes(unmatched, '1.0.3'), '- History.\n')
+  assert.throws(() => releaseNotes(unmatched, '9.9.9'), /Write a CHANGELOG/)
+  const nextLine = '## Unreleased\n- Render `a\n  <!-- marker` literally.\n\n## [1.0.3]\n- History.\n'
+  assert.equal(releaseNotes(promoteUnreleased(nextLine, '1.0.4', '2026-10-22'), '1.0.3'), '- History.\n')
+})
+
+test('only complete reference definitions and their continuation lines are invisible', () => {
+  for (const definition of ['[compare]: https://example.test/compare\n  "Compare versions"\n', '[compare]:\n  https://example.test/compare\n', '[compare]:\n  <https://example.test/compare>\n  "Compare\n  versions"\n', '[compare]: /compare "Compare versions"\n', '[compare]: /compare(v1)\n']) {
+    const source = '## Unreleased\n\n' + definition
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
+    assert.throws(() => releaseNotes('## [1.0.4]\n\n' + definition, '1.0.4'), /empty/)
+  }
+  for (const note of ['[Windows]: Fixed the launcher\n', '[Fixed]: startup failure\n', '[compare]: /url "title" trailing text\n', '[compare]: /unbalanced(url\n', '[compare]: /url\n  "title"\n- Actual note.\n']) {
+    const promoted = promoteUnreleased('## Unreleased\n\n' + note, '1.0.4', '2026-10-22')
+    assert.equal(releaseNotes(promoted, '1.0.4'), note)
+  }
+})
+
+test('thematic breaks cannot replace written notes and code indentation is preserved', () => {
+  for (const body of ['---\n', '* * *\n', '___\n']) {
+    const source = '## Unreleased\n\n' + body
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
+    assert.throws(() => releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), /empty/)
+  }
+  assert.equal(releaseNotes('## [1.0.4]\n\n    ---\n', '1.0.4'), '    ---\n')
+})
+
+function fixture({ base = '1.0.3', version = '1.0.4', source = '## Unreleased\n\n### Fixed\n- Manual note.\n', current = source, fork = false, branch = 'main', headBranch = 'release-please--branches--main--components--example', state = 'open' } = {}) {
   const repository = 'Concept-Studio-Scripts/example'
   const baseSha = 'a'.repeat(40)
   const headSha = 'b'.repeat(40)
   const writes = []
   const file = text => ({ type: 'file', encoding: 'base64', content: Buffer.from(text).toString('base64'), sha: 'c'.repeat(40) })
   const responses = {
-    [`repos/${repository}/pulls/1`]: { state, base: { ref: branch, sha: baseSha, repo: { full_name: repository } }, head: { ref: 'release-please--branches--main--components--example', sha: headSha, repo: { full_name: fork ? 'someone/fork' : repository } } },
+    [`repos/${repository}/pulls/1`]: { state, base: { ref: branch, sha: baseSha, repo: { full_name: repository } }, head: { ref: headBranch, sha: headSha, repo: { full_name: fork ? 'someone/fork' : repository } } },
     [`repos/${repository}/contents/version.txt?ref=${headSha}`]: file(version + '\n'),
     [`repos/${repository}/contents/.release-please-manifest.json?ref=${baseSha}`]: file(JSON.stringify(base ? { '.': base } : {})),
     [`repos/${repository}/contents/release-please-config.json?ref=${baseSha}`]: file(JSON.stringify({ packages: { '.': { 'initial-version': '1.0.0' } } })),
@@ -122,7 +160,7 @@ test('the release PR gets only the current base notes, without changing the base
 })
 
 test('release preparation refuses duplicate versions and untrusted PR targets', () => {
-  for (const options of [{ version: '1.0.3' }, { version: '1.0.2' }, { fork: true }, { branch: 'other' }, { state: 'closed' }]) {
+  for (const options of [{ version: '1.0.3' }, { version: '1.0.2' }, { fork: true }, { branch: 'other' }, { state: 'closed' }, { headBranch: 'release-please--branches--develop' }, { headBranch: 'release-please--branches--main-other' }, { headBranch: 'release-please--branches--main--components--' }]) {
     const f = fixture(options)
     assert.throws(() => prepareReleasePr(f.repository, 1, f.api, '2026-10-22'))
     assert.equal(f.writes.length, 0)
@@ -130,6 +168,8 @@ test('release preparation refuses duplicate versions and untrusted PR targets', 
   const initial = fixture({ base: null, version: '1.0.0' })
   prepareReleasePr(initial.repository, 1, initial.api, '2026-10-22')
   assert.equal(initial.writes.length, 1)
+  const main = fixture({ headBranch: 'release-please--branches--main' })
+  assert.equal(prepareReleasePr(main.repository, 1, main.api, '2026-10-22'), 'release-please--branches--main')
 })
 
 test('a no-candidate bot run still refreshes trusted pending release PRs', () => {
@@ -139,7 +179,7 @@ test('a no-candidate bot run still refreshes trusted pending release PRs', () =>
   const api = path => {
     reads++
     assert.equal(path, `repos/${repository}/pulls?state=open&base=main&per_page=100&page=1`)
-    return [pending, { ...pending, number: 2, labels: [] }, { ...pending, number: 3, head: { ...pending.head, repo: { full_name: 'someone/fork' } } }]
+    return [pending, { ...pending, number: 2, labels: [] }, { ...pending, number: 3, head: { ...pending.head, repo: { full_name: 'someone/fork' } } }, ...['release-please--branches--develop', 'release-please--branches--main-other'].map((ref, index) => ({ ...pending, number: index + 5, head: { ...pending.head, ref } }))]
   }
   assert.deepEqual(releasePrs(repository, [], api), [pending])
   assert.equal(reads, 1)

@@ -2,9 +2,19 @@ import assert from 'node:assert/strict'
 
 function commentFilter() {
   let open = false
-  const filter = text => {
+  let codeTicks
+  const filter = (text, following = '') => {
     let visible = ''
     while (text) {
+      if (codeTicks) {
+        const close = new RegExp('(?<!`)' + codeTicks + '(?!`)').exec(text)
+        if (!close) return visible + text
+        const end = close.index + codeTicks.length
+        visible += text.slice(0, end)
+        text = text.slice(end)
+        codeTicks = undefined
+        continue
+      }
       const token = open ? null : text.match(/<!--|`+/)
       const index = open ? text.indexOf('-->') : (token?.index ?? -1)
       if (index < 0) return visible + (open ? '' : text)
@@ -13,6 +23,15 @@ function commentFilter() {
         const ticks = token[0]
         const rest = text.slice(index + ticks.length)
         const close = new RegExp('(?<!`)' + ticks + '(?!`)').exec(rest)
+        // Inline code can continue onto the next line, but cannot cross a
+        // paragraph boundary or a new heading/list/fenced block.
+        if (!close) {
+          const paragraph = (rest + following).split(/\r?\n(?:[\t ]*\r?\n| {0,3}#{1,6}(?:[\t ]|$)| {0,3}(?:`{3,}|~{3,})| {0,3}(?:[-+*]|\d{1,9}[.)])[\t ])/)[0]
+          if (new RegExp('(?<!`)' + ticks + '(?!`)').test(paragraph)) {
+            codeTicks = ticks
+            return visible + text.slice(index)
+          }
+        }
         const length = close ? ticks.length + close.index + ticks.length : ticks.length
         visible += text.slice(index, index + length)
         text = text.slice(index + length)
@@ -36,7 +55,7 @@ function sections(markdown) {
   let fence
   for (const line of markdown.split(/(?<=\n)/)) {
     const raw = line.replace(/\r?\n$/, '')
-    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw)
+    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw, markdown.slice(offset + raw.length))
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
       if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
@@ -65,21 +84,51 @@ function versionOf(title) {
   return title.match(/^\[?(\d+\.\d+\.\d+)\]?(?:\s|$)/)?.[1]
 }
 
+// Only a complete definition is invisible. Text such as
+// "[Windows]: Fixed the launcher" is an ordinary paragraph.
+const REFERENCE = /^ {0,3}\[((?:\\.|[^\[\]\\\r\n]){1,999})\]:[\t ]*(?:\n[\t ]*)?(<(?:(?:\\.)|[^<>\\\r\n])*>|(?:\\.|[^\x00-\x20<>\\])+)(?:(?:[\t ]+(?:\n[\t ]*)?|\n[\t ]*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^()\\])*\)))?[\t ]*(?:\n|$)/
+
+function referenceLines(text) {
+  const match = REFERENCE.exec(text)
+  if (!match || !match[1].trim() || /\n[\t ]*\n/.test(match[0])) return 0
+  if (!match[2].startsWith('<')) {
+    let depth = 0
+    for (let i = 0; i < match[2].length; i++) {
+      const char = match[2][i]
+      if (char === '\\' && /[()\\]/.test(match[2][i + 1] ?? '')) i++
+      else if (char === '(') depth++
+      else if (char === ')' && --depth < 0) return 0
+    }
+    if (depth !== 0) return 0
+  }
+  return match[0].split('\n').length - (match[0].endsWith('\n') ? 1 : 0)
+}
+
 function hasNotes(body) {
   const visible = commentFilter()
+  const lines = body.split(/\r?\n/)
   let fence
-  for (const raw of body.split(/\r?\n/)) {
-    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw)
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]
+    const following = '\n' + lines.slice(i + 1).join('\n')
+    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw, following)
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
       if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
       else if (text.trim()) return true
     } else if (marker) {
       fence = marker[1]
-    } else if (text.trim()
+    } else {
+      const count = referenceLines(text + following)
+      if (count) {
+        for (let skipped = 1; skipped < count; skipped++) visible(lines[++i])
+        continue
+      }
+      if (text.trim()
       && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)
-      && !/^ {0,3}\[[^\]]+\]:[\t ]*\S/.test(text)
+      && !/^ {0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/.test(text)
       && !/^[\t ]*(?:[-+*]|\d{1,9}[.)])(?:[\t ]+\[[ xX]\])?[\t ]*$/.test(text)) return true
+    }
   }
   return false
 }
@@ -88,7 +137,8 @@ export function releaseNotes(markdown, version) {
   const headings = sections(markdown)
   const index = headings.findIndex(heading => versionOf(heading.title) === version)
   assert(index >= 0, `Write a CHANGELOG.md section for ${version}, or add notes under Unreleased for automatic preparation, before merging the release PR.`)
-  const body = markdown.slice(headings[index].start, headings[index + 1]?.index ?? markdown.length).trim()
+  const body = markdown.slice(headings[index].start, headings[index + 1]?.index ?? markdown.length)
+    .replace(/^(?:[\t ]*\r?\n)+/, '').replace(/(?:\r?\n[\t ]*)+$/, '')
   assert(hasNotes(body), `Release notes for ${version} are empty.`)
   return body + '\n'
 }
