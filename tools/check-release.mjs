@@ -3,16 +3,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-export function releaseNotes(changelog, version) {
-  const headings = [...changelog.matchAll(/^## (.+)$/gm)]
-  const index = headings.findIndex(match => match[1].match(/^\[?(\d+\.\d+\.\d+)\]?(?:\s|$)/)?.[1] === version)
-  assert(index >= 0, `Write a CHANGELOG.md section for ${version} before merging the release PR.`)
-  const start = headings[index].index + headings[index][0].length
-  const end = headings[index + 1]?.index ?? changelog.length
-  const notes = changelog.slice(start, end).trim()
-  assert(notes && notes.split('\n').some(line => line.trim() && !line.startsWith('#')), `Release notes for ${version} are empty.`)
-  return notes + '\n'
-}
+import { releaseNotes } from './changelog.mjs'
+export { releaseNotes } from './changelog.mjs'
 
 export function checkRelease(root, tag = '', requireNotes = false) {
   const text = path => readFileSync(resolve(root, path), 'utf8')
