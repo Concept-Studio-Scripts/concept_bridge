@@ -26,7 +26,7 @@ test('existing dated sections stay authoritative and empty Unreleased cannot cre
 })
 
 test('valid ATX heading spacing and closing hashes preserve the written format', () => {
-  for (const heading of ['  ## [Unreleased]', '## [Unreleased] ##', '   ## Unreleased ###  ']) {
+  for (const heading of ['  ## [Unreleased]', '## [Unreleased] ##', '   ## Unreleased ###  ', '## \\[Unreleased\\]']) {
     const source = heading + '\n\n- Manual note.\n\n   ## [1.0.3] ###\n- History.\n'
     const actual = promoteUnreleased(source, '1.0.4', '2026-10-22')
     assert.equal(actual, heading + '\n\n## [1.0.4] - 2026-10-22\n\n- Manual note.\n\n   ## [1.0.3] ###\n- History.\n')
@@ -83,6 +83,11 @@ test('the release PR gets only the current base notes, without changing the base
   const again = fixture({ current: markdown })
   prepareReleasePr(again.repository, 1, again.api, '2026-10-22')
   assert.equal(again.writes.length, 0, 'a prepared PR does not get another commit')
+  const removed = fixture({ source: '## Unreleased\n\n', current: markdown })
+  prepareReleasePr(removed.repository, 1, removed.api, '2026-10-22')
+  const cleared = Buffer.from(removed.writes[0].body.content, 'base64').toString('utf8')
+  assert.equal(cleared, '## Unreleased\n\n', 'removing pending notes on main also retracts them from the bot copy')
+  assert.throws(() => releaseNotes(cleared, '1.0.4'), /Write a CHANGELOG/)
 })
 
 test('release preparation refuses duplicate versions and untrusted PR targets', () => {

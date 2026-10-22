@@ -32,7 +32,7 @@ function sections(markdown) {
       fence = marker[1]
     } else {
       const heading = text.match(/^ {0,3}##[\t ]+(.+?)[\t ]*$/)
-      if (heading) result.push({ title: heading[1].replace(/[\t ]+#+$/, ''), index: offset, start: offset + line.length })
+      if (heading) result.push({ title: heading[1].replace(/[\t ]+#+$/, '').replace(/\\([\[\]])/g, '$1'), index: offset, start: offset + line.length })
     }
     offset += line.length
   }
