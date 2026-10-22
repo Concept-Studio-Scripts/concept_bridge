@@ -76,7 +76,10 @@ function hasNotes(body) {
       else if (text.trim()) return true
     } else if (marker) {
       fence = marker[1]
-    } else if (text.trim() && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text) && !/^ {0,3}\[[^\]]+\]:[\t ]*\S/.test(text)) return true
+    } else if (text.trim()
+      && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)
+      && !/^ {0,3}\[[^\]]+\]:[\t ]*\S/.test(text)
+      && !/^[\t ]*(?:[-+*]|\d{1,9}[.)])(?:[\t ]+\[[ xX]\])?[\t ]*$/.test(text)) return true
   }
   return false
 }

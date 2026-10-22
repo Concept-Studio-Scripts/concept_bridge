@@ -69,6 +69,18 @@ test('commented templates and empty fences cannot stand in for visible notes', (
   assert.equal(releaseNotes('## [1.0.4] <!--\n- Hidden template.\n-->\n- Visible note.\n', '1.0.4'), '- Visible note.\n')
 })
 
+test('comment-only list items cannot satisfy the release-notes gate', () => {
+  for (const item of ['- <!-- Add notes here -->', '* <!-- Placeholder -->', '+ <!-- Placeholder -->', '1. <!-- Placeholder -->', '2) <!-- Placeholder -->', '- [ ] <!-- Placeholder -->', '- [x] <!-- Placeholder -->', '- <!--\nHidden placeholder.\n-->']) {
+    const body = item + '\n'
+    const source = '## Unreleased\n\n' + body
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source, item)
+    assert.throws(() => releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), /empty/, item)
+  }
+  const body = '- <!-- Placeholder -->\n- [x] Fixed startup.\n'
+  const promoted = promoteUnreleased('## Unreleased\n\n' + body, '1.0.4', '2026-10-22')
+  assert.equal(releaseNotes(promoted, '1.0.4'), body, 'real notes still pass without rewriting the Markdown')
+})
+
 function fixture({ base = '1.0.3', version = '1.0.4', source = '## Unreleased\n\n### Fixed\n- Manual note.\n', current = source, fork = false, branch = 'main', state = 'open' } = {}) {
   const repository = 'Concept-Studio-Scripts/example'
   const baseSha = 'a'.repeat(40)
