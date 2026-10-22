@@ -38,6 +38,10 @@ test('valid ATX heading spacing and closing hashes preserve the written format',
   const promoted = promoteUnreleased(code, '1.0.4', '2026-10-22')
   assert.equal(releaseNotes(promoted, '1.0.4'), '- Render `<!--` or `` `<!--` `` as literal code.\n')
   assert.equal(releaseNotes(promoted, '1.0.3'), '- History.\n')
+  const info = '## Unreleased\n\n```html <!--\nLiteral example.\n```\n\n## [1.0.3]\n- History.\n'
+  const fenced = promoteUnreleased(info, '1.0.4', '2026-10-22')
+  assert.equal(releaseNotes(fenced, '1.0.4'), '```html <!--\nLiteral example.\n```\n')
+  assert.equal(releaseNotes(fenced, '1.0.3'), '- History.\n')
 })
 
 test('commented templates and empty fences cannot stand in for visible notes', () => {
@@ -47,7 +51,7 @@ test('commented templates and empty fences cannot stand in for visible notes', (
   assert.ok(releaseNotes(promoted, '1.0.4').endsWith('- Actual note.\n'))
   const afterComment = '<!--\n## [8.0.0]\n-->\n## [1.0.4]\n- Visible note.\n'
   assert.equal(releaseNotes(afterComment, '1.0.4'), '- Visible note.\n')
-  for (const body of ['<!-- Add notes here -->\n', '<!--\n- Example only.\n-->\n', '```md\n```\n', '<!-- example -->\n### Fixed\n~~~\n~~~\n']) {
+  for (const body of ['<!-- Add notes here -->\n', '<!--\n- Example only.\n-->\n', '```md\n```\n', '```html <!--\n```\n', '[compare]: https://example.test/compare\n', '<!-- example -->\n### Fixed\n~~~\n~~~\n']) {
     const source = '## Unreleased\n' + body
     assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
     assert.throws(() => releaseNotes('## [1.0.4]\n' + body, '1.0.4'), /empty/)

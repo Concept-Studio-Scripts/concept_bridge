@@ -36,7 +36,7 @@ function sections(markdown) {
   let fence
   for (const line of markdown.split(/(?<=\n)/)) {
     const raw = line.replace(/\r?\n$/, '')
-    const text = fence ? raw : visible(raw)
+    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw)
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
       if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
@@ -69,14 +69,14 @@ function hasNotes(body) {
   const visible = commentFilter()
   let fence
   for (const raw of body.split(/\r?\n/)) {
-    const text = fence ? raw : visible(raw)
+    const text = fence || (!visible.isOpen() && /^ {0,3}(?:`{3,}|~{3,})/.test(raw)) ? raw : visible(raw)
     const marker = text.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
     if (fence) {
       if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = undefined
       else if (text.trim()) return true
     } else if (marker) {
       fence = marker[1]
-    } else if (text.trim() && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)) return true
+    } else if (text.trim() && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text) && !/^ {0,3}\[[^\]]+\]:[\t ]*\S/.test(text)) return true
   }
   return false
 }
