@@ -6,7 +6,7 @@ Run the [Lua checks](test/README.md) and release checks below before merging. Ex
 
 ```sh
 node tools/check-release.mjs
-node --test test/release-workflow.test.mjs
+node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
 ```
 
 Keep user-facing API and configuration documentation in [conceptstudio-web](https://github.com/Concept-Studio-Scripts/conceptstudio-web/blob/master/content/docs/concept-bridge.md). Repository docs cover installation and contribution basics.
@@ -14,8 +14,8 @@ Keep user-facing API and configuration documentation in [conceptstudio-web](http
 ## Releases
 
 1. Write release notes manually under `Unreleased` in `CHANGELOG.md`.
-2. Release-please opens a version PR. It updates `version.txt`, the manifest and README version; it does not generate the changelog.
-3. Before merging that PR, submit the applicable notes in a dated `CHANGELOG.md` section for its proposed version through a normal PR to `main`. The bot refreshes its branch; avoid editing that branch directly.
+2. Release-please opens a version PR and updates version files, the manifest and annotated docs. The workflow moves your `Unreleased` notes into that PR's dated version section, preserving their text, order, formatting and line endings. It leaves an empty `Unreleased` section for the next release; it never generates notes from commits.
+3. Review the version and notes in the release PR. Keep editing notes through normal PRs to `main`; the bot refreshes its copy from there. An existing section for the proposed version is kept as written. Missing or empty notes block publishing. Do not edit the bot branch directly.
 4. Merge the version PR after its checks pass. The release workflow tags the source, reruns checks, builds the complete source/resource ZIP and publishes it with the manual notes.
 
 Automatic releases increment only the patch number, including `feat:`, `!` and `BREAKING CHANGE:` commits. Keep breaking-change markers and compatibility notes for contributors; they do not automatically select a new major version. GitHub Actions must be allowed to create pull requests. The workflows use `GITHUB_TOKEN`; no personal token is needed.
