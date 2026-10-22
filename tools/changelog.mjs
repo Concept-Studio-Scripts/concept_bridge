@@ -101,6 +101,8 @@ const REFERENCE = /^ {0,3}\[((?:\\.|[^\[\]\\\r]){1,999})\]:[\t ]*(?:\n[\t ]*)?(<
 function referenceLines(text) {
   const match = REFERENCE.exec(text)
   if (!match || !match[1].trim() || /\n[\t ]*\n/.test(match[0])) return 0
+  // A label can wrap within its paragraph, but cannot swallow a new block.
+  if (match[1].split('\n').slice(1).some(line => startsBlock(line, true) || /^ {0,3}(?:=+|-+)[\t ]*$/.test(line))) return 0
   if (!match[2].startsWith('<')) {
     let depth = 0
     for (let i = 0; i < match[2].length; i++) {
@@ -142,19 +144,35 @@ function hasNotes(body) {
       if (heading) { i += heading - 1; continue }
       if (text.trim()
       && !/^ {0,3}#{1,6}(?:[\t ]|$)/.test(text)
-      && !/^ {0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/.test(text)
+      && !THEMATIC_BREAK.test(text)
       && !/^[\t ]*(?:[-+*]|\d{1,9}[.)])(?:[\t ]+\[[ xX]\])?[\t ]*$/.test(text)) return true
     }
   }
   return false
 }
 
+const THEMATIC_BREAK = /^ {0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/
+const HTML_BLOCK_TAG = /^ {0,3}<\/?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?=[\t >]|\/>|$)/i
+const HTML_TAG_LINE = /^ {0,3}(?:<\/[a-z][a-z\d-]*[\t ]*>|<[a-z][a-z\d-]*(?:[\t ]+[a-z_:][a-z\d_.:-]*(?:[\t ]*=[\t ]*(?:[^\t\n\f\r "'=<>`]+|'[^']*'|"[^"]*"))?)*[\t ]*\/?>)[\t ]*$/i
+
+function startsBlock(line, continuation = false) {
+  if (!continuation && /^(?: {4}|\t)/.test(line)) return true
+  if (THEMATIC_BREAK.test(line) || /^ {0,3}(?:#{1,6}(?:[\t ]|$)|>|~{3,}|`{3,}[^`]*$)/.test(line)) return true
+  const list = line.match(/^ {0,3}(?:([-+*])|(\d{1,9})[.)])(?:[\t ]+(.*)|$)/)
+  if (list && (!continuation || ((list[1] || list[2] === '1') && list[3]?.trim()))) return true
+  // HTML blocks have specific starts. Inline tags and autolinks can instead
+  // be heading text; a standalone generic tag cannot interrupt a paragraph.
+  return HTML_BLOCK_TAG.test(line)
+    || /^ {0,3}<(?:pre|script|style|textarea)(?=[\t >]|$)/i.test(line)
+    || /^ {0,3}(?:<!--|<\?|<![A-Za-z]|<!\[CDATA\[)/.test(line)
+    || (!continuation && HTML_TAG_LINE.test(line))
+}
+
 function setextLines(lines) {
-  const block = /^(?: {4}|\t)|^ {0,3}(?:#{1,6}(?:[\t ]|$)|>|[-+*](?:[\t ]|$)|\d{1,9}[.)][\t ]|`{3,}|~{3,}|<)/
-  if (!lines[0]?.trim() || block.test(lines[0])) return 0
+  if (!lines[0]?.trim() || startsBlock(lines[0])) return 0
   for (let i = 1; i < lines.length; i++) {
     if (/^ {0,3}(?:=+|-+)[\t ]*$/.test(lines[i])) return i + 1
-    if (!lines[i].trim() || block.test(lines[i])) return 0
+    if (!lines[i].trim() || startsBlock(lines[i], true)) return 0
   }
   return 0
 }

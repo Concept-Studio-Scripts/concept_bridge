@@ -125,15 +125,19 @@ test('multiline reference labels and literal titles cannot become notes or hide 
   }
   const singleLine = '[compare]: /url "<!-- literal title"\n- Actual note.\n'
   assert.equal(releaseNotes('## [1.0.4]\n' + singleLine, '1.0.4'), singleLine)
+  const interrupted = '[stub\n## Unreleased\n]: /url\n- Actual note.\n\n## [1.0.3]\n- History.\n'
+  const promoted = promoteUnreleased(interrupted, '1.0.4', '2026-10-22')
+  assert.equal(releaseNotes(promoted, '1.0.4'), ']: /url\n- Actual note.\n')
+  assert.equal(releaseNotes(promoted, '1.0.3'), '- History.\n')
 })
 
 test('setext headings alone are empty while real notes and literal examples remain visible', () => {
-  for (const body of ['Fixed\n---\n', 'Fixed\n===\n', 'Fixed\nacross multiple lines\n---\n']) {
+  for (const body of ['Fixed\n---\n', 'Fixed\n===\n', 'Fixed\nacross multiple lines\n---\n', '<em>Heading</em>\n---\n', '<https://example.test>\n---\n', 'Fixed\n<https://example.test>\n---\n', 'Fixed\n<span>\n---\n']) {
     const source = '## Unreleased\n\n' + body
     assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
     assert.throws(() => releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), /empty/)
   }
-  for (const body of ['Fixed\n---\n- Actual note.\n', '- Actual note.\n---\n', '```md\nFixed\n---\n```\n', '    Fixed\n    ---\n']) {
+  for (const body of ['Fixed\n---\n- Actual note.\n', '- Actual note.\n---\n', '```md\nFixed\n---\n```\n', '    Fixed\n    ---\n', 'Fixed\n___\n---\n', 'Fixed\n_ _ _\n---\n', 'Fixed\n***\n---\n', 'Fixed\n- - -\n---\n', '<div>Actual note.</div>\n---\n', '<span>\nActual note.\n</span>\n---\n']) {
     assert.equal(releaseNotes('## [1.0.4]\n\n' + body, '1.0.4'), body)
   }
 })
