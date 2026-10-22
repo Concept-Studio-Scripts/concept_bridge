@@ -2,7 +2,7 @@
 
 Concept Studio's compatibility layer for FiveM frameworks, inventories and other providers. Supports ox_core, Qbox, QBCore and ESX. The resource folder must be named **concept_bridge**.
 
-**Current release: 1.1.0** <!-- x-release-please-version -->
+**Current release: 1.1.1** <!-- x-release-please-version -->
 
 [Documentation](https://conceptstudio.store/docs/concept-bridge) · [Releases](https://github.com/Concept-Studio-Scripts/concept_bridge/releases/latest) · [Issues](https://github.com/Concept-Studio-Scripts/concept_bridge/issues)
 
