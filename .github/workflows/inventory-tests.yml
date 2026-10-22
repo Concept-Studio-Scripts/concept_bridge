@@ -29,7 +29,7 @@ jobs:
       - name: Check versions and manual release notes
         run: node tools/check-release.mjs
       - name: Check release failure gates
-        run: node --test test/release-workflow.test.mjs
+        run: node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
       - name: Check conventional PR title
         if: github.event_name == 'pull_request'
         env:
