@@ -48,6 +48,16 @@ test('commented templates and empty fences cannot stand in for visible notes', (
     assert.throws(() => releaseNotes('## [1.0.4]\n' + body, '1.0.4'), /empty/)
   }
   assert.equal(releaseNotes('## [1.0.4]\n```html\n<!-- literal code -->\n```\n', '1.0.4'), '```html\n<!-- literal code -->\n```\n')
+  for (const tail of ['\n- Hidden note.\n-->\n', '\n- Hidden note without a closing comment.\n']) {
+    assert.throws(() => releaseNotes('## [1.0.4] <!--' + tail, '1.0.4'), /empty/)
+    const source = '## Unreleased <!--' + tail
+    assert.equal(promoteUnreleased(source, '1.0.4', '2026-10-22'), source)
+  }
+  const continued = '## Unreleased <!--\n- Hidden template.\n-->\n\n- Visible note.\n'
+  const moved = promoteUnreleased(continued, '1.0.4', '2026-10-22')
+  assert.equal(moved, '## Unreleased <!--\n- Hidden template.\n-->\n\n## [1.0.4] - 2026-10-22\n\n- Visible note.\n')
+  assert.equal(releaseNotes(moved, '1.0.4'), '- Visible note.\n')
+  assert.equal(releaseNotes('## [1.0.4] <!--\n- Hidden template.\n-->\n- Visible note.\n', '1.0.4'), '- Visible note.\n')
 })
 
 function fixture({ base = '1.0.3', version = '1.0.4', source = '## Unreleased\n\n### Fixed\n- Manual note.\n', current = source, fork = false, branch = 'main', state = 'open' } = {}) {

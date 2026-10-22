@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 
 function commentFilter() {
   let open = false
-  return text => {
+  const filter = text => {
     let visible = ''
     while (text) {
       const index = text.indexOf(open ? '-->' : '<!--')
@@ -13,6 +13,8 @@ function commentFilter() {
     }
     return visible
   }
+  filter.isOpen = () => open
+  return filter
 }
 
 // Keep offsets into the original text so notes, indentation and line endings
@@ -32,7 +34,17 @@ function sections(markdown) {
       fence = marker[1]
     } else {
       const heading = text.match(/^ {0,3}##[\t ]+(.+?)[\t ]*$/)
-      if (heading) result.push({ title: heading[1].replace(/[\t ]+#+$/, '').replace(/\\([\[\]])/g, '$1'), index: offset, start: offset + line.length })
+      if (heading) {
+        let start = offset + line.length
+        // A comment starting on the heading belongs to that heading. Keep it
+        // intact before inserting a release heading or exporting visible notes.
+        if (visible.isOpen()) {
+          const end = markdown.indexOf('-->', start)
+          start = end < 0 ? markdown.length : end + 3
+          start += markdown.slice(start).match(/^[\t ]*\r?\n/)?.[0].length ?? 0
+        }
+        result.push({ title: heading[1].replace(/[\t ]+#+$/, '').replace(/\\([\[\]])/g, '$1'), index: offset, start })
+      }
     }
     offset += line.length
   }
