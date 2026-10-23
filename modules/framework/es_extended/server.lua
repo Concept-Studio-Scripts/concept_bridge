@@ -354,6 +354,7 @@ Framework.GetHunger = function(src)
             return math.floor((entry.percent) + 0.5) or 0
         end
     end
+    return 0
 end
 
 ---@description This will get the thirst of a player
@@ -368,6 +369,7 @@ Framework.GetThirst = function(src)
             return math.floor((entry.percent) + 0.5) or 0
         end
     end
+    return 0
 end
 
 ---@description Returns the phone number of the player.
