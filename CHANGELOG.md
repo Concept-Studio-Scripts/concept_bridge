@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-23
+
 ### Fixed
 
 - Make extension exports callable so consumers can retrieve their module tables.
