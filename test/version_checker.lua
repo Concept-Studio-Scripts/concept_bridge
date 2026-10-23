@@ -25,4 +25,3 @@ version.AdvancedVersionChecker('owner/repo', 'my_resource')
 assert(#printed == 0 and #requests == 1 and requests[1] ==
     'https://raw.githubusercontent.com/owner/repo/main/resources.json', 'valid prefixed versions still check updates')
 print('version_checker: invalid metadata/repositories and valid update URL passed')
-

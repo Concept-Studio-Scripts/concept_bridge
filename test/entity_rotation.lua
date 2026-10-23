@@ -18,4 +18,3 @@ local euler = {x=10, y=20, z=30}
 rotate('test', euler)
 assert(applied.x == 10 and applied.z == 30 and entity.rotation == euler, 'Euler vectors remain supported')
 print('entity_rotation: invalid/string/vector rotation contracts passed')
-

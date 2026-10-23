@@ -29,4 +29,3 @@ local skin = {clothing = {}, props = {}}
 for i = 0, 13 do skin.clothing[i], skin.props[i] = {0, 0}, {0, 0} end
 assert(Utility.SetEntitySkinData(1, skin), 'skin restoration succeeds with typed native flags')
 print('native_contracts: particle fallback/stop and ped prop native contracts passed')
-

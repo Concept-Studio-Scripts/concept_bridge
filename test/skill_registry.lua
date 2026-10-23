@@ -5,4 +5,3 @@ assert(created.name == 'crafting' and created.maxLevel == 50 and Skills.All.craf
     'client skills initialize their own registry without a server Lua environment')
 assert(Skills.Create(nil) == nil and Skills.All.crafting == created, 'invalid creation preserves registered skills')
 print('skill_registry: client registry initialization and invalid creation passed')
-

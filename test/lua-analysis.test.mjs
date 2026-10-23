@@ -33,4 +33,3 @@ test('client and server scopes retain shared code while separating runtime sides
     assert(forSide(file, 'server') && !forSide(file, 'client'), file)
   }
 })
-

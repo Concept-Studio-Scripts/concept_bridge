@@ -25,4 +25,3 @@ for _, case in ipairs(cases) do
     assert(ok and value == module, case[1] .. ': a consumer can call the export to retrieve the module table')
 end
 print(('extension_exports: %d export contracts passed'):format(#cases))
-
