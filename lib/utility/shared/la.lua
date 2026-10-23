@@ -482,7 +482,7 @@ LA.SplineCatmullRom = function(points, resolution)
   return smoothedPoints
 end
 
-exports('LA', LA)
+exports('LA', function() return LA end)
 return LA
 
 -- local easingTypes = {

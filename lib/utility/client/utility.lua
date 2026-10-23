@@ -329,5 +329,5 @@ AddEventHandler('onResourceStop', function(resource)
     end
 end)
 
-exports('Utility', Utility)
+exports('Utility', function() return Utility end)
 return Utility
