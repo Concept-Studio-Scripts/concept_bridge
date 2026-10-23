@@ -65,10 +65,45 @@ jobs:
           lua5.4 test/framework_client_state.lua
           lua5.4 test/target_zones.lua
           lua5.4 test/manifest_files.lua
+          lua5.4 test/extension_exports.lua
+          lua5.4 test/version_checker.lua
+          lua5.4 test/native_contracts.lua
+          lua5.4 test/skill_registry.lua
+          lua5.4 test/entity_rotation.lua
       - name: Check standard-Lua fixture/helper syntax
         run: |
           luac5.4 -p modules/framework/es_extended/client.lua
           find lib/inventory lib/shells lib/providers lib/security modules/providers modules/shops modules/housing test -name '*.lua' -print0 | xargs -0 -n1 luac5.4 -p
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install pinned LuaLS and FiveM definitions
+        env:
+          LUA_LS_VERSION: 3.19.1
+          CFX_ADDON_REF: 6775f96e6356c44c2d89b12f2559c81818a8d915
+        run: |
+          curl -sL --fail -o "$RUNNER_TEMP/luals.tar.gz" "https://github.com/LuaLS/lua-language-server/releases/download/$LUA_LS_VERSION/lua-language-server-$LUA_LS_VERSION-linux-x64.tar.gz"
+          printf '%s  %s\n' 'e9235d2d72ef55bc41cf8c99cda2ed64777682024b4bb81f5dea425060c5cbb8' "$RUNNER_TEMP/luals.tar.gz" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/luals"
+          tar -xzf "$RUNNER_TEMP/luals.tar.gz" -C "$RUNNER_TEMP/luals"
+          git init "$RUNNER_TEMP/cfx-luals-addon"
+          git -C "$RUNNER_TEMP/cfx-luals-addon" remote add origin https://github.com/overextended/fivem-lls-addon.git
+          git -C "$RUNNER_TEMP/cfx-luals-addon" fetch --depth 1 origin "$CFX_ADDON_REF"
+          git -C "$RUNNER_TEMP/cfx-luals-addon" checkout --detach FETCH_HEAD
+      - name: Check all runtime Lua with the reviewed diagnostic baseline
+        env:
+          LUA_LS: ${{ runner.temp }}/luals/bin/lua-language-server
+          CFX_LUALS_ADDON: ${{ runner.temp }}/cfx-luals-addon
+        run: |
+          node --test test/lua-analysis.test.mjs
+          node tools/check-lua.mjs
+      - name: Save Lua analysis reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bridge-lua-analysis
+          path: release/lua-analysis/
+          if-no-files-found: ignore
 
   package:
     name: web # Preserve the required status name; this job now validates resource packaging.

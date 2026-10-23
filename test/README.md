@@ -19,10 +19,15 @@ lua test/target_caninteract.lua
 lua test/framework_client_state.lua
 lua test/target_zones.lua
 lua test/manifest_files.lua
+lua test/extension_exports.lua
+lua test/version_checker.lua
+lua test/native_contracts.lua
+lua test/skill_registry.lua
+lua test/entity_rotation.lua
 ```
 
 The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax and cannot be compiled by stock Lua.
 
-CI also checks standard-Lua syntax, release metadata and resource packaging. See [CONTRIBUTING.md](../CONTRIBUTING.md) for those commands.
+CI also checks standard-Lua fixture syntax, every runtime Lua file with FiveM-aware LuaLS, release metadata and resource packaging. See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup and the diagnostic-baseline policy.
 
 User-facing contracts and integration guidance live in the [documentation](https://conceptstudio.store/docs/concept-bridge).
