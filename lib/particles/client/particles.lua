@@ -44,6 +44,12 @@ function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
                     lib.requestNamedPtfxAsset(dict)
                     UseParticleFxAssetNextCall(dict)
                     particle = StartParticleFxNonLoopedAtCoord(ptfx, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale, false, false, false)
+                    if not particle or particle == 0 then
+                        local asset = particleAssets[strParticle]
+                        Particles[strParticle], particleAssets[strParticle] = nil, nil
+                        if asset then RemoveNamedPtfxAsset(asset) end
+                        break
+                    end
                     Particles[strParticle] = particle
                 end
             end)
@@ -58,6 +64,12 @@ function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
                     lib.requestNamedPtfxAsset(dict)
                     UseParticleFxAssetNextCall(dict)
                     particle = StartParticleFxLoopedAtCoord(ptfx, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale, false, false, false, false)
+                    if not particle or particle == 0 then
+                        local asset = particleAssets[strParticle]
+                        Particles[strParticle], particleAssets[strParticle] = nil, nil
+                        if asset then RemoveNamedPtfxAsset(asset) end
+                        break
+                    end
                     Particles[strParticle] = particle
                 end
             end)     
