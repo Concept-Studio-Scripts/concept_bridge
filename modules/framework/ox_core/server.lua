@@ -441,7 +441,8 @@ end
 ---@param src number
 ---@return boolean
 Framework.GetIsPlayerDown = function(src)
-    return lib.require('@concept_bridge.lib.framework.shared.player_down').FromFlag(Framework.GetIsPlayerDead(src))
+    local Down = lib.require('@concept_bridge.lib.framework.shared.player_down')
+    return Down.FromFlag(Framework.GetIsPlayerDead(src)) or Down.FromState(src)
 end
 
 ---@description This will revive a player, if the player is dead or in last stand.

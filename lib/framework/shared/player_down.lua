@@ -13,4 +13,11 @@ function Down.FromFlag(value)
     return value == true or value == 1
 end
 
+--- the state bags the usual ambulance scripts set (some write no framework flag at all) -> boolean
+function Down.FromState(src)
+    local ok, st = pcall(function() return Player(src).state end)
+    if not ok or not st then return false end
+    return st.isDead == true or st.dead == true or st.isDowned == true or st.inlaststand == true or st.isInLastStand == true
+end
+
 return Down
