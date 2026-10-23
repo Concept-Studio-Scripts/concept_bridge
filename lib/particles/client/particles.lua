@@ -1,6 +1,7 @@
 Particles = {}
 Particle = {}
 local particleAssets = {}
+local nonLoopedId = 0
 
 ---@diagnostic disable: duplicate-set-field
 --- Create a particle effect at the specified position and rotation.
@@ -12,7 +13,7 @@ local particleAssets = {}
 --- @param color vector3
 --- @param looped boolean
 --- @param removeAfter number|nil
---- @return number|string|nil ptfxHandle -- Repeating effects return their tracked string id.
+--- @return number|string|boolean|nil ptfxHandle -- Repeating effects return their tracked string id.
 function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
     lib.requestNamedPtfxAsset(dict)
     UseParticleFxAssetNextCall(dict)
@@ -33,14 +34,14 @@ function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
                 print(string.format("[Particle] Failed to start particle fx: %s from dict: %s", ptfx, dict))
                 return nil
             end
-            local strParticle = tostring(particle)
-            Particles[strParticle] = particle
+            nonLoopedId = nonLoopedId + 1
+            local strParticle = 'non-looped:' .. nonLoopedId
+            Particles[strParticle] = true
             particleAssets[strParticle] = dict
             CreateThread(function()
                 while Particles[strParticle] do
                     Wait(removeAfter)
                     if not Particles[strParticle] then break end
-                    RemoveParticleFx(particle, false)                
                     lib.requestNamedPtfxAsset(dict)
                     UseParticleFxAssetNextCall(dict)
                     particle = StartParticleFxNonLoopedAtCoord(ptfx, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale, false, false, false)
@@ -50,7 +51,6 @@ function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
                         if asset then RemoveNamedPtfxAsset(asset) end
                         break
                     end
-                    Particles[strParticle] = particle
                 end
             end)
             return strParticle
@@ -80,6 +80,13 @@ function Particle.Play(dict, ptfx, pos, rot, scale, color, looped, removeAfter)
         Wait(10)
         if not DoesParticleFxLoopedExist(particle) then            
             particle = StartParticleFxNonLoopedAtCoord(ptfx, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale, false, false, false)
+            if not particle or particle == 0 then
+                RemoveNamedPtfxAsset(dict)
+                return nil
+            end
+            Wait(removeAfter)
+            RemoveNamedPtfxAsset(dict)
+            return particle
         end
         if not particle or particle == 0 then
             RemoveNamedPtfxAsset(dict)
@@ -97,9 +104,10 @@ function Particle.Stop(particle)
     if not particle then return end
     local id = tostring(particle)
     particle = Particles[id] or tonumber(particle)
-    if not particle or particle == 0 then return end
-    StopParticleFxLooped(particle, false)
-    RemoveParticleFx(particle, false)
+    if type(particle) == 'number' and particle ~= 0 then
+        StopParticleFxLooped(particle, false)
+        RemoveParticleFx(particle, false)
+    end
     if particleAssets[id] then RemoveNamedPtfxAsset(particleAssets[id]) end
     Particles[id], particleAssets[id] = nil, nil
 end
