@@ -45,12 +45,13 @@ Seatbelt.Notify = function(state)
     TriggerEvent('concept_bridge:Client:OnSeatbeltUpdate', state)
 end
 
+local bound, activeResource, activeReader
+
 ---@description Wires the shared raw listeners (toggle event + player statebags) to
 ---the active provider. Providers call this once at load; every handler checks the
 ---active provider at fire time, so only the selected one notifies.
 ---@param resourceName string
 ---@param getState fun(): boolean|nil
-local bound, activeResource, activeReader
 Seatbelt.BindUpdates = function(resourceName, getState)
     activeResource, activeReader = resourceName, getState
     if bound then return end

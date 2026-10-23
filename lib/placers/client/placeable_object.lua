@@ -551,8 +551,8 @@ end
 -- Main functions
 
 
----@param model - Model name or hash
----@param settings - Configuration table:
+-- model: model name or hash.
+-- settings: configuration table:
 --[[
     {
         depth = 3.0,                -- Starting distance from player

@@ -17,7 +17,7 @@ end
 ---@param email string
 ---@param title string
 ---@param message string
----@return boolean
+---@return nil Sends a request; delivery is decided by the server.
 Phone.SendEmail = function(email, title, message)
     TriggerServerEvent('concept_bridge:Server:genericEmail', {email = email, title = title, message = message})
 end

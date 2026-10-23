@@ -164,7 +164,7 @@ end
 
 ---This will remove a networked entity from the target system.
 ---@param netids table | number
----@param optionNames string
+---@param optionNames string|string[]|nil Omit to remove all options for these entities.
 function Target.RemoveNetworkedEntity(netids, optionNames)
     ox_target:removeEntity(netids, optionNames)
 end

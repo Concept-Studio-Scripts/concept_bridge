@@ -4,7 +4,8 @@ Menu = {}
 ---Opens a menu based on the configuration.
 ---@param data table The menu data.
 ---@param useQb boolean Whether to use QB menu syntax.
----@return id string The menu ID.
+---@return string|nil id The menu ID.
+---@return string|nil reason Failure reason when no provider is available.
 function Menu.Open(data, useQb)
     if type(OpenMenu) ~= 'function' then return nil, 'provider_unavailable' end
     local id = data.id or lib.string.random('................')
