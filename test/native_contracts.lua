@@ -21,6 +21,9 @@ local token = Particle.Play('test_dictionary', 'test_effect', pos, pos, 1, pos, 
 assert(token == '42', 'repeating particle identity remains a string')
 Particle.Stop(token)
 Particle.Play('test_dictionary', 'test_effect', pos, pos, 1, pos, false, 100)
+env.StartParticleFxNonLoopedAtCoord = function() return 0 end
+assert(Particle.Play('test_dictionary', 'test_effect', pos, pos, 1, pos, false, 100) == nil,
+    'failed native creation releases its dictionary without passing zero to a removal native')
 local Utility = assert(loadfile('lib/utility/client/utility.lua', 't', env))()
 local skin = {clothing = {}, props = {}}
 for i = 0, 13 do skin.clothing[i], skin.props[i] = {0, 0}, {0, 0} end
