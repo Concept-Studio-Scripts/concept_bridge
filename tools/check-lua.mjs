@@ -30,6 +30,11 @@ export function forSide(file, side) {
 }
 
 export function normalize(report, side, directory) {
+  // LuaLS serializes its empty Lua table as [] when there are no diagnostics.
+  if (Array.isArray(report)) {
+    assert(report.length === 0, 'Invalid LuaLS report.')
+    return []
+  }
   assert(report && !Array.isArray(report) && typeof report === 'object', 'Invalid LuaLS report.')
   return Object.entries(report).flatMap(([uri, diagnostics]) => {
     const file = relative(directory, fileURLToPath(uri)).split(sep).join('/')
@@ -90,7 +95,7 @@ export function run(env = process.env) {
   assert(env.CFX_LUALS_ADDON && existsSync(join(addon, 'plugin.lua')), 'Set CFX_LUALS_ADDON to the pinned addon checkout.')
   const revision = spawnSync('git', ['-C', addon, 'rev-parse', 'HEAD'], { encoding: 'utf8' })
   assert(revision.status === 0 && revision.stdout.trim() === config.addonRef, 'Use the pinned FiveM addon revision.')
-  const addonChanges = spawnSync('git', ['-C', addon, 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' })
+  const addonChanges = spawnSync('git', ['-C', addon, 'status', '--porcelain', '--untracked-files=normal'], { encoding: 'utf8' })
   assert(addonChanges.status === 0 && !addonChanges.stdout.trim(), 'The pinned addon must have no tracked modifications.')
   const executable = env.LUA_LS || 'lua-language-server'
   const outputRoot = join(root, 'release', 'lua-analysis')

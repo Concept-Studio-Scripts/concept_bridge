@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { compareBaseline, forSide } from '../tools/check-lua.mjs'
+import { compareBaseline, forSide, normalize } from '../tools/check-lua.mjs'
 
 const finding = {side: 'client', file: 'modules/example/client.lua', code: 'return-type-mismatch',
   source: 'return nil', message: 'Optional result is documented as required.', severity: 2}
 const baseline = {version: 1, reasons: {annotation: 'Legacy return annotation; nil is intentional.'},
   entries: [{...finding, count: 1, reason: 'annotation'}]}
+
+test('an empty LuaLS report is accepted while malformed reports fail', () => {
+  assert.deepEqual(normalize([], 'client', '.'), [])
+  assert.deepEqual(normalize({}, 'client', '.'), [])
+  assert.throws(() => normalize([{}], 'client', '.'), /Invalid/)
+  assert.throws(() => normalize(null, 'client', '.'), /Invalid/)
+})
 
 test('only the exact reviewed diagnostic is accepted, including multiplicity', () => {
   assert.deepEqual(compareBaseline([finding], baseline), {unexpected: [], resolved: []})
