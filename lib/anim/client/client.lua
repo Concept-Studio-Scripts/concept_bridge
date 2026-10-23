@@ -2,10 +2,6 @@ Anim = Anim or {}
 Anim.Active = Anim.Active or {}
 Anim.isUpdateLoopRunning = Anim.isUpdateLoopRunning or false
 
---- This will request the animation dictionary.
---- @param animDict string
---- @return boolean
-
 --- This will start the animation update loop.
 function Anim.Start()
     if Anim.isUpdateLoopRunning then return end

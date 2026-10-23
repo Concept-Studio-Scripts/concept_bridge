@@ -171,4 +171,28 @@ for _, provider in ipairs({'qb-core', 'qbx_core', 'es_extended'}) do
     end
 end
 
+do
+    local data, now = nil, 0
+    local env = load('modules/framework/es_extended/client.lua', function(env)
+        env.GetGameTimer = function() return now end
+        env.exports = {es_extended = {getSharedObject = function() return {
+            GetPlayerData = function() return data end,
+            IsPlayerLoaded = function() return data and data.identifier ~= nil end,
+        } end}}
+    end)
+    local F = env.Framework
+    for _, empty in ipairs({false, {}, 'not loaded'}) do
+        data, now = empty or nil, now + 1001
+        expect(F.GetPlayerIdentifier() == nil and F.GetPlayerDob() == nil, 'ESX identity is unavailable before character load')
+        expect(F.GetPlayerMetaData('hunger') == nil, 'ESX missing metadata does not throw')
+        expect(F.GetPlayerJobData() == nil and F.GetPlayerJob() == nil, 'ESX missing job does not throw')
+        expect(F.GetIsPlayerDead() == false and F.GetAccountBalance('cash') == 0, 'ESX unloaded defaults remain safe')
+    end
+    data, now = {identifier = 'esx:A', metadata = {hunger = 42}, job = {name = 'police', label = 'Police', grade = 2}}, now + 1001
+    expect(F.GetPlayerMetaData('hunger') == 42 and F.GetPlayerJob() == 'police', 'ESX loaded values remain available')
+    env.handlers['esx:onPlayerLogout']()
+    data = nil
+    expect(F.GetPlayerJobData() == nil and F.GetPlayerIdentifier() == nil, 'ESX logout discards the old character')
+end
+
 print(('framework_client_state: %d assertions passed'):format(assertions))

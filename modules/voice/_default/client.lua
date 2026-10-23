@@ -17,11 +17,12 @@ Voice.GetProximity = function()
     return { index = nil, mode = nil, distance = distance }
 end
 
+local bound, activeResource, activeReader
+
 ---@description Wires a provider to the shared voice update events. Only the active
 ---provider notifies (checked at fire time).
 ---@param resourceName string
 ---@param getProximity fun(): table
-local bound, activeResource, activeReader
 Voice.BindUpdates = function(resourceName, getProximity)
     activeResource, activeReader = resourceName, getProximity
     if bound then return end

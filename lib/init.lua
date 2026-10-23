@@ -24,5 +24,5 @@ else
     cLib.ClientEntity = cLib.Entity
 end
 
-exports('cLib', cLib)
+exports('cLib', function() return cLib end)
 return cLib

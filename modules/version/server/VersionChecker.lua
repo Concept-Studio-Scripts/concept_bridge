@@ -1,7 +1,7 @@
 Version = Version or {}
 
 local function parseVersion(versionString)
-    return versionString and versionString:match('%d+%.%d+%.%d+') or versionString
+    return type(versionString) == 'string' and versionString:match('%d+%.%d+%.%d+') or nil
 end
 
 local function padVersion(version)
@@ -57,18 +57,19 @@ local function printPatchNotes(notesToPrint)
 end
 
 local function validateRepoPath(repoPath)
-    local username, reponame = repoPath:match("([^/]+)/([^/]+)")
-    if not username or not reponame then return false, print('Invalid repository format. Expected format: username/reponame') end
+    local username, reponame
+    if type(repoPath) == 'string' then username, reponame = repoPath:match("^([%w_.-]+)/([%w_.-]+)$") end
+    if not username or not reponame then return false, 'Invalid repository format. Expected format: username/reponame' end
     return true, username, reponame
 end
 
 local function getLocalVersion(resource)
     local localVersionRaw = GetResourceMetadata(resource, "version", 0)
     if not localVersionRaw then
-        return nil, print('No version metadata found for resource "%s". Ensure fxmanifest.lua contains a valid version string.'):format(resource)
+        return nil, ('No version metadata found for resource "%s". Ensure fxmanifest.lua contains a valid version string.'):format(resource)
     end
     local version = parseVersion(localVersionRaw)
-    if not version then return nil, print('Invalid version format for resource "%s". Expected format: "x.x.x"'):format(resource) end
+    if not version then return nil, ('Invalid version format for resource "%s". Expected format: "x.x.x"'):format(resource) end
     return version
 end
 
@@ -127,7 +128,7 @@ function Version.AdvancedVersionChecker(repoPath, resourceName)
 
     local resource = resourceName
     local localVersion, errorMsg = getLocalVersion(resource)
-    if not localVersion then return print(('^1[ERROR]^7 %s'):format(username)) end
+    if not localVersion then return print(('^1[ERROR]^7 %s'):format(errorMsg)) end
     fetchPatchNotes("main", resource, repoPath, localVersion)
 end
 

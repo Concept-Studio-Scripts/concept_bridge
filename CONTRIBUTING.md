@@ -7,7 +7,12 @@ Run the [Lua checks](test/README.md) and release checks below before merging. Ex
 ```sh
 node tools/check-release.mjs
 node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
+node --test test/lua-analysis.test.mjs
 ```
+
+For full-resource Lua analysis, install the LuaLS version and FiveM addon revision pinned in `tools/lua-analysis-config.json` (CI shows the setup). Set `LUA_LS` to the executable and `CFX_LUALS_ADDON` to the clean addon checkout, then run `node tools/check-lua.mjs`.
+
+The check separates client/server code and accepts only individually reviewed legacy diagnostics. New warnings and errors fail; resolved baseline entries must be removed. Review any baseline change with its reason. Reports stay in ignored `release/lua-analysis/`.
 
 Keep user-facing API and configuration documentation in [conceptstudio-web](https://github.com/Concept-Studio-Scripts/conceptstudio-web/blob/master/content/docs/concept-bridge.md). Repository docs cover installation and contribution basics.
 

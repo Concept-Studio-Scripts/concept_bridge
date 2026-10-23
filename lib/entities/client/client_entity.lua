@@ -42,9 +42,10 @@ ClientEntity = {
 ---@field OnSpawn fun(entityData: EntityData)|nil
 ---@field OnRemove fun(entityData: EntityData)|nil
 ---@field spawned EntityHandle|nil FiveM entity handle created when the entry is in-range.
+---@field invoked string|nil Resource that registered the entity.
 
 --- Set the entity and apply any relevant properties such as freezing and targets
---- @param id The entities id
+--- @param id ClientEntityId The entity id.
 --- @return nil
 local function SetEntityProperties(id)
     local entityData = ClientEntity.Get(id)
@@ -310,7 +311,7 @@ end
 
 --- Updates the rotation for a registered entity
 --- @param id ClientEntityId ClientEntity id.
---- @param rotation number|string
+--- @param rotation number|string|vector3 Numeric heading, numeric string, or Euler vector.
 --- @return nil
 function ClientEntity.UpdateRotation(id, rotation)
     local entityData = ClientEntity.All[id]
@@ -319,7 +320,9 @@ function ClientEntity.UpdateRotation(id, rotation)
         return
     end
     if type(rotation) == "number" or type(rotation) == "string" then
-        rotation = vector3(0.0, 0.0, tonumber(rotation))
+        local heading = tonumber(rotation)
+        if not heading then return end
+        rotation = vector3(0.0, 0.0, heading)
     end
     entityData.rotation = rotation
     if entityData.spawned and DoesEntityExist(entityData.spawned) then

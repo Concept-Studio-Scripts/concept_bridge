@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "luaLS": "3.19.1",
+  "addonRef": "6775f96e6356c44c2d89b12f2559c81818a8d915",
+  "settings": {
+    "runtime.version": "Lua 5.4",
+    "runtime.path": [
+      "?.lua",
+      "?/init.lua"
+    ],
+    "runtime.nonstandardSymbol": [
+      "/**/",
+      "`",
+      "+=",
+      "-=",
+      "*=",
+      "/=",
+      "<<=",
+      ">>=",
+      "&=",
+      "|=",
+      "^="
+    ],
+    "workspace.checkThirdParty": false,
+    "workspace.maxPreload": 5000,
+    "workspace.ignoreDir": [
+      ".git",
+      ".github",
+      ".vscode",
+      "test",
+      "tools",
+      "release",
+      "node_modules"
+    ],
+    "diagnostics.globals": [
+      "lib",
+      "cache",
+      "MySQL",
+      "locale"
+    ],
+    "diagnostics.libraryFiles": "Disable"
+  }
+}

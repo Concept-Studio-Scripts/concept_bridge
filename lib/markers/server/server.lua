@@ -72,5 +72,5 @@ function Marker.RemoveBulk(ids)
     TriggerClientEvent("concept_bridge:Client:MarkerRemoveBulk", -1, toClient)
 end
 
-exports("Marker", Marker)
+exports("Marker", function() return Marker end)
 return Marker

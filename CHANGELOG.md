@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Make extension exports callable so consumers can retrieve their module tables.
+- Keep ESX identity, job, metadata and account reads safe before character load,
+  and return zero for missing server hunger/thirst entries.
+- Report missing or invalid version-check metadata without throwing.
+- Initialize the client skill registry before creating skills.
+- Correct particle native arguments and asset cleanup, use boolean ped prop flags,
+  and ignore invalid numeric entity rotations.
+
 ## [1.1.1] - 2026-10-22
 
 ### Fixed

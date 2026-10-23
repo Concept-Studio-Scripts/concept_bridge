@@ -95,7 +95,7 @@ function Utility.SetEntitySkinData(entity, skinData)
         SetPedComponentVariation(entity, i, skinData.clothing[i][1], skinData.clothing[i][2], 0)
     end
     for i = 0, 13 do
-        SetPedPropIndex(entity, i, skinData.props[i][1], skinData.props[i][2], 0)
+        SetPedPropIndex(entity, i, skinData.props[i][1], skinData.props[i][2], false)
     end
     return true
 end
@@ -329,5 +329,5 @@ AddEventHandler('onResourceStop', function(resource)
     end
 end)
 
-exports('Utility', Utility)
+exports('Utility', function() return Utility end)
 return Utility

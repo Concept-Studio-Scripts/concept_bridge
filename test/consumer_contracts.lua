@@ -90,4 +90,15 @@ for _, fw in ipairs({'qb-core', 'qbx_core', 'es_extended'}) do
     expect(unloaded == nil or unloaded == 0, fw .. ': missing player remains unavailable or zero')
 end
 
+-- ESX can supply a valid status list without a hunger/thirst entry.
+for _, name in ipairs({'GetHunger', 'GetThirst'}) do
+    local body = assert(source('modules/framework/es_extended/server.lua'):match('Framework%.' .. name .. ' = function%(src%)(.-)\nend'))
+    local statuses = {}
+    local env = setmetatable({Framework = {GetStatus = function() return statuses end}}, {__index = _G})
+    local read = assert(load('return function(src)' .. body .. '\nend', name, 't', env))()
+    expect(read(1) == 0, 'ESX ' .. name .. ': missing status returns zero')
+    statuses = {{name = name == 'GetHunger' and 'hunger' or 'thirst', percent = 42.4}}
+    expect(read(1) == 42, 'ESX ' .. name .. ': a real status is rounded as before')
+end
+
 print(('consumer_contracts: %d assertions passed'):format(assertions))

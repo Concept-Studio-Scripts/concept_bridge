@@ -1,0 +1,1221 @@
+{
+  "version": 1,
+  "reasons": {
+    "sideConditional": "Shared init registers optional side-only modules behind IsDuplicityVersion control flow or the existing nil-module no-op. LuaLS does not evaluate the runtime-side guard.",
+    "providerAlternative": "Mutually exclusive provider adapters implement the same domain methods. Resolver tests cover selection/isolation; static global table merging sees alternative definitions.",
+    "legacyAnnotation": "Existing LuaDoc parameter or optional/tuple return annotations are narrower than the supported runtime contract. Retained as annotation debt; no runtime behavior is changed to satisfy these types.",
+    "guardedConversion": "A documented identifier/slot/price is coerced or cleared, and the existing guard/provider checks establish availability. LuaLS retains the pre-coercion annotation or cannot narrow a custom predicate.",
+    "callableGuard": "The resolver checks functions and CFX/metatable callables explicitly before calling. LuaLS cannot narrow the dynamic export/funcref union.",
+    "initializedSlots": "slots[key] is initialized before the per-source assignment; LuaLS loses that relation across the dynamic key.",
+    "legacyLuaArity": "Extra arguments to this ordinary Lua function are intentionally ignored; optional metadata arguments are intentionally omitted and handled as nil. These are not native argument mismatches.",
+    "dormantScaleform": "The placer scaleform state is initialized/reset to nil and setup is disabled. This cleanup branch is dormant; no removed scaleform facade is restored."
+  },
+  "entries": [
+    {
+      "side": "client",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule('Banking', Banking)",
+      "message": "Undefined global `Banking`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "client",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule('Version', Version)",
+      "message": "Undefined global `Version`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "client",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Version\", Version)",
+      "message": "Undefined global `Version`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "client",
+      "file": "lib/entities/client/client_entity.lua",
+      "code": "cast-local-type",
+      "source": "targetEntity = tonumber(targetEntity)",
+      "message": "This variable is defined as type `string|number`. Cannot convert its type to `number?`.\n- Optional type cannot match `string|number`\n- `nil` cannot match any subtypes in `string|number`\n- Type `nil` cannot match `number`\n- Type `nil` cannot match `string`\n- Type `number` cannot match `string`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "lib/entities/client/client_entity.lua",
+      "code": "param-type-mismatch",
+      "source": "AttachEntityToEntity(entity, targetEntity, GetPedBoneIndex(targetEntity, bone), offset.x, offset.y, offset.z, rotation.x, rotation.y, rotation.z, true, true, false, true, 1, true)",
+      "message": "Cannot assign `number|nil` to parameter `integer`.\n- `nil` cannot match `integer`\n- Type `nil` cannot match `integer`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "lib/entities/client/client_entity.lua",
+      "code": "param-type-mismatch",
+      "source": "DeleteEntity(entityHandle)",
+      "message": "Cannot assign `number|nil` to parameter `integer`.\n- `nil` cannot match `integer`\n- Type `nil` cannot match `integer`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "lib/entities/client/client_entity.lua",
+      "code": "param-type-mismatch",
+      "source": "SetEntityAsMissionEntity(entityHandle, true, true)",
+      "message": "Cannot assign `number|nil` to parameter `integer`.\n- `nil` cannot match `integer`\n- Type `nil` cannot match `integer`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "lib/placers/client/placeable_object.lua",
+      "code": "undefined-field",
+      "source": "state.scaleform:dispose()",
+      "message": "Undefined field `dispose`.",
+      "count": 1,
+      "reason": "dormantScaleform"
+    },
+    {
+      "side": "client",
+      "file": "lib/providers/shared/resolver.lua",
+      "code": "need-check-nil",
+      "source": "return fn(...)",
+      "message": "Need check nil.",
+      "count": 1,
+      "reason": "callableGuard"
+    },
+    {
+      "side": "client",
+      "file": "lib/shells/client/shells.lua",
+      "code": "redundant-parameter",
+      "source": "Shells.Enter(shellId, entranceId, oldId)",
+      "message": "This function expects a maximum of 2 argument(s) but instead it is receiving 3.",
+      "count": 1,
+      "reason": "legacyLuaArity"
+    },
+    {
+      "side": "client",
+      "file": "lib/utility/client/utility.lua",
+      "code": "param-type-mismatch",
+      "source": "if blip and DoesBlipExist(tonumber(blip)) then",
+      "message": "Cannot assign `number?` to parameter `integer`.\n- Optional type cannot match `integer`\n- Type `nil` cannot match `integer`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "lib/utility/client/utility.lua",
+      "code": "param-type-mismatch",
+      "source": "RemoveBlip(tonumber(blip))",
+      "message": "Cannot assign `number?` to parameter `integer`.\n- Optional type cannot match `integer`\n- Type `nil` cannot match `integer`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "modules/doorlock/qb-doorlock/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if type(closestDoor) == 'table' and next(closestDoor) ~= nil then return closestDoor end",
+      "message": "Annotations specify that return value #1 has a type of `string|nil`, returning value of type `table` here instead.\n- `table` cannot match `string|nil`\n- `table` cannot match any subtypes in `string|nil`\n- Type `table` cannot match `nil`\n- Type `table` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/doorlock/qb-doorlock/client.lua",
+      "code": "return-type-mismatch",
+      "source": "return door",
+      "message": "Annotations specify that return value #1 has a type of `string|nil`, returning value of type `integer` here instead.\n- `integer` cannot match `string|nil`\n- `integer` cannot match any subtypes in `string|nil`\n- Type `integer` cannot match `nil`\n- Type `number` cannot match `nil`\n- Type `integer` cannot match `string`\n- Type `number` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/doorlock/rcore_doorlock/client.lua",
+      "code": "return-type-mismatch",
+      "source": "return door",
+      "message": "Annotations specify that return value #1 has a type of `string|nil`, returning value of type `integer` here instead.\n- `integer` cannot match `string|nil`\n- `integer` cannot match any subtypes in `string|nil`\n- Type `integer` cannot match `nil`\n- Type `number` cannot match `nil`\n- Type `integer` cannot match `string`\n- Type `number` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/es_extended/client.lua",
+      "code": "missing-return-value",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that at least 4 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/es_extended/client.lua",
+      "code": "missing-return",
+      "source": "if type(values) == 'table' then return values[metadata] end",
+      "message": "Annotations specify that a return value is required here.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/es_extended/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/es_extended/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if type(jobData) ~= 'table' then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `nil` here instead.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qb-core/client.lua",
+      "code": "missing-return-value",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that at least 4 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qb-core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qb-core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `nil` here instead.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qb-core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not playerData or not playerData.charinfo then return nil, nil end",
+      "message": "Annotations specify that return value #1 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qb-core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not playerData or not playerData.charinfo then return nil, nil end",
+      "message": "Annotations specify that return value #2 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qbx_core/client.lua",
+      "code": "missing-return-value",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that at least 4 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qbx_core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qbx_core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not jobData then return nil end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `nil` here instead.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qbx_core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not playerData or not playerData.charinfo then return nil, nil end",
+      "message": "Annotations specify that return value #1 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/framework/qbx_core/client.lua",
+      "code": "return-type-mismatch",
+      "source": "if not playerData or not playerData.charinfo then return nil, nil end",
+      "message": "Annotations specify that return value #2 has a type of `string`, returning value of type `nil` here instead.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/_default/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/bcs-housing/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/esx_property/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/ps-housing/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/qb-appartments/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/housing/qb-houses/client.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "client",
+      "file": "modules/shops/_default/client.lua",
+      "code": "cast-local-type",
+      "source": "price = tonumber(price)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "client",
+      "file": "modules/shops/_default/client.lua",
+      "code": "param-type-mismatch",
+      "source": "Shops.FinalizeCheckOut(shopName, item, itemLabel, price, tostring(_input[1]))",
+      "message": "Cannot assign `string` to parameter `number`.\n- `string` cannot match `number`\n- Type `string` cannot match `number`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "client",
+      "file": "modules/skills/_default/client.lua",
+      "code": "missing-return-value",
+      "source": "if not name then return end",
+      "message": "Annotations specify that at least 1 return value(s) are required, found 0 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Fuel\", Fuel)",
+      "message": "Undefined global `Fuel`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Input\", Input)",
+      "message": "Undefined global `Input`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Menu\", Menu)",
+      "message": "Undefined global `Menu`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"ProgressBar\", ProgressBar)",
+      "message": "Undefined global `ProgressBar`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Seatbelt\", Seatbelt)",
+      "message": "Undefined global `Seatbelt`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Target\", Target)",
+      "message": "Undefined global `Target`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"VehicleKey\", VehicleKey)",
+      "message": "Undefined global `VehicleKey`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Voice\", Voice)",
+      "message": "Undefined global `Voice`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Weapons\", Weapons)",
+      "message": "Undefined global `Weapons`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "init.lua",
+      "code": "undefined-global",
+      "source": "Bridge.RegisterModule(\"Weather\", Weather)",
+      "message": "Undefined global `Weather`.",
+      "count": 1,
+      "reason": "sideConditional"
+    },
+    {
+      "side": "server",
+      "file": "lib/providers/shared/resolver.lua",
+      "code": "need-check-nil",
+      "source": "return fn(...)",
+      "message": "Need check nil.",
+      "count": 1,
+      "reason": "callableGuard"
+    },
+    {
+      "side": "server",
+      "file": "lib/security/server/requests.lua",
+      "code": "need-check-nil",
+      "source": "slots[key][src] = slot",
+      "message": "Need check nil.",
+      "count": 1,
+      "reason": "initializedSlots"
+    },
+    {
+      "side": "server",
+      "file": "lib/security/server/requests.lua",
+      "code": "param-type-mismatch",
+      "source": "if not Requests.Integer(src, 1, 65535) or not GetPlayerName(src) then return nil, 'player_unavailable' end",
+      "message": "Cannot assign `number?` to parameter `string|integer`.\n- Optional type cannot match `string|integer`\n- `nil` cannot match any subtypes in `string|integer`\n- Type `nil` cannot match `string`\n- Type `nil` cannot match `integer`",
+      "count": 2,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "lib/shells/server/shells.lua",
+      "code": "redundant-return-value",
+      "source": "return enter(src, shellId, entranceId, true)",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 to 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "lib/shells/server/shells.lua",
+      "code": "redundant-return-value",
+      "source": "return leave(src, shellId, oldId, true)",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 to 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/esx_skin/server.lua",
+      "code": "cast-local-type",
+      "source": "src = src and tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 3,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/esx_skin/server.lua",
+      "code": "cast-local-type",
+      "source": "src = src and tonumber(src)",
+      "message": "This variable is defined as type `string|number`. Cannot convert its type to `number?`.\n- Optional type cannot match `string|number`\n- `nil` cannot match any subtypes in `string|number`\n- Type `nil` cannot match `string`\n- Type `nil` cannot match `number`",
+      "count": 2,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/esx_skin/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Clothing.Players[strSrc] = Clothing.GetAppearance(src)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/fivem-appearance/server.lua",
+      "code": "cast-local-type",
+      "source": "src = src and tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 3,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/fivem-appearance/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Clothing.Players[strSrc] = Clothing.GetAppearance(src)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/fivem-appearance/server.lua",
+      "code": "param-type-mismatch",
+      "source": "local currentClothing = Clothing.GetFullAppearanceData(src)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/fivem-appearance/server.lua",
+      "code": "param-type-mismatch",
+      "source": "return Clothing.SetAppearance(src, backup)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/illenium-appearance/server.lua",
+      "code": "cast-local-type",
+      "source": "src = src and tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 3,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/illenium-appearance/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Clothing.Players[strSrc] = Clothing.GetAppearance(src)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/qb-clothing/server.lua",
+      "code": "cast-local-type",
+      "source": "src = src and tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 3,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/clothing/qb-clothing/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Clothing.Players[strSrc] = Clothing.GetAppearance(src)",
+      "message": "Cannot assign `number?` to parameter `number`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/_default/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function() return 'default' end",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/_default/server/server.lua",
+      "code": "redundant-return-value",
+      "source": "if src == nil or src == 0 then return sendAlert(data) end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/bub-mdt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/cd_dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/emergencydispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/emergencydispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.SendAlert = function(data)",
+      "message": "Duplicate field `SendAlert`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/fd_dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/fd_dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.SendAlert = function(data)",
+      "message": "Duplicate field `SendAlert`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/kartik-mdt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/lb-tablet/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/lb-tablet/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.SendAlert = function(data)",
+      "message": "Duplicate field `SendAlert`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/linden_outlawalert/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/origen_police/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/piotreq_gpt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/piotreq_gpt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.SendAlert = function(src, alertData)",
+      "message": "Duplicate field `SendAlert`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/ps-dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/qs_dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/redutzu-mdt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/redutzu-mdt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.SendAlert = function(data)",
+      "message": "Duplicate field `SendAlert`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/tk_dispatch/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/dispatch/wasabi_mdt/server/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Dispatch.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/doorlock/ox_doorlock/server.lua",
+      "code": "cast-local-type",
+      "source": "doorID = tonumber(doorID)",
+      "message": "This variable is defined as type `string|number`. Cannot convert its type to `number?`.\n- Optional type cannot match `string|number`\n- `nil` cannot match any subtypes in `string|number`\n- Type `nil` cannot match `number`\n- Type `nil` cannot match `string`\n- Type `number` cannot match `string`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/es_extended/server.lua",
+      "code": "cast-local-type",
+      "source": "src = tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/es_extended/server.lua",
+      "code": "param-type-mismatch",
+      "source": "local getCount = Framework.GetItemCount(src, item, nil)",
+      "message": "Cannot assign `nil` to parameter `table`.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/es_extended/server.lua",
+      "code": "return-type-mismatch",
+      "source": "if not result[1] then return false end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `boolean` here instead.\n- `boolean` cannot match `table`\n- Type `boolean` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/es_extended/server.lua",
+      "code": "undefined-doc-param",
+      "source": "---@param source number",
+      "message": "Undefined param `source`.",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/ox_core/server.lua",
+      "code": "missing-parameter",
+      "source": "return Framework.GetItemCount(src, item) >= (requiredCount or 1)",
+      "message": "This function requires 3 argument(s) but instead it is receiving 2.",
+      "count": 1,
+      "reason": "legacyLuaArity"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/ox_core/server.lua",
+      "code": "undefined-doc-param",
+      "source": "---@param _type string",
+      "message": "Undefined param `_type`.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/ox_core/server.lua",
+      "code": "undefined-doc-param",
+      "source": "---@param source number",
+      "message": "Undefined param `source`.",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qb-core/server.lua",
+      "code": "cast-local-type",
+      "source": "slot = itemSlot",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number|nil`.\n- `nil` cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qb-core/server.lua",
+      "code": "cast-local-type",
+      "source": "src = tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qb-core/server.lua",
+      "code": "param-type-mismatch",
+      "source": "local getCount = Framework.GetItemCount(src, item, nil)",
+      "message": "Cannot assign `nil` to parameter `table`.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qb-core/server.lua",
+      "code": "return-type-mismatch",
+      "source": "if not player then return 0 end",
+      "message": "Annotations specify that return value #1 has a type of `string|nil`, returning value of type `integer` here instead.\n- `integer` cannot match `string|nil`\n- `integer` cannot match any subtypes in `string|nil`\n- Type `integer` cannot match `nil`\n- Type `number` cannot match `nil`\n- Type `integer` cannot match `string`\n- Type `number` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qb-core/server.lua",
+      "code": "return-type-mismatch",
+      "source": "if not result[1] then return false end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `boolean` here instead.\n- `boolean` cannot match `table`\n- Type `boolean` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qbx_core/server.lua",
+      "code": "cast-local-type",
+      "source": "src = tonumber(src)",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number?`.\n- Optional type cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qbx_core/server.lua",
+      "code": "missing-parameter",
+      "source": "local getCount = Framework.GetItemCount(src, item)",
+      "message": "This function requires 3 argument(s) but instead it is receiving 2.",
+      "count": 1,
+      "reason": "legacyLuaArity"
+    },
+    {
+      "side": "server",
+      "file": "modules/framework/qbx_core/server.lua",
+      "code": "return-type-mismatch",
+      "source": "if not result[1] then return false end",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `boolean` here instead.\n- `boolean` cannot match `table`\n- Type `boolean` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/_default/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/_default/server.lua",
+      "code": "redundant-return-value",
+      "source": "if select('#', ...) > 1 or not integer(src, 65535) then return false, 'invalid_request' end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/_default/server.lua",
+      "code": "redundant-return-value",
+      "source": "if select('#', ...) > 1 or not integer(src, 65535) then return false, 'invalid_request' end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/_default/server.lua",
+      "code": "redundant-return-value",
+      "source": "return Housing.ObservePlayerInside(src, insideId, 'bcs-housing')",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 to 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/bcs-housing/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/esx_property/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/ps-housing/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/qb-appartments/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/housing/qb-houses/server.lua",
+      "code": "duplicate-set-field",
+      "source": "Housing.GetResourceName = function()",
+      "message": "Duplicate field `GetResourceName`.",
+      "count": 1,
+      "reason": "providerAlternative"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/_default/server.lua",
+      "code": "return-type-mismatch",
+      "source": "return Framework.GetItemBySlot(src, slot)",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `table|nil` here instead.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/_default/server.lua",
+      "code": "return-type-mismatch",
+      "source": "return Framework.GetItemCount(src, item, metadata)",
+      "message": "Annotations specify that return value #1 has a type of `number`, returning value of type `number|nil` here instead.\n- `nil` cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/_default/server.lua",
+      "code": "return-type-mismatch",
+      "source": "return Framework.GetPlayerInventory(src)",
+      "message": "Annotations specify that return value #1 has a type of `table`, returning value of type `table|nil` here instead.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/codem-inventory/server.lua",
+      "code": "cast-local-type",
+      "source": "if found then slot = foundSlot end",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `number|nil`.\n- `nil` cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/core_inventory/server.lua",
+      "code": "param-type-mismatch",
+      "source": "local count = Inventory.GetItemCount(src, item, nil)",
+      "message": "Cannot assign `nil` to parameter `table`.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/core_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not numeric or numeric < 1 or numeric % 1 ~= 0 then return false, 'slot_unavailable' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/core_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not selected or selected.name ~= item then return false, 'item_not_found' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/core_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if type(selected.id) ~= 'string' then return false, 'item_id_unavailable' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/core_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "return false, 'item_not_found'",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/origen_inventory/server.lua",
+      "code": "missing-parameter",
+      "source": "return Inventory.GetItemCount(src, item) >= (requiredCount or 1)",
+      "message": "This function requires 3 argument(s) but instead it is receiving 2.",
+      "count": 1,
+      "reason": "legacyLuaArity"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/origen_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if selected.name ~= item then return false, 'item_not_found' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/origen_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "not items.Matches(selected.metadata, metadata) then return false, 'item_not_found' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/origen_inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "return false, 'unsupported_trunk_items'",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/ox_inventory/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Inventory.RegisterStash(id, identifier, 20, 10000, nil, nil, nil)",
+      "message": "Cannot assign `nil` to parameter `string`.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/ox_inventory/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Inventory.RegisterStash(id, identifier, 20, 10000, nil, nil, nil)",
+      "message": "Cannot assign `nil` to parameter `table`.\n- `nil` cannot match `table`\n- Type `nil` cannot match `table`",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/ps-inventory/server.lua",
+      "code": "cast-local-type",
+      "source": "slot = itemSlot",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `unknown|nil`.\n- `nil` cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/ps-inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not definition then return false, reason end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/qb-inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not definition then return false, reason end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 2,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/inventory/tgiann-inventory/server.lua",
+      "code": "redundant-return-value",
+      "source": "if selected.name ~= item then return false, 'item_not_found' end",
+      "message": "Annotations specify that at most 1 return value(s) are required, found 2 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/notify/_default/server.lua",
+      "code": "param-type-mismatch",
+      "source": "Notify.SendNotification(src, nil, message, _type, time)",
+      "message": "Cannot assign `nil` to parameter `string`.\n- `nil` cannot match `string`\n- Type `nil` cannot match `string`",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/phone/lb-phone/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not src or src <= 0 or type(data) ~= 'table' then return false end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/phone/qb-phone/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not src or src <= 0 or type(data) ~= 'table' then return false end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/phone/yseries/server.lua",
+      "code": "redundant-return-value",
+      "source": "if not src or src <= 0 or type(data) ~= 'table' then return false end",
+      "message": "Annotations specify that at most 0 return value(s) are required, found 1 returned here instead.",
+      "count": 1,
+      "reason": "legacyAnnotation"
+    },
+    {
+      "side": "server",
+      "file": "modules/shops/_default/server.lua",
+      "code": "cast-local-type",
+      "source": "else afterItems = nil end",
+      "message": "This variable is defined as type `number`. Cannot convert its type to `nil`.\n- `nil` cannot match `number`\n- Type `nil` cannot match `number`",
+      "count": 1,
+      "reason": "guardedConversion"
+    }
+  ]
+}

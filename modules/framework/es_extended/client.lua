@@ -42,9 +42,9 @@ end
 local playerCache, cachedAt = nil, 0
 
 Framework.GetPlayerData = function()
-    if playerCache and GetGameTimer() - cachedAt < 1000 then return playerCache end
+    if type(playerCache) == 'table' and GetGameTimer() - cachedAt < 1000 then return playerCache end
     playerCache, cachedAt = ESX.GetPlayerData(), GetGameTimer()
-    return playerCache
+    return type(playerCache) == 'table' and playerCache or {}
 end
 
 AddEventHandler('esx:setPlayerData', function(key, value)
@@ -70,7 +70,8 @@ end
 ---@param metadata table | string
 ---@return table | string | number | boolean
 Framework.GetPlayerMetaData = function(metadata)
-    return Framework.GetPlayerData().metadata[metadata]
+    local values = Framework.GetPlayerData().metadata
+    if type(values) == 'table' then return values[metadata] end
 end
 
 ---@description This will send a notification to the player.
@@ -119,6 +120,7 @@ end
 Framework.GetPlayerJob = function()
     --print("This is depricated, please use Framework.GetPlayerJobData() instead.")
     local jobData = Framework.GetPlayerJobData()
+    if not jobData then return nil end
     return jobData.jobName, jobData.jobLabel, jobData.gradeName, jobData.gradeRank
 end
 
@@ -128,6 +130,7 @@ end
 Framework.GetPlayerJobData = function()
     local playerData = Framework.GetPlayerData()
     local jobData = playerData.job
+    if type(jobData) ~= 'table' then return nil end
     local isBoss = (jobData.grade_name == "boss")
     return {
         jobName = jobData.name,
@@ -344,6 +347,7 @@ Framework.GetAccountBalance = function(_type)
     local player = Framework.GetPlayerData()
     if not player then return 0 end
     local accounts = player.accounts
+    if type(accounts) ~= 'table' then return 0 end
     if _type == 'cash' then _type = 'money' end
     for _, account in ipairs(accounts) do
         if account.name == _type then
@@ -357,7 +361,7 @@ end
 --- @return boolean
 Framework.GetIsPlayerDead = function()
     local playerData = Framework.GetPlayerData()
-    return playerData.dead
+    return playerData.dead or false
 end
 
 ---@description Is the local player down: dead OR in last stand (this framework has no last stand: down is dead).

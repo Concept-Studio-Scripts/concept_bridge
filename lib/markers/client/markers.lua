@@ -59,5 +59,5 @@ end)
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then Marker.RemoveAll() end
 end)
-exports('Marker', Marker)
+exports('Marker', function() return Marker end)
 return Marker

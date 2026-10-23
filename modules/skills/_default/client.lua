@@ -1,5 +1,6 @@
 ---@diagnostic disable: duplicate-set-field
 Skills = Skills or {}
+Skills.All = Skills.All or {}
 
 local cachedXp = {}
 

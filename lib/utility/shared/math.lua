@@ -179,6 +179,6 @@ function Math.InBoundary(pos, boundary)
     return true
 end
 
-exports('Math', Math)
+exports('Math', function() return Math end)
 
 return Math

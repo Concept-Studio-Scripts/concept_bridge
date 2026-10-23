@@ -104,5 +104,5 @@ Logs.CreateLog = function(message)
     handler(message)
 end
 
-exports('Logs', Logs)
+exports('Logs', function() return Logs end)
 return Logs
