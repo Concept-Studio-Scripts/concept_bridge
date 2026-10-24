@@ -26,7 +26,7 @@ lua test/skill_registry.lua
 lua test/entity_rotation.lua
 ```
 
-The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax and cannot be compiled by stock Lua.
+The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax that stock Lua cannot compile.
 
 CI also checks standard-Lua fixture syntax, every runtime Lua file with FiveM-aware LuaLS, release metadata and resource packaging. See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup and the diagnostic-baseline policy.
 

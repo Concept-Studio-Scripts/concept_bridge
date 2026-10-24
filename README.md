@@ -8,7 +8,7 @@ Concept Studio's compatibility layer for FiveM frameworks, inventories and other
 
 ## Installation
 
-Download the resource ZIP from Releases and extract its `concept_bridge` folder into your resources directory, or clone the repository. No frontend build is required.
+Download the resource ZIP from Releases and extract its `concept_bridge` folder into your resources directory, or clone the repository. You don't need to build a frontend.
 
 Requires OneSync, server artifact 6116 or newer, ox_lib and oxmysql. Start your providers before the bridge and consumer scripts afterward:
 
