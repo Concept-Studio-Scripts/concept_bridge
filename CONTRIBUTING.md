@@ -28,3 +28,5 @@ Organization members can merge a green PR without another approval. Resolve vali
 Automatic releases increment only the patch number, including `feat:`, `!` and `BREAKING CHANGE:` commits. Keep breaking-change markers and compatibility notes for contributors; they do not automatically select a new major version. Allow GitHub Actions to create pull requests. The workflows use `GITHUB_TOKEN`, so you don't need a personal token.
 
 For local packaging, use PowerShell 7: `./tools/package-release.ps1`. Verify provider behavior on a FiveM development server before publishing. Run the **Release** workflow with an empty tag for an unpublished build artifact. To retry a failed publication, rerun the failed jobs or run **Release** with the existing tag. Normal releases do not require manually pushed tags.
+
+CI validates resource ZIPs without uploading routine package copies. Explicit Release previews retain their Actions artifact for one day. Tagged releases attach the verified ZIP directly to the GitHub release, so publishing does not depend on Actions artifact storage.

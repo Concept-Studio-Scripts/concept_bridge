@@ -98,12 +98,14 @@ jobs:
           node --test test/lua-analysis.test.mjs
           node tools/check-lua.mjs
       - name: Save Lua analysis reports
-        if: always()
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: bridge-lua-analysis
           path: release/lua-analysis/
           if-no-files-found: ignore
+          retention-days: 1
 
   package:
     name: web # Preserve the required status name; this job now validates resource packaging.

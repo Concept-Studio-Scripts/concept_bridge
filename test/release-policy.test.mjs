@@ -9,3 +9,10 @@ test('automatic releases stay patch-only and publish manually written notes', ()
   assert.equal(config.draft, true, 'Publishing must wait for verification and packaging.')
   assert.equal(config['force-tag-creation'], true, 'The verified release must be tied to its source tag.')
 })
+
+test('tagged publication does not depend on Actions artifact storage', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8')
+  assert.match(workflow, /- name: Save verified ZIP\r?\n\s+if: inputs\.tag == ''/)
+  assert.match(workflow, /retention-days: 1/)
+  assert.match(workflow, /gh release upload/)
+})
