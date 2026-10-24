@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Maintenance
+
+- Align contributor guidance and verify the manual, patch-only release policy in CI.
+
 ### Fixed
 
 - Make extension exports callable so consumers can retrieve their module tables.

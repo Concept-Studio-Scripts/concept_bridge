@@ -6,7 +6,7 @@ Run the [Lua checks](test/README.md) and release checks below before merging. Ex
 
 ```sh
 node tools/check-release.mjs
-node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
+node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs test/release-policy.test.mjs
 node --test test/lua-analysis.test.mjs
 ```
 
@@ -15,6 +15,8 @@ For full-resource Lua analysis, install the LuaLS version and FiveM addon revisi
 The check separates client/server code and accepts only individually reviewed legacy diagnostics. New warnings and errors fail; resolved baseline entries must be removed. Review any baseline change with its reason. Reports stay in ignored `release/lua-analysis/`.
 
 Keep user-facing API and configuration documentation in [conceptstudio-web](https://github.com/Concept-Studio-Scripts/conceptstudio-web/blob/master/content/docs/concept-bridge.md). Repository docs cover installation and contribution basics.
+
+Organization members can merge a green PR without another approval. Resolve valid review findings before merging.
 
 ## Releases
 
