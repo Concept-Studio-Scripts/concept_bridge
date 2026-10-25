@@ -14,7 +14,7 @@ For full-resource Lua analysis, install the LuaLS version and FiveM addon revisi
 
 The check separates client/server code and accepts only individually reviewed legacy diagnostics. New warnings and errors fail; resolved baseline entries must be removed. Review any baseline change with its reason. Reports stay in ignored `release/lua-analysis/`.
 
-Keep user-facing setup, configuration and API documentation in [conceptstudio-web](https://github.com/Concept-Studio-Scripts/conceptstudio-web/blob/master/content/docs/concept-bridge.md) and verify its examples against this resource. Repository docs cover installation and contribution basics.
+Keep the owner guide in [docs/guide.md](docs/guide.md) and update it in the same PR as the behavior it describes. The website publishes the guide from the latest release; release ZIPs do not include it.
 
 Organization members can merge a green PR without another approval. Resolve valid review findings before merging.
 
