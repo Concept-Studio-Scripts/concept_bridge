@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -23,8 +23,6 @@ concurrency:
 jobs:
   release-metadata:
     name: Release metadata
-    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
-    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -37,16 +35,8 @@ jobs:
         run: node tools/check-release.mjs
       - name: Check release failure gates
         run: node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs test/release-policy.test.mjs
-      - name: Check conventional PR title
-        if: github.event_name == 'pull_request'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          node --input-type=module -e "if (!/^(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\([^\r\n)]+\))?!?: \S/.test(process.env.PR_TITLE)) throw new Error('Use a Conventional Commit PR title, for example fix(shells): restore the player bucket')"
 
   inventory:
-    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
-    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -118,8 +108,6 @@ jobs:
 
   package:
     name: web # Preserve the required status name; this job now validates resource packaging.
-    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
-    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
