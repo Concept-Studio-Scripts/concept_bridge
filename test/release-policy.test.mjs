@@ -22,9 +22,9 @@ test('tagged publication does not depend on Actions artifact storage', () => {
   }
   const artifactStep = step('Save verified ZIP')
   const publishStep = step('Attach ZIP and publish manual release notes')
-  assert.match(artifactStep, /^\s+if: inputs\.tag == ''$/m)
-  assert.match(artifactStep, /^\s+retention-days: 1$/m)
-  assert.match(artifactStep, /^\s+compression-level: 0$/m)
-  assert.match(publishStep, /^\s+if: inputs\.tag != ''$/m)
+  assert.match(artifactStep, /^ {8}if: inputs\.tag == ''$/m)
+  assert.match(artifactStep, /^ {10}retention-days: 1$/m)
+  assert.match(artifactStep, /^ {10}compression-level: 0$/m)
+  assert.match(publishStep, /^ {8}if: inputs\.tag != ''$/m)
   assert.match(publishStep, /gh release upload/)
 })
