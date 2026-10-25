@@ -6,7 +6,7 @@ Run the [Lua checks](test/README.md) and release checks below before merging. Ex
 
 ```sh
 node tools/check-release.mjs
-node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
+node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs test/release-policy.test.mjs
 node --test test/lua-analysis.test.mjs
 ```
 
@@ -14,7 +14,9 @@ For full-resource Lua analysis, install the LuaLS version and FiveM addon revisi
 
 The check separates client/server code and accepts only individually reviewed legacy diagnostics. New warnings and errors fail; resolved baseline entries must be removed. Review any baseline change with its reason. Reports stay in ignored `release/lua-analysis/`.
 
-Keep user-facing API and configuration documentation in [conceptstudio-web](https://github.com/Concept-Studio-Scripts/conceptstudio-web/blob/master/content/docs/concept-bridge.md). Repository docs cover installation and contribution basics.
+Keep the owner guide in [docs/guide.md](docs/guide.md) and update it in the same PR as the behavior it describes. The website publishes the guide from the latest release; release ZIPs do not include it.
+
+Organization members can merge a green PR without another approval. Resolve valid review findings before merging.
 
 ## Releases
 
@@ -26,3 +28,5 @@ Keep user-facing API and configuration documentation in [conceptstudio-web](http
 Automatic releases increment only the patch number, including `feat:`, `!` and `BREAKING CHANGE:` commits. Keep breaking-change markers and compatibility notes for contributors; they do not automatically select a new major version. Allow GitHub Actions to create pull requests. The workflows use `GITHUB_TOKEN`, so you don't need a personal token.
 
 For local packaging, use PowerShell 7: `./tools/package-release.ps1`. Verify provider behavior on a FiveM development server before publishing. Run the **Release** workflow with an empty tag for an unpublished build artifact. To retry a failed publication, rerun the failed jobs or run **Release** with the existing tag. Normal releases do not require manually pushed tags.
+
+CI validates resource ZIPs without uploading routine package copies. Explicit Release previews retain their Actions artifact for one day. Tagged releases attach the verified ZIP directly to the GitHub release, so publishing does not depend on Actions artifact storage.

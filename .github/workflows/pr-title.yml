@@ -1,0 +1,20 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+
+permissions: {}
+
+jobs:
+  title:
+    name: PR title
+    # A description-only edit (such as a CodeRabbit summary) keeps a title that was already checked.
+    if: github.event.action != 'edited' || github.event.changes.title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check conventional PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node --input-type=module -e "if (!/^(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\([^\r\n)]+\))?!?: \S/.test(process.env.PR_TITLE)) throw new Error('Use a Conventional Commit PR title, for example fix(shells): restore the player bucket')"

@@ -39,7 +39,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_PRS: ${{ steps.release.outputs.prs }}
-          CI_WORKFLOW: inventory-tests.yml
+          CI_WORKFLOW: ci.yml
         run: node tools/run-release-ci.mjs
 
   publish:

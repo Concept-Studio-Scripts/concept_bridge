@@ -1,10 +1,10 @@
-name: Concept Bridge checks
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -14,6 +14,11 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  # A new commit cancels the PR run it replaces; pushes, dispatches and release calls never share a group.
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   release-metadata:
@@ -29,15 +34,10 @@ jobs:
       - name: Check versions and manual release notes
         run: node tools/check-release.mjs
       - name: Check release failure gates
-        run: node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs
-      - name: Check conventional PR title
-        if: github.event_name == 'pull_request'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          node --input-type=module -e "if (!/^(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\([^\r\n)]+\))?!?: \S/.test(process.env.PR_TITLE)) throw new Error('Use a Conventional Commit PR title, for example fix(shells): restore the player bucket')"
+        run: node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs test/release-policy.test.mjs
 
-  inventory:
+  lua:
+    name: Lua checks
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -98,15 +98,17 @@ jobs:
           node --test test/lua-analysis.test.mjs
           node tools/check-lua.mjs
       - name: Save Lua analysis reports
-        if: always()
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: bridge-lua-analysis
           path: release/lua-analysis/
           if-no-files-found: ignore
+          retention-days: 1
 
   package:
-    name: web # Preserve the required status name; this job now validates resource packaging.
+    name: Packaging
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7

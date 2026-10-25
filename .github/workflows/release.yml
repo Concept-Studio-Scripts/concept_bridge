@@ -27,7 +27,7 @@ jobs:
   checks:
     permissions:
       contents: read
-    uses: ./.github/workflows/inventory-tests.yml
+    uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ inputs.ref || inputs.tag || github.sha }}
 
@@ -59,11 +59,14 @@ jobs:
           $suffix = if ($env:RELEASE_TAG) { $env:RELEASE_TAG } else { 'preview' }
           ./tools/package-release.ps1 -OutFile "./concept_bridge-$suffix.zip"
       - name: Save verified ZIP
+        if: inputs.tag == ''
         uses: actions/upload-artifact@v7
         with:
           name: concept_bridge-${{ inputs.tag || 'preview' }}
           path: concept_bridge-*.zip
           if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
       - name: Attach ZIP and publish manual release notes
         if: inputs.tag != ''
         env:

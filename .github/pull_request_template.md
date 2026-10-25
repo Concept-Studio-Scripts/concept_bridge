@@ -1,7 +1,7 @@
 ## Change
 
-Describe the problem and resulting behavior. Record any API/provider compatibility changes and required consumer migration.
+Describe the problem and resulting behavior. Explain any compatibility or setup changes.
 
 ## Validation
 
-List the regression/build checks run and any deferred FiveM/provider checks. Keep changes focused and preserve existing licensing and attribution notices.
+List the checks run and any deferred checks. Update the manual changelog for user-visible changes and `docs/guide.md` whenever a change affects what it describes. Preserve licenses and credits.
