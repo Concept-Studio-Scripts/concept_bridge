@@ -9,8 +9,7 @@ permissions: {}
 jobs:
   title:
     name: PR title
-    # A description-only edit (such as a CodeRabbit summary) keeps a title that was already checked.
-    if: github.event.action != 'edited' || github.event.changes.title
+    # Runs on every edit: a skipped run would show as passing and hide an invalid title.
     runs-on: ubuntu-latest
     steps:
       - name: Check conventional PR title
