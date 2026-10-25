@@ -27,7 +27,7 @@ jobs:
   checks:
     permissions:
       contents: read
-    uses: ./.github/workflows/inventory-tests.yml
+    uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ inputs.ref || inputs.tag || github.sha }}
 

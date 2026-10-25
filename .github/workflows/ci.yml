@@ -1,4 +1,4 @@
-name: Concept Bridge checks
+name: CI
 
 on:
   push:
@@ -36,7 +36,8 @@ jobs:
       - name: Check release failure gates
         run: node --test test/release-workflow.test.mjs test/manual-changelog.test.mjs test/release-policy.test.mjs
 
-  inventory:
+  lua:
+    name: Lua checks
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -107,7 +108,7 @@ jobs:
           retention-days: 1
 
   package:
-    name: web # Preserve the required status name; this job now validates resource packaging.
+    name: Packaging
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
