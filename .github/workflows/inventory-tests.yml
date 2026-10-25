@@ -15,9 +15,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # A new commit cancels the PR run it replaces; pushes, dispatches and release calls never share a group.
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   release-metadata:
     name: Release metadata
+    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
+    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -38,6 +45,8 @@ jobs:
           node --input-type=module -e "if (!/^(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\([^\r\n)]+\))?!?: \S/.test(process.env.PR_TITLE)) throw new Error('Use a Conventional Commit PR title, for example fix(shells): restore the player bucket')"
 
   inventory:
+    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
+    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -109,6 +118,8 @@ jobs:
 
   package:
     name: web # Preserve the required status name; this job now validates resource packaging.
+    # PR description edits (CodeRabbit summaries) only re-run checks when the title changed.
+    if: github.event.action != 'edited' || github.event.changes.title
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
