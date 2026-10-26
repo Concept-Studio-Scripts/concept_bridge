@@ -55,7 +55,7 @@ end
 
 ---@description This will return a table with the item info, {name, label, stack, weight, description, image}
 ---@param item string
----@return table
+---@return table|nil nil where the framework has no item list
 Inventory.GetItemInfo = function(item)
     if not Framework.GetItemInfo then return nil end
     return Framework.GetItemInfo(item)
@@ -90,7 +90,7 @@ end
 ---@description Returns the specified slot data as a table.
 ---@param src number
 ---@param slot number
----@return table {weight, name, metadata, slot, label, count}
+---@return table|nil {weight, name, metadata, slot, label, count}; nil where the framework cannot read a slot
 Inventory.GetItemBySlot = function(src, slot)
     if not Framework.GetItemBySlot then return nil end
     return Framework.GetItemBySlot(src, slot)
