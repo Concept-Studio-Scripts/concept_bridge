@@ -7,9 +7,10 @@ local function definition(name)
     for _, item in ipairs(catalog) do if item.name == name then return item end end
     error('unknown domain: ' .. name)
 end
-local function fixture(definitions, side, actual, initial, runtimeLoader)
+local function fixture(definitions, side, actual, initial, runtimeLoader, globals)
     local env = setmetatable({}, {__index = _G})
     env._G = env
+    for key, value in pairs(globals or {}) do env[key] = value end      -- (what shared scripts set before the providers start)
     local state = {resources = initial or {}, handlers = {}, callbacks = {}, registrations = {},
         emitted = {}, bags = {}, errors = {}, version = '2.0.0', files = {}, failures = {}, threads = {}, exported = {}}
     env.BridgeSharedConfig = {Providers = {}, DebugLevel = 0, Notify = 'auto', HelpText = 'auto', Skills = 'auto'}
@@ -362,6 +363,15 @@ do  -- a public call is guarded with the provider's running state as the start /
     expect(asked <= 1 and env.Framework.GetResourceName() == 'ox_core', 'public calls do not ask the game for the provider state each time')
     lifecycle('ox_core', false)
     expect(env.Framework.GetResourceName() == 'default', '... and a stopped provider is noticed from its stop event')
+end
+
+do  -- a module's shared.lua helpers survive the provider set-up (qb-clothing / esx_skin call Clothing.ConvertToDefault)
+    local helper = function() return 'converted' end
+    local env = fixture({definition('Clothing')}, 'server', false, {['qb-clothing'] = 'started'}, nil,
+        {Clothing = {ConvertToDefault = helper, ConvertFromDefault = helper}})
+    expect(env.Clothing.ConvertToDefault({}) == 'converted' and env.Clothing.ConvertFromDefault({}) == 'converted',
+        'shared helpers set before the providers start stay on the published table')
+    expect(env.Clothing.GetResourceName() == 'qb-clothing', '... and the selected adapter is the one that has them')
 end
 
 print(('provider_selection: %d assertions passed'):format(assertions))

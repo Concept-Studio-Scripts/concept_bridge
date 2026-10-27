@@ -57,6 +57,9 @@ end
 ---@param item string
 ---@return table
 Inventory.GetItemInfo = function(item)
+    -- (no such call in this framework: nothing, rather than an error on every call; same legacy annotation as below)
+    ---@diagnostic disable-next-line: return-type-mismatch
+    if not Framework.GetItemInfo then return nil end
     return Framework.GetItemInfo(item)
 end
 
@@ -64,7 +67,7 @@ end
 ---@return table 
 Inventory.Items = function()
     if not Framework.Shared or not Framework.Shared.Items then
-        local itemList = Framework.ItemList() or { Items = {} }
+        local itemList = (Framework.ItemList and Framework.ItemList()) or { Items = {} }
         return itemList.Items
     end
     return Framework.Shared.Items
@@ -91,6 +94,9 @@ end
 ---@param slot number
 ---@return table {weight, name, metadata, slot, label, count}
 Inventory.GetItemBySlot = function(src, slot)
+    -- (no such call in this framework: nothing, rather than an error on every call; same legacy annotation as below)
+    ---@diagnostic disable-next-line: return-type-mismatch
+    if not Framework.GetItemBySlot then return nil end
     return Framework.GetItemBySlot(src, slot)
 end
 
