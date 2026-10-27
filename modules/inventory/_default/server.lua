@@ -55,7 +55,7 @@ end
 
 ---@description This will return a table with the item info, {name, label, stack, weight, description, image}
 ---@param item string
----@return table|nil nil where the framework has no item list
+---@return table
 Inventory.GetItemInfo = function(item)
     -- (no such call in this framework: nothing, rather than an error on every call; same legacy annotation as below)
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -92,7 +92,7 @@ end
 ---@description Returns the specified slot data as a table.
 ---@param src number
 ---@param slot number
----@return table|nil {weight, name, metadata, slot, label, count}; nil where the framework cannot read a slot
+---@return table {weight, name, metadata, slot, label, count}
 Inventory.GetItemBySlot = function(src, slot)
     -- (no such call in this framework: nothing, rather than an error on every call; same legacy annotation as below)
     ---@diagnostic disable-next-line: return-type-mismatch
