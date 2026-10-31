@@ -4,7 +4,7 @@
 
 ### Added
 
-- concept_ui as a notify, help text, progress bar and menu provider. It is picked
+- concept_ui as a notify, help text, progress bar, menu and input provider. It is picked
   first when it is running; set the provider choice to keep another one.
 
 ### Fixed

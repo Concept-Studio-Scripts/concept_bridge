@@ -173,6 +173,7 @@ return {
         config = "BridgeClientConfig", key = "InputSystem",
         defaults = {client = "modules/input/_default/client.lua"},
         candidates = {
+            {resource = "concept_ui", client = "modules/input/concept_ui/client.lua"},
             {resource = "qb-input", client = "modules/input/qb-input/client.lua"},
             {resource = "ox_lib", client = "modules/input/ox_lib/client.lua"},
             {resource = "lation_ui", client = "modules/input/lation_ui/client.lua"},

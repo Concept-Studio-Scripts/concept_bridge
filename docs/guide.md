@@ -61,7 +61,7 @@ Edit the bridge's `settings/` files, then restart the resource to reload them.
 |---|---|
 | `Seatbelt` | `auto`, `qbx_seatbelt`, `qb-smallresources`, `esx_cruisecontrol`, `concept_seatbelt`, `none` |
 | `Voice` | `auto`, `pma-voice`, `none` |
-| `InputSystem` | `auto`, `ox_lib`, `lation_ui`, `qb-input` |
+| `InputSystem` | `auto`, `concept_ui`, `ox_lib`, `lation_ui`, `qb-input` |
 | `MenuSystem` | `auto`, `concept_ui`, `ox_lib`, `wasabi_uikit`, `lation_ui`, `qb-menu` |
 | `ProgressBarSystem` | `auto`, `concept_ui`, `ox_lib`, `wasabi_uikit`, `lation_ui`, `ZSX_UIV2`, `keep-progressbar`, `progressbar`, `msk_core` |
 | `Lang` | `auto` (follows ox_lib locale selection) or an explicit locale such as `en` |
