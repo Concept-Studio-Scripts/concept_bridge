@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- concept_ui as a notify, help text, progress bar and menu provider. It is picked
+  first when it is running; set the provider choice to keep another one.
+
 ### Fixed
 
 - Make extension exports callable so consumers can retrieve their module tables.
