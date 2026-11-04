@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- concept_ui as a notify, help text, progress bar, menu and input provider. It is picked
+  first when it is running; set the provider choice to keep another one.
+
 ### Fixed
 
 - Make extension exports callable so consumers can retrieve their module tables.
@@ -11,6 +16,16 @@
 - Initialize the client skill registry before creating skills.
 - Correct particle native arguments and asset cleanup, use boolean ped prop flags,
   and ignore invalid numeric entity rotations.
+- Select an inventory or target provider again after it restarts. Until now the
+  default stayed, and item calls failed until the server restarted.
+- Return nothing instead of an error from the default inventory's `GetItemBySlot`,
+  `GetItemInfo` and `ItemList` where the framework has no such call (Qbox, QBCore).
+- Treat the usual ambulance state bags (`isDead`, `dead`, `isDowned`, `inlaststand`,
+  `isInLastStand`) as down on ESX and ox_core.
+- Return named fields from the QBCore `GetItemBySlot` (one definition each of
+  `GetPlayerInventory` and `GetItemBySlot`).
+- Keep the clothing converters on the server, so qb-clothing and esx_skin no longer
+  fail with `ConvertToDefault` missing on their first appearance call.
 
 ## [1.1.1] - 2026-10-22
 
