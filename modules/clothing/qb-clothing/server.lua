@@ -24,10 +24,6 @@ function Clothing.GetFullAppearanceData(src)
 
     local model = Player.PlayerData.model
     local skinData = json.decode(result[1].skin)
-    if not Clothing.ConvertToDefault then
-        print('^3[concept_bridge] qb-clothing: Clothing.ConvertToDefault is missing, appearance not converted^7')
-        return
-    end
     local converted = Clothing.ConvertToDefault(skinData)
 
     -- Store complete data in the cache

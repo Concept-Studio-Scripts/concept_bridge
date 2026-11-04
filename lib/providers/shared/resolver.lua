@@ -21,13 +21,8 @@ function Resolver.New(catalog, side)
     -- start / stop events below. Selecting a provider still asks the game itself (it can stop mid-load).
     local running = {}
 
-    -- (inside its own onResourceStart a resource can still read as 'starting': the one that is starting right now
-    -- counts as started, or a restarted inventory / target is never selected again and the default stays in place)
-    local justStarted = {}
     local function started(name)
-        if stopped[name] then return false end
-        local state = GetResourceState(name)
-        return state == 'started' or (justStarted[name] == true and state == 'starting')
+        return not stopped[name] and GetResourceState(name) == 'started'
     end
 
     local function knownStarted(name)
@@ -292,14 +287,6 @@ function Resolver.New(catalog, side)
     for _, definition in ipairs(catalog) do
         if definition.defaults[side] then
             local public = {}
-            -- A module's shared.lua runs first and may already have put helpers on the global (the clothing
-            -- converters, Clothing.ConvertToDefault / ConvertFromDefault): they are kept, so the default and every
-            -- adapter copied from it still have them. (Replaced by an empty table, qb-clothing and esx_skin
-            -- failed on their first appearance call.)
-            local before = rawget(_G, definition.name)
-            if type(before) == 'table' then
-                for key, value in pairs(before) do public[key] = value end
-            end
             _G[definition.name] = public
             local state = {definition = definition, public = public, generation = 0, revision = 0, helpers = {}, functions = {}}
             states[#states + 1] = state
@@ -363,11 +350,7 @@ function Resolver.New(catalog, side)
             end
         end
     end
-    AddEventHandler(side == 'server' and 'onResourceStart' or 'onClientResourceStart', function(name)
-        justStarted[name] = true
-        changed(name, false)
-        justStarted[name] = nil
-    end)
+    AddEventHandler(side == 'server' and 'onResourceStart' or 'onClientResourceStart', function(name) changed(name, false) end)
     AddEventHandler(side == 'server' and 'onResourceStop' or 'onClientResourceStop', function(name)
         if name == resource then
             for _, state in ipairs(states) do close(state.scope) close(state.baseScope) end

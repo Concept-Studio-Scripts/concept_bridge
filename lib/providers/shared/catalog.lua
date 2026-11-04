@@ -92,7 +92,6 @@ return {
         config = "BridgeSharedConfig", key = "HelpText",
         defaults = {client = "modules/helptext/_default/client.lua", server = "modules/helptext/_default/server.lua"},
         candidates = {
-            {resource = "concept_ui", client = "modules/helptext/concept_ui/client.lua"},
             {resource = "ZSX_UIV2", client = "modules/helptext/zsxui/client.lua"},
             {resource = "ox_lib", client = "modules/helptext/ox_lib/client.lua"},
             {resource = "okokTextUI", client = "modules/helptext/okokTextUI/client.lua"},
@@ -106,7 +105,6 @@ return {
         config = "BridgeSharedConfig", key = "Notify",
         defaults = {client = "modules/notify/_default/client.lua", server = "modules/notify/_default/server.lua"},
         candidates = {
-            {resource = "concept_ui", client = "modules/notify/concept_ui/client.lua"},
             {resource = "ZSX_UIV2", client = "modules/notify/zsxui/client.lua"},
             {resource = "wasabi_notify", client = "modules/notify/wasabi_notify/client.lua"},
             {resource = "t-notify", client = "modules/notify/t-notify/client.lua"},
@@ -173,7 +171,6 @@ return {
         config = "BridgeClientConfig", key = "InputSystem",
         defaults = {client = "modules/input/_default/client.lua"},
         candidates = {
-            {resource = "concept_ui", client = "modules/input/concept_ui/client.lua"},
             {resource = "qb-input", client = "modules/input/qb-input/client.lua"},
             {resource = "ox_lib", client = "modules/input/ox_lib/client.lua"},
             {resource = "lation_ui", client = "modules/input/lation_ui/client.lua"},
@@ -183,7 +180,6 @@ return {
         config = "BridgeClientConfig", key = "ProgressBarSystem",
         defaults = {client = "modules/progressbar/_default/client.lua"},
         candidates = {
-            {resource = "concept_ui", client = "modules/progressbar/concept_ui/client.lua"},
             {resource = "ZSX_UIV2", client = "modules/progressbar/zsxui/client.lua"},
             {resource = "wasabi_uikit", client = "modules/progressbar/wasabi_uikit/client.lua"},
             {resource = "progressbar", client = "modules/progressbar/qb-progressbar/client.lua"},
@@ -231,7 +227,6 @@ return {
         config = "BridgeClientConfig", key = "MenuSystem",
         defaults = {client = "modules/menu/_defualt/client.lua"},
         candidates = {
-            {resource = "concept_ui", client = "modules/menu/concept_ui/client.lua"},
             {resource = "wasabi_uikit", client = "modules/menu/wasabi_uikit/client.lua"},
             {resource = "qb-menu", client = "modules/menu/qb-menu/client.lua"},
             {resource = "ox_lib", client = "modules/menu/ox_lib/client.lua"},
