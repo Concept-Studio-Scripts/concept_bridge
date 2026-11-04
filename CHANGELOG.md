@@ -11,6 +11,8 @@
 - Initialize the client skill registry before creating skills.
 - Correct particle native arguments and asset cleanup, use boolean ped prop flags,
   and ignore invalid numeric entity rotations.
+- Run QB-format menu options through ox_lib, lation_ui and wasabi_uikit: event
+  options did nothing, and command, QB command and action options now run as in qb-menu.
 
 ## [1.1.1] - 2026-10-22
 
