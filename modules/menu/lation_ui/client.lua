@@ -1,6 +1,7 @@
 local resourceName = "lation_ui"
 if GetResourceState(resourceName) ~= 'started' then return end
 Menus = Menus or {}
+local QBMenu = lib.require('@concept_bridge.lib.menu.client.qb')
 
 local function runCheckForImageIcon(icon)
     local iconStr = tostring(icon):lower()
@@ -16,47 +17,6 @@ local function runCheckForImageIcon(icon)
     end
 
     return false
-end
-
----Converts a QB menu to an Lation menu.
----@param id string The menu ID.
----@param menu table The QB menu data.
----@return table The Lation menu data.
-local function QBToLationMenu(id, menu)
-    local lationMenu = {
-        id = id,
-        title = "",
-        canClose = true,
-        options = {},
-    }
-    for i, v in pairs(menu) do
-        if v.isMenuHeader then
-            if lationMenu.title == "" then
-                lationMenu.title = v.header
-            end
-        else
-            local option = {
-                title = v.header,
-                description = v.txt,
-                icon = v.icon,
-                args = v.params.args,
-                onSelect = function(selected, secondary, args)
-                    local params = menu[id]?.options?[selected]?.params
-                    if not params then return end
-                    local event = params.event
-                    local isServer = params.isServer
-                    if not event then return end
-                    if isServer then
-                        return TriggerServerEvent(event, args)
-                    end
-                    return TriggerEvent(event, args)
-                end
-
-            }
-            table.insert(lationMenu.options, option)
-        end
-    end
-    return lationMenu
 end
 
 local function OxToLationMenu(data)
@@ -81,7 +41,7 @@ end
 
 function OpenMenu(id, data, useQBinput)
     if useQBinput then
-        data = QBToLationMenu(id, data)
+        data = QBMenu.ToContext(id, data)
     else
         data = OxToLationMenu(data)
     end
