@@ -374,4 +374,20 @@ do  -- a module's shared.lua helpers survive the provider set-up (qb-clothing / 
     expect(env.Clothing.GetResourceName() == 'qb-clothing', '... and the selected adapter is the one that has them')
 end
 
+do  -- a restart whose start event fires while the provider still reads 'starting' (its adapter returns early then)
+    local env, state, _, lifecycle, fire = fixture({definition('Seatbelt')}, 'client', true, {concept_seatbelt = 'started'})
+    env.BridgeClientConfig.Seatbelt = 'concept_seatbelt'
+    lifecycle('concept_seatbelt', false)
+    local threads = #state.threads
+    state.resources.concept_seatbelt = 'starting'
+    fire('onClientResourceStart', 'concept_seatbelt')
+    fire('onClientResourceStart', 'concept_seatbelt')
+    expect(env.Seatbelt.GetResourceName() == 'default' and #state.threads == threads + 1,
+        'a provider still starting is not selected yet, and one wait covers repeated start events')
+    state.resources.concept_seatbelt = 'started'
+    state.threads[#state.threads]()
+    expect(env.Seatbelt.GetResourceName() == 'concept_seatbelt' and env.Seatbelt.GetState() == true,
+        '... and once it reads started its real adapter is loaded')
+end
+
 print(('provider_selection: %d assertions passed'):format(assertions))

@@ -21,13 +21,8 @@ function Resolver.New(catalog, side)
     -- start / stop events below. Selecting a provider still asks the game itself (it can stop mid-load).
     local running = {}
 
-    -- (inside its own onResourceStart a resource can still read as 'starting': the one that is starting right now
-    -- counts as started, or a restarted inventory / target is never selected again and the default stays in place)
-    local justStarted = {}
     local function started(name)
-        if stopped[name] then return false end
-        local state = GetResourceState(name)
-        return state == 'started' or (justStarted[name] == true and state == 'starting')
+        return not stopped[name] and GetResourceState(name) == 'started'
     end
 
     local function knownStarted(name)
@@ -363,10 +358,18 @@ function Resolver.New(catalog, side)
             end
         end
     end
+    -- Inside its own start event a resource can still read as 'starting', and its adapter returns before defining
+    -- anything until it reads 'started': the provider is picked again once it does.
+    local waiting = {}
     AddEventHandler(side == 'server' and 'onResourceStart' or 'onClientResourceStart', function(name)
-        justStarted[name] = true
-        changed(name, false)
-        justStarted[name] = nil
+        if GetResourceState(name) ~= 'starting' then return changed(name, false) end
+        if waiting[name] then return end
+        waiting[name] = true
+        CreateThread(function()
+            while GetResourceState(name) == 'starting' do Wait(0) end
+            waiting[name] = nil
+            if GetResourceState(name) == 'started' then changed(name, false) end
+        end)
     end)
     AddEventHandler(side == 'server' and 'onResourceStop' or 'onClientResourceStop', function(name)
         if name == resource then
