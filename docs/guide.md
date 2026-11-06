@@ -43,7 +43,7 @@ Target adapters include `ox_target`, `qb-target` and `sleepless_interact`. Addit
 
 Only started providers are eligible. Adapters refresh automatically when providers start, stop or restart: you do not need to restart the bridge after starting, stopping or switching a provider. When several providers run in one domain, the [provider catalog](https://github.com/Concept-Studio-Scripts/concept_bridge/blob/main/lib/providers/shared/catalog.lua) defines their precedence and compatibility overrides.
 
-The `_default` modules provide selected fallbacks. They do not implement a complete standalone economy or inventory: some functions depend on framework methods. Concept HUD can render without a framework using its seed values and push exports. Custom consumers must check the functions they need and handle unavailable operations.
+The `_default` modules provide selected fallbacks. They do not implement a complete standalone economy or inventory: some functions depend on framework methods and return nothing where the framework has no such call (for example the default inventory's `GetItemInfo`, `GetItemBySlot` and `ItemList` on Qbox and QBCore). Concept HUD can render without a framework using its seed values and push exports. Custom consumers must check the functions they need and handle unavailable operations.
 
 ## Configuration
 
@@ -117,7 +117,7 @@ Framework adapters implement these calls; the default module does not supply eve
 
 Client adapters expose `GetIsPlayerLoaded()` as a readiness check; on ox_core it follows the loaded character, including character selection and logout. QBCore, Qbox and ESX getters can return nil or empty data before a character is loaded. Account names and extra metadata functions depend on the adapter. Preserve an unavailable balance instead of displaying a new zero balance.
 
-`GetIsPlayerDown` includes death and last stand where the framework supports them. `GetIsPlayerDead` retains the framework's dead-state meaning.
+`GetIsPlayerDown` includes death and last stand where the framework supports them. On the server, ESX and ox_core also count the state bags the usual ambulance scripts set (`isDead`, `dead`, `isDowned`, `inlaststand`, `isInLastStand`), since some of them write no framework flag. `GetIsPlayerDead` retains the framework's dead-state meaning.
 
 ```lua
 -- client.lua
