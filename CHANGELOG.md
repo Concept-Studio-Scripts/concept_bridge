@@ -13,6 +13,9 @@
   and ignore invalid numeric entity rotations.
 - Run QB-format menu options through ox_lib, lation_ui and wasabi_uikit: event
   options did nothing, and command, QB command and action options now run as in qb-menu.
+- Select a restarted provider again once it has started, instead of staying on
+  the default, and keep the qb-clothing and esx_skin appearance converters so their
+  first appearance call no longer errors.
 
 ## [1.1.1] - 2026-10-22
 
