@@ -24,6 +24,7 @@ lua test/version_checker.lua
 lua test/native_contracts.lua
 lua test/skill_registry.lua
 lua test/entity_rotation.lua
+lua test/qb_menu.lua
 ```
 
 The fixtures exercise bridge code with dependency/native doubles. They do not start FiveM or certify installed provider versions. Some runtime files use FiveM-specific Lua syntax that stock Lua cannot compile.

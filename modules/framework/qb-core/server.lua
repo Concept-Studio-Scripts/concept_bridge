@@ -177,7 +177,7 @@ end
 ---@return table | nil {name = v.name, count = v.amount, metadata = v.info, slot = v.slot}
 Framework.GetPlayerInventory = function(src)
     local player = Framework.GetPlayer(src)
-    if not player then return end
+    if not player then return {} end
     local playerData = player.PlayerData
     local playerInventory = playerData.items
     local repackedTable = {}
@@ -185,7 +185,7 @@ Framework.GetPlayerInventory = function(src)
         table.insert(repackedTable, {
             name = v.name,
             count = v.amount or v.count,
-            metadata = v.info,
+            metadata = v.info or v.metadata,
             slot = v.slot,
         })
     end
@@ -607,42 +607,6 @@ end
 Framework.HasItem = function(src, item, requiredCount)
     local getCount = Framework.GetItemCount(src, item, nil)
     return getCount >= (requiredCount or 1)
-end
-
----@description This wil return the players inventory.
----@param src number
----@return table
-Framework.GetPlayerInventory = function(src)
-    local player = Framework.GetPlayer(src)
-    if not player then return {} end
-    local playerData = player.PlayerData
-    local playerInventory = playerData.items
-    local repackedTable = {}
-    for _, v in pairs(playerInventory) do
-        table.insert(repackedTable, {
-            name = v.name,
-            count = v.amount or v.count,
-            metadata = v.info or v.metadata,
-            slot = v.slot,
-        })
-    end
-    return repackedTable
-end
-
----@description Returns the specified slot data as a table.
----@param src number
----@param slot number
----@return table {name, label, weight, count, metadata, slot, stack, description, image}
-Framework.GetItemBySlot = function(src, slot)
-    local inventory = Framework.GetPlayerInventory(src)
-    if not inventory or #inventory == 0 then return {} end
-    for _, v in pairs(inventory) do
-        if v.slot == slot then
-            local itemInfo = Framework.GetItemInfo(v.name)
-            return {v.name, itemInfo.label or v.name, itemInfo.weight or 0, v.count or 0, v.metadata or {}, v.slot, itemInfo.stack or false, itemInfo.description or "No description available", itemInfo.image or nil}
-        end
-    end
-    return {}
 end
 
 ---@description This will get all owned vehicles for the player
