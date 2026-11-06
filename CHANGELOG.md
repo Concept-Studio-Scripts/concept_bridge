@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-06
+
 ### Added
 
 - concept_ui as a notify, help text, progress bar, menu and input provider. It is picked
