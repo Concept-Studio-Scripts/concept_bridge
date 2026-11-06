@@ -374,6 +374,20 @@ do  -- a module's shared.lua helpers survive the provider set-up (qb-clothing / 
     expect(env.Clothing.GetResourceName() == 'qb-clothing', '... and the selected adapter is the one that has them')
 end
 
+-- An installed but stopped rcore_clothing / 17mov does not block qb-clothing or esx_skin, so their converters load too.
+for _, provider in ipairs({'qb-clothing', 'esx_skin'}) do
+    for _, blocker in ipairs({'rcore_clothing', '17mov_CharacterSystem'}) do
+        local resources = {[provider] = 'started', [blocker] = 'stopped'}
+        local shared = setmetatable({GetResourceState = function(name) return resources[name] or 'missing' end}, {__index = _G})
+        assert(loadfile('modules/clothing/' .. provider .. '/shared.lua', 't', shared))()
+        local env = fixture({definition('Clothing')}, 'server', false, resources, nil, {Clothing = shared.Clothing})
+        local converted = type(env.Clothing.ConvertFromDefault) == 'function'
+            and env.Clothing.ConvertToDefault(env.Clothing.ConvertFromDefault({components = {}, props = {}}))
+        expect(env.Clothing.GetResourceName() == provider and type(converted) == 'table',
+            provider .. ' selected beside a stopped ' .. blocker .. ' has its converters')
+    end
+end
+
 do  -- a restart whose start event fires while the provider still reads 'starting' (its adapter returns early then)
     local env, state, _, lifecycle, fire = fixture({definition('Seatbelt')}, 'client', true, {concept_seatbelt = 'started'})
     env.BridgeClientConfig.Seatbelt = 'concept_seatbelt'
