@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- concept_ui as a notify, help text, progress bar, menu and input provider. It is picked
+  first when it is running; set the provider choice to keep another one.
+
 ### Fixed
 
 - Make extension exports callable so consumers can retrieve their module tables.
@@ -13,6 +18,20 @@
   and ignore invalid numeric entity rotations.
 - Run QB-format menu options through ox_lib, lation_ui and wasabi_uikit: event
   options did nothing, and command, QB command and action options now run as in qb-menu.
+- Select a restarted provider (inventory, target and the others) again once it has
+  started. Until now the default stayed, and inventory item calls failed until the
+  server restarted.
+- Return nothing instead of an error from the default inventory's `GetItemBySlot`,
+  `GetItemInfo` and `ItemList` where the framework has no such call (Qbox, QBCore).
+- Treat the usual ambulance state bags (`isDead`, `dead`, `isDowned`, `inlaststand`,
+  `isInLastStand`) as down on ESX and ox_core.
+- Return named fields from the QBCore `GetItemBySlot` (one definition each of
+  `GetPlayerInventory` and `GetItemBySlot`).
+- Return false from the qb-inventory v1 `CanCarryItem` for a player who cannot be
+  found, instead of measuring an empty inventory.
+- Keep the clothing converters on the server, so qb-clothing and esx_skin no longer
+  fail with `ConvertToDefault` missing on their first appearance call, including when
+  rcore_clothing or 17mov_CharacterSystem is installed but stopped.
 
 ## [1.1.1] - 2026-10-22
 
