@@ -7,9 +7,10 @@ local function definition(name)
     for _, item in ipairs(catalog) do if item.name == name then return item end end
     error('unknown domain: ' .. name)
 end
-local function fixture(definitions, side, actual, initial, runtimeLoader)
+local function fixture(definitions, side, actual, initial, runtimeLoader, globals)
     local env = setmetatable({}, {__index = _G})
     env._G = env
+    for key, value in pairs(globals or {}) do env[key] = value end      -- (what shared scripts set before the providers start)
     local state = {resources = initial or {}, handlers = {}, callbacks = {}, registrations = {},
         emitted = {}, bags = {}, errors = {}, version = '2.0.0', files = {}, failures = {}, threads = {}, exported = {}}
     env.BridgeSharedConfig = {Providers = {}, DebugLevel = 0, Notify = 'auto', HelpText = 'auto', Skills = 'auto'}
@@ -362,6 +363,45 @@ do  -- a public call is guarded with the provider's running state as the start /
     expect(asked <= 1 and env.Framework.GetResourceName() == 'ox_core', 'public calls do not ask the game for the provider state each time')
     lifecycle('ox_core', false)
     expect(env.Framework.GetResourceName() == 'default', '... and a stopped provider is noticed from its stop event')
+end
+
+do  -- a module's shared.lua helpers survive the provider set-up (qb-clothing / esx_skin call Clothing.ConvertToDefault)
+    local helper = function() return 'converted' end
+    local env = fixture({definition('Clothing')}, 'server', false, {['qb-clothing'] = 'started'}, nil,
+        {Clothing = {ConvertToDefault = helper, ConvertFromDefault = helper}})
+    expect(env.Clothing.ConvertToDefault({}) == 'converted' and env.Clothing.ConvertFromDefault({}) == 'converted',
+        'shared helpers set before the providers start stay on the published table')
+    expect(env.Clothing.GetResourceName() == 'qb-clothing', '... and the selected adapter is the one that has them')
+end
+
+-- An installed but stopped rcore_clothing / 17mov does not block qb-clothing or esx_skin, so their converters load too.
+for _, provider in ipairs({'qb-clothing', 'esx_skin'}) do
+    for _, blocker in ipairs({'rcore_clothing', '17mov_CharacterSystem'}) do
+        local resources = {[provider] = 'started', [blocker] = 'stopped'}
+        local shared = setmetatable({GetResourceState = function(name) return resources[name] or 'missing' end}, {__index = _G})
+        assert(loadfile('modules/clothing/' .. provider .. '/shared.lua', 't', shared))()
+        local env = fixture({definition('Clothing')}, 'server', false, resources, nil, {Clothing = shared.Clothing})
+        local converted = type(env.Clothing.ConvertFromDefault) == 'function'
+            and env.Clothing.ConvertToDefault(env.Clothing.ConvertFromDefault({components = {}, props = {}}))
+        expect(env.Clothing.GetResourceName() == provider and type(converted) == 'table',
+            provider .. ' selected beside a stopped ' .. blocker .. ' has its converters')
+    end
+end
+
+do  -- a restart whose start event fires while the provider still reads 'starting' (its adapter returns early then)
+    local env, state, _, lifecycle, fire = fixture({definition('Seatbelt')}, 'client', true, {concept_seatbelt = 'started'})
+    env.BridgeClientConfig.Seatbelt = 'concept_seatbelt'
+    lifecycle('concept_seatbelt', false)
+    local threads = #state.threads
+    state.resources.concept_seatbelt = 'starting'
+    fire('onClientResourceStart', 'concept_seatbelt')
+    fire('onClientResourceStart', 'concept_seatbelt')
+    expect(env.Seatbelt.GetResourceName() == 'default' and #state.threads == threads + 1,
+        'a provider still starting is not selected yet, and one wait covers repeated start events')
+    state.resources.concept_seatbelt = 'started'
+    state.threads[#state.threads]()
+    expect(env.Seatbelt.GetResourceName() == 'concept_seatbelt' and env.Seatbelt.GetState() == true,
+        '... and once it reads started its real adapter is loaded')
 end
 
 print(('provider_selection: %d assertions passed'):format(assertions))

@@ -289,6 +289,8 @@ end
 Inventory.Old.CanCarryItem = function(src, item, count)
     local itemData = Inventory.GetItemInfo(item)
     if not itemData.name or type(count) ~= 'number' or count < 1 or count % 1 ~= 0 then return false end
+    -- (a missing player's inventory reads as empty, which would always fit)
+    if not Framework.GetPlayer(src) then return false end
     local oldQbInventoryConfig = lib.require('@qb-inventory.config')
     local maxInvWeight = oldQbInventoryConfig.MaxWeight or 100000
     local maxInvSlots = oldQbInventoryConfig.MaxSlots or 30

@@ -112,7 +112,9 @@ do
     local env = environment('qb-inventory')
     local definitions = {water = {name = 'water', weight = 10, unique = false}, bread = {name = 'bread', weight = 20, unique = true}}
     local state = {rows = {{name = 'water', count = 10, slot = 5}}, config = {MaxWeight = 120, MaxSlots = 30}}
-    env.Framework = {Shared = {Items = definitions}, GetPlayerInventory = function() return state.rows end}
+    env.Framework = {Shared = {Items = definitions}, GetPlayerInventory = function() return state.rows end,
+        GetPlayer = function() return state.player end}
+    state.player = {}
     env.exports['qb-inventory'] = {}
     local cache = {}
     env.lib = env.lib or {callback = {register = function() end}}
@@ -138,5 +140,7 @@ do
     expect(not api.Old.CanCarryItem(1, 'water', 0) and not api.Old.CanCarryItem(1, 'water', -1) and not api.Old.CanCarryItem(1, 'water', 1.5), 'invalid requested amounts rejected')
     state.rows = nil
     expect(not api.Old.CanCarryItem(1, 'water', 1), 'unavailable player inventory rejects capacity query')
+    state.rows, state.player = {}, nil
+    expect(not api.Old.CanCarryItem(1, 'water', 1), 'a missing player cannot carry anything, though the framework lists an empty inventory')
 end
 print(('PASS: %d audit regression assertions'):format(assertions))

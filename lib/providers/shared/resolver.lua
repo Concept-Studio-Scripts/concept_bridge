@@ -287,6 +287,14 @@ function Resolver.New(catalog, side)
     for _, definition in ipairs(catalog) do
         if definition.defaults[side] then
             local public = {}
+            -- A module's shared.lua runs first and may already have put helpers on the global (the clothing
+            -- converters, Clothing.ConvertToDefault / ConvertFromDefault): they are kept, so the default and every
+            -- adapter copied from it still have them. (Replaced by an empty table, qb-clothing and esx_skin
+            -- failed on their first appearance call.)
+            local before = rawget(_G, definition.name)
+            if type(before) == 'table' then
+                for key, value in pairs(before) do public[key] = value end
+            end
             _G[definition.name] = public
             local state = {definition = definition, public = public, generation = 0, revision = 0, helpers = {}, functions = {}}
             states[#states + 1] = state
@@ -350,7 +358,19 @@ function Resolver.New(catalog, side)
             end
         end
     end
-    AddEventHandler(side == 'server' and 'onResourceStart' or 'onClientResourceStart', function(name) changed(name, false) end)
+    -- Inside its own start event a resource can still read as 'starting', and its adapter returns before defining
+    -- anything until it reads 'started': the provider is picked again once it does.
+    local waiting = {}
+    AddEventHandler(side == 'server' and 'onResourceStart' or 'onClientResourceStart', function(name)
+        if GetResourceState(name) ~= 'starting' then return changed(name, false) end
+        if waiting[name] then return end
+        waiting[name] = true
+        CreateThread(function()
+            while GetResourceState(name) == 'starting' do Wait(0) end
+            waiting[name] = nil
+            if GetResourceState(name) == 'started' then changed(name, false) end
+        end)
+    end)
     AddEventHandler(side == 'server' and 'onResourceStop' or 'onClientResourceStop', function(name)
         if name == resource then
             for _, state in ipairs(states) do close(state.scope) close(state.baseScope) end
